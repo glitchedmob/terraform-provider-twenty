@@ -3,8 +3,10 @@ module github.com/glitchedmob/terraform-provider-twenty
 go 1.27.1
 
 require (
+	github.com/Khan/genqlient v0.8.1
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-go v0.31.0
+	github.com/oapi-codegen/nullable v1.2.0
 )
 
 require (
@@ -33,8 +35,11 @@ require (
 	github.com/MirrexOne/unqueryvet v1.5.4 // indirect
 	github.com/OpenPeeDeeP/depguard/v2 v2.2.1 // indirect
 	github.com/ProtonMail/go-crypto v1.4.1 // indirect
+	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/alecthomas/chroma/v2 v2.27.0 // indirect
 	github.com/alecthomas/go-check-sumtype v0.3.1 // indirect
+	github.com/alexflint/go-arg v1.5.1 // indirect
+	github.com/alexflint/go-scalar v1.2.0 // indirect
 	github.com/alexkohler/nakedret/v2 v2.0.6 // indirect
 	github.com/alexkohler/prealloc v1.1.0 // indirect
 	github.com/alfatraining/structtag v1.0.0 // indirect
@@ -228,6 +233,7 @@ require (
 	github.com/ultraware/whitespace v0.2.0 // indirect
 	github.com/uudashr/gocognit v1.2.1 // indirect
 	github.com/uudashr/iface v1.5.1 // indirect
+	github.com/vektah/gqlparser/v2 v2.5.19 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xen0n/gosmopolitan v1.3.0 // indirect
@@ -268,6 +274,7 @@ require (
 )
 
 tool (
+	github.com/Khan/genqlient
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 	github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 )

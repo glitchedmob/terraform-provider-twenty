@@ -1,0 +1,103 @@
+fragment WorkspaceIdentity on Workspace {
+  id
+  displayName
+  activationStatus
+  subdomain
+  customDomain
+  createdAt
+  updatedAt
+  workspaceMembersCount
+  workspaceUrls { customUrl subdomainUrl }
+  # @genqlient(flatten: true)
+  defaultRole {
+    ...RoleProperties
+  }
+}
+
+fragment AvailableWorkspaceIdentity on AvailableWorkspace {
+  id
+  displayName
+  workspaceUrls { customUrl subdomainUrl }
+}
+
+fragment MemberIdentity on WorkspaceMember {
+  id
+  userId
+  userWorkspaceId
+  userEmail
+  name { firstName lastName }
+  # @genqlient(flatten: true)
+  roles {
+    ...RoleDetails
+  }
+}
+
+query CurrentUser {
+  currentUser {
+    id
+    email
+    firstName
+    lastName
+    isEmailVerified
+    disabled
+    hasPassword
+    onboardingStatus
+    # @genqlient(flatten: true)
+    currentWorkspace {
+      ...WorkspaceIdentity
+    }
+    currentUserWorkspace {
+      id
+      userId
+      permissionFlags
+      # @genqlient(flatten: true)
+      objectPermissions {
+        ...ObjectPermissionDetails
+      }
+    }
+    # @genqlient(flatten: true)
+    workspaceMember {
+      ...MemberIdentity
+    }
+    # @genqlient(flatten: true)
+    workspaceMembers {
+      ...MemberIdentity
+    }
+    availableWorkspaces {
+      # @genqlient(flatten: true)
+      availableWorkspacesForSignIn {
+        ...AvailableWorkspaceIdentity
+      }
+      # @genqlient(flatten: true)
+      availableWorkspacesForSignUp {
+        ...AvailableWorkspaceIdentity
+      }
+    }
+  }
+}
+
+query CurrentWorkspace {
+  currentWorkspace { ...WorkspaceIdentity }
+}
+
+# Explicit origin is required by this operation. The resolver's omitted-origin
+# branch returns synthetic default-workspace data rather than workspace identity.
+query GetPublicWorkspaceDataByDomain($origin: String!) {
+  getPublicWorkspaceDataByDomain(origin: $origin) {
+    id
+    displayName
+    workspaceUrls { customUrl subdomainUrl }
+    authProviders {
+      google
+      password
+      microsoft
+      magicLink
+      sso { id name type status }
+    }
+    authBypassProviders { google password microsoft }
+  }
+}
+
+query GetPublicWorkspaceDataById($id: UUID!) {
+  getPublicWorkspaceDataById(id: $id) { id displayName }
+}

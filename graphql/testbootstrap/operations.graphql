@@ -1,0 +1,126 @@
+# Test-only onboarding for a future disposable local stack.
+# Do not use these operations in provider configuration or managed resources.
+fragment BootstrapToken on AuthToken {
+  token
+  expiresAt
+}
+
+fragment BootstrapAccess on AvailableWorkspacesAndAccessTokens {
+  tokens {
+    # @genqlient(flatten: true)
+    accessOrWorkspaceAgnosticToken {
+      ...BootstrapToken
+    }
+    # @genqlient(flatten: true)
+    refreshToken {
+      ...BootstrapToken
+    }
+  }
+  availableWorkspaces {
+    availableWorkspacesForSignIn {
+      id
+      displayName
+      workspaceUrls { customUrl subdomainUrl }
+    }
+    availableWorkspacesForSignUp {
+      id
+      displayName
+      workspaceUrls { customUrl subdomainUrl }
+    }
+  }
+}
+
+fragment BootstrapWorkspace on SignUp {
+  # @genqlient(flatten: true)
+  loginToken {
+    ...BootstrapToken
+  }
+  workspace {
+    id
+    workspaceUrls { customUrl subdomainUrl }
+  }
+}
+
+mutation TestSignUp(
+  $email: String!
+  $password: String!
+  # @genqlient(omitempty: true)
+  $captchaToken: String
+  # @genqlient(omitempty: true)
+  $locale: String
+  # @genqlient(omitempty: true)
+  $verifyEmailRedirectPath: String
+) {
+  signUp(
+    email: $email
+    password: $password
+    captchaToken: $captchaToken
+    locale: $locale
+    verifyEmailRedirectPath: $verifyEmailRedirectPath
+  ) { ...BootstrapAccess }
+}
+
+# Verification token must come from the disposable stack's mail sink.
+mutation TestVerifyEmail(
+  $emailVerificationToken: String!
+  $email: String!
+  # @genqlient(omitempty: true)
+  $captchaToken: String
+) {
+  verifyEmailAndGetWorkspaceAgnosticToken(
+    emailVerificationToken: $emailVerificationToken
+    email: $email
+    captchaToken: $captchaToken
+  ) { ...BootstrapAccess }
+}
+
+# Service requires nonblank displayName even though SDL marks it optional.
+# @genqlient(for: "SignUpInNewWorkspaceInput.displayName", omitempty: true)
+# @genqlient(for: "SignUpInNewWorkspaceInput.subdomain", omitempty: true)
+mutation TestCreateWorkspace(
+  $input: SignUpInNewWorkspaceInput!
+) {
+  # @genqlient(flatten: true)
+  signUpInNewWorkspace(input: $input) {
+    ...BootstrapWorkspace
+  }
+}
+
+# Use data: {}. The legacy displayName input is ignored by the resolver.
+# @genqlient(for: "ActivateWorkspaceInput.displayName", omitempty: true)
+mutation TestActivateWorkspace(
+  $data: ActivateWorkspaceInput!
+) {
+  activateWorkspace(data: $data) { id displayName activationStatus }
+}
+
+# Personal invitation token comes from the disposable stack's mail sink.
+# Always specify the intended workspace/invitation, never implicit new-workspace
+# signup. Establish an independent recovery administrator via an admin invite.
+mutation TestJoinWorkspace(
+  $email: String!
+  $password: String!
+  # @genqlient(omitempty: true)
+  $workspaceId: UUID
+  # @genqlient(omitempty: true)
+  $workspaceInviteHash: String
+  # @genqlient(omitempty: true)
+  $workspacePersonalInviteToken: String
+  # @genqlient(omitempty: true)
+  $captchaToken: String
+  # @genqlient(omitempty: true)
+  $locale: String
+  # @genqlient(omitempty: true)
+  $verifyEmailRedirectPath: String
+) {
+  signUpInWorkspace(
+    email: $email
+    password: $password
+    workspaceId: $workspaceId
+    workspaceInviteHash: $workspaceInviteHash
+    workspacePersonalInviteToken: $workspacePersonalInviteToken
+    captchaToken: $captchaToken
+    locale: $locale
+    verifyEmailRedirectPath: $verifyEmailRedirectPath
+  ) { ...BootstrapWorkspace }
+}

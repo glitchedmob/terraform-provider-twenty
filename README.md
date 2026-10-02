@@ -1,6 +1,6 @@
 # Terraform provider for Twenty
 
-Initial scaffold only. This is not a working or released provider. It exports provider metadata and an `endpoint`, `email`, and sensitive `password` configuration schema. It has no resources, data sources, authentication, or network requests.
+Configuration scaffold with generated Metadata GraphQL operations. This is not a working or released provider. It exports provider metadata and an `endpoint`, `email`, and sensitive `password` configuration schema. It has no resources, data sources, authentication, or network requests.
 
 The intended target is Twenty v2.44.0. Future work will manage IAM and configuration through `/metadata` GraphQL, not CRM records. Password-session authentication is forthcoming. API keys do not cover the intended membership operations in this release.
 
@@ -26,10 +26,11 @@ Requirements:
 
 - Go 1.27.1, as pinned in `go.mod`
 - Terraform 1.14.7 for the documentation checks used in CI
-- No Twenty instance or credentials for scaffold checks
+- No Twenty instance or credentials for development checks
 
 ```shell
 go mod download
+make generate
 make fmt
 make fmt-check
 make lint
@@ -39,14 +40,14 @@ make generate-docs
 make validate-docs
 ```
 
-`make lint` uses golangci-lint v2.13.2 and documentation commands use tfplugindocs v0.25.0 through `go tool`. Both tools are pinned in `go.mod`; no global installs are needed. `make build` compiles all packages. To build a binary for local Terraform `dev_overrides`, run `go build -o terraform-provider-twenty .`.
+`make lint` uses golangci-lint v2.13.2 and documentation commands use tfplugindocs v0.25.0 through `go tool`. These tools and genqlient v0.8.1 are pinned in `go.mod`; no global installs are needed. `make build` compiles all packages. To build a binary for local Terraform `dev_overrides`, run `go build -o terraform-provider-twenty .`.
 
 `docs/` is generated. Edit `templates/`, `examples/`, or Go schema descriptions, then regenerate and commit the output with the source changes. Documentation generation needs Go and Terraform, not credentials or Docker. Documentation validation checks Registry page structure; it does not run Terraform examples.
 
-`make generate` and `make testacc` deliberately fail until later stages implement GraphQL generation and container acceptance tests. The release workflow is preparation only and is gated by an unset `RELEASE_ENABLED` repository variable. Do not enable releases or configure signing secrets during the scaffold stage.
+`make generate` verifies the committed Metadata SDL and license checksums, then generates selected Go operations without Terraform, Docker, credentials, or schema introspection. See [graphql/README.md](graphql/README.md) for provenance, update instructions, and optional-input contracts. `make testacc` remains unavailable until stage 3 adds disposable container tests. The release workflow is preparation only and is gated by an unset `RELEASE_ENABLED` repository variable. Releases and signing secrets need separate authorization.
 
 Read [AGENTS.md](AGENTS.md) before changing code. [DEVELOPMENT.md](DEVELOPMENT.md) records the serial implementation phases, upstream pins, and handoff.
 
 ## License
 
-[Mozilla Public License 2.0](LICENSE).
+Provider code uses [Mozilla Public License 2.0](LICENSE). The upstream Metadata SDL uses the preserved [Twenty client SDK MIT license](graphql/LICENSE); see [schema provenance](graphql/README.md).

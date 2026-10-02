@@ -1,0 +1,13 @@
+# Disposable acceptance-stack onboarding only. Never import from provider code.
+schema: schema.graphql
+operations:
+  - testbootstrap/*.graphql
+generated: ../internal/client/testbootstrap/bootstrap.gen.go
+package: testbootstrap
+optional: generic
+optional_generic_type: github.com/oapi-codegen/nullable.Nullable
+bindings:
+  UUID:
+    type: string
+  DateTime:
+    type: time.Time

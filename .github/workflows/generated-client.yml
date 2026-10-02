@@ -1,0 +1,29 @@
+name: Generated client
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generated-client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      # Uses only committed SDL, operations, and pinned Go tools. No Terraform,
+      # Docker, Twenty credentials, upstream fetch, or introspection.
+      - run: make generate
+      - name: Check generated source
+        run: |
+          git diff --exit-code
+          test -z "$(git ls-files --others --exclude-standard -- internal/client/)"

@@ -3,10 +3,11 @@ default: fmt test build
 build:
 	go build -v ./...
 
-# GraphQL client generation belongs to stage 2, not this scaffold.
+# Offline generation from the committed, checksum-verified Metadata SDL.
 generate:
-	@echo "GraphQL client generation is not implemented yet. See DEVELOPMENT.md." >&2
-	@exit 1
+	cd graphql && sha256sum --check SHA256SUMS
+	go tool genqlient graphql/genqlient.yaml
+	go tool genqlient graphql/genqlient.testbootstrap.yaml
 
 generate-docs:
 	go tool tfplugindocs generate --provider-name twenty --rendered-provider-name Twenty
@@ -29,7 +30,7 @@ lint:
 test:
 	go test -v -cover ./...
 
-# No acceptance tests or container stack exist in stage 1.
+# Acceptance tests and a disposable container stack belong to stage 3.
 testacc:
 	@echo "Acceptance tests are not implemented yet. See DEVELOPMENT.md." >&2
 	@exit 1

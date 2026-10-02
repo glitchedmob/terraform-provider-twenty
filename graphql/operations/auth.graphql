@@ -1,0 +1,54 @@
+fragment Token on AuthToken {
+  token
+  expiresAt
+}
+
+fragment TokenPair on AuthTokenPair {
+  # @genqlient(flatten: true)
+  accessOrWorkspaceAgnosticToken {
+    ...Token
+  }
+  # @genqlient(flatten: true)
+  refreshToken {
+    ...Token
+  }
+}
+
+mutation GetLoginTokenFromCredentials(
+  $email: String!
+  $password: String!
+  $origin: String!
+  # @genqlient(omitempty: true)
+  $captchaToken: String
+  # @genqlient(omitempty: true)
+  $locale: String
+  # @genqlient(omitempty: true)
+  $verifyEmailRedirectPath: String
+) {
+  getLoginTokenFromCredentials(
+    email: $email
+    password: $password
+    origin: $origin
+    captchaToken: $captchaToken
+    locale: $locale
+    verifyEmailRedirectPath: $verifyEmailRedirectPath
+  ) {
+    # @genqlient(flatten: true)
+    loginToken {
+      ...Token
+    }
+  }
+}
+
+mutation GetAuthTokensFromLoginToken($loginToken: String!, $origin: String!) {
+  getAuthTokensFromLoginToken(loginToken: $loginToken, origin: $origin) {
+    tokens { ...TokenPair }
+  }
+}
+
+# appToken is the rotating refresh token, not the access token.
+mutation RenewToken($appToken: String!) {
+  renewToken(appToken: $appToken) {
+    tokens { ...TokenPair }
+  }
+}

@@ -1,0 +1,14 @@
+schema: schema.graphql
+operations:
+  - operations/*.graphql
+generated: ../internal/client/metadata.gen.go
+package: client
+optional: generic
+optional_generic_type: github.com/oapi-codegen/nullable.Nullable
+bindings:
+  UUID:
+    type: string
+  DateTime:
+    type: time.Time
+  JSON:
+    type: encoding/json.RawMessage

@@ -1,0 +1,178 @@
+fragment RoleProperties on Role {
+  id
+  universalIdentifier
+  label
+  description
+  icon
+  isEditable
+  canBeAssignedToUsers
+  canBeAssignedToAgents
+  canBeAssignedToApiKeys
+  canUpdateAllSettings
+  canAccessAllTools
+  canReadAllObjectRecords
+  canUpdateAllObjectRecords
+  canSoftDeleteAllObjectRecords
+  canDestroyAllObjectRecords
+}
+
+fragment PermissionFlag on RolePermissionFlag {
+  id
+  roleId
+  flag
+}
+
+fragment PermissionPredicate on RowLevelPermissionPredicate {
+  id
+  fieldMetadataId
+  objectMetadataId
+  operand
+  subFieldName
+  workspaceMemberFieldMetadataId
+  workspaceMemberSubFieldName
+  rowLevelPermissionPredicateGroupId
+  positionInRowLevelPermissionPredicateGroup
+  roleId
+  value
+}
+
+fragment PermissionPredicateGroup on RowLevelPermissionPredicateGroup {
+  id
+  parentRowLevelPermissionPredicateGroupId
+  logicalOperator
+  positionInRowLevelPermissionPredicateGroup
+  roleId
+  objectMetadataId
+}
+
+fragment ObjectPermissionDetails on ObjectPermission {
+  objectMetadataId
+  canReadObjectRecords
+  canUpdateObjectRecords
+  canSoftDeleteObjectRecords
+  canDestroyObjectRecords
+  restrictedFields
+  rowLevelPermissionPredicates { ...PermissionPredicate }
+  rowLevelPermissionPredicateGroups { ...PermissionPredicateGroup }
+}
+
+fragment FieldPermissionDetails on FieldPermission {
+  id
+  objectMetadataId
+  fieldMetadataId
+  roleId
+  canReadFieldValue
+  canUpdateFieldValue
+}
+
+fragment RoleDetails on Role {
+  ...RoleProperties
+  # @genqlient(flatten: true)
+  permissionFlags {
+    ...PermissionFlag
+  }
+  # @genqlient(flatten: true)
+  objectPermissions {
+    ...ObjectPermissionDetails
+  }
+  # @genqlient(flatten: true)
+  fieldPermissions {
+    ...FieldPermissionDetails
+  }
+  rowLevelPermissionPredicates { ...PermissionPredicate }
+  rowLevelPermissionPredicateGroups { ...PermissionPredicateGroup }
+}
+
+query GetRoles {
+  getRoles {
+    ...RoleDetails
+    workspaceMembers {
+      id
+      userId
+      userWorkspaceId
+      userEmail
+      name { firstName lastName }
+    }
+    agents { id }
+    apiKeys { id name expiresAt revokedAt }
+  }
+}
+
+# Mutation DTOs do not hydrate relations. Re-read GetRoles after mutation.
+# @genqlient(for: "CreateRoleInput.id", omitempty: true)
+# @genqlient(for: "CreateRoleInput.description", omitempty: true)
+# @genqlient(for: "CreateRoleInput.icon", omitempty: true)
+# @genqlient(for: "CreateRoleInput.canUpdateAllSettings", omitempty: true)
+# @genqlient(for: "CreateRoleInput.canAccessAllTools", omitempty: true)
+# @genqlient(for: "CreateRoleInput.canReadAllObjectRecords", omitempty: true)
+# @genqlient(for: "CreateRoleInput.canUpdateAllObjectRecords", omitempty: true)
+# @genqlient(for: "CreateRoleInput.canSoftDeleteAllObjectRecords", omitempty: true)
+# @genqlient(for: "CreateRoleInput.canDestroyAllObjectRecords", omitempty: true)
+# @genqlient(for: "CreateRoleInput.canBeAssignedToUsers", omitempty: true)
+# @genqlient(for: "CreateRoleInput.canBeAssignedToAgents", omitempty: true)
+# @genqlient(for: "CreateRoleInput.canBeAssignedToApiKeys", omitempty: true)
+mutation CreateOneRole(
+  $input: CreateRoleInput!
+) {
+  # @genqlient(flatten: true)
+  createOneRole(createRoleInput: $input) {
+    ...RoleProperties
+  }
+}
+
+# @genqlient(for: "UpdateRolePayload.label", omitempty: true)
+# @genqlient(for: "UpdateRolePayload.description", omitempty: true)
+# @genqlient(for: "UpdateRolePayload.icon", omitempty: true)
+# @genqlient(for: "UpdateRolePayload.canUpdateAllSettings", omitempty: true)
+# @genqlient(for: "UpdateRolePayload.canAccessAllTools", omitempty: true)
+# @genqlient(for: "UpdateRolePayload.canReadAllObjectRecords", omitempty: true)
+# @genqlient(for: "UpdateRolePayload.canUpdateAllObjectRecords", omitempty: true)
+# @genqlient(for: "UpdateRolePayload.canSoftDeleteAllObjectRecords", omitempty: true)
+# @genqlient(for: "UpdateRolePayload.canDestroyAllObjectRecords", omitempty: true)
+# @genqlient(for: "UpdateRolePayload.canBeAssignedToUsers", omitempty: true)
+# @genqlient(for: "UpdateRolePayload.canBeAssignedToAgents", omitempty: true)
+# @genqlient(for: "UpdateRolePayload.canBeAssignedToApiKeys", omitempty: true)
+mutation UpdateOneRole(
+  $input: UpdateRoleInput!
+) {
+  # @genqlient(flatten: true)
+  updateOneRole(updateRoleInput: $input) {
+    ...RoleProperties
+  }
+}
+
+mutation DeleteOneRole($roleId: UUID!) {
+  deleteOneRole(roleId: $roleId)
+}
+
+# Replaces the whole flag set. Send [] to clear, not a nil slice.
+mutation UpsertPermissionFlags($input: UpsertPermissionFlagsInput!) {
+  # @genqlient(flatten: true)
+  upsertPermissionFlags(upsertPermissionFlagsInput: $input) {
+    ...PermissionFlag
+  }
+}
+
+# @genqlient(for: "ObjectPermissionInput.canReadObjectRecords", omitempty: true)
+# @genqlient(for: "ObjectPermissionInput.canUpdateObjectRecords", omitempty: true)
+# @genqlient(for: "ObjectPermissionInput.canSoftDeleteObjectRecords", omitempty: true)
+# @genqlient(for: "ObjectPermissionInput.canDestroyObjectRecords", omitempty: true)
+mutation UpsertObjectPermissions(
+  $input: UpsertObjectPermissionsInput!
+) {
+  # @genqlient(flatten: true)
+  upsertObjectPermissions(upsertObjectPermissionsInput: $input) {
+    ...ObjectPermissionDetails
+  }
+}
+
+# @genqlient(for: "FieldPermissionInput.canReadFieldValue", omitempty: true)
+# @genqlient(for: "FieldPermissionInput.canUpdateFieldValue", omitempty: true)
+mutation UpsertFieldPermissions(
+  $input: UpsertFieldPermissionsInput!
+) {
+  # @genqlient(flatten: true)
+  upsertFieldPermissions(upsertFieldPermissionsInput: $input) {
+    ...FieldPermissionDetails
+  }
+}

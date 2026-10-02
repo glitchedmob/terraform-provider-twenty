@@ -1,0 +1,56 @@
+fragment Invitation on WorkspaceInvitation {
+  id
+  email
+  expiresAt
+  roleId
+}
+
+query FindWorkspaceInvitations {
+  # @genqlient(flatten: true)
+  findWorkspaceInvitations {
+    ...Invitation
+  }
+}
+
+mutation SendInvitations(
+  $emails: [String!]!
+  # @genqlient(omitempty: true)
+  $roleId: UUID
+) {
+  sendInvitations(emails: $emails, roleId: $roleId) {
+    success
+    errors
+    # @genqlient(flatten: true)
+    result {
+      ...Invitation
+    }
+  }
+}
+
+# Returns "success" or "error", not an invitation ID.
+mutation DeleteWorkspaceInvitation($appTokenId: String!) {
+  deleteWorkspaceInvitation(appTokenId: $appTokenId)
+}
+
+# Returned roles are not hydrated DTOs. Re-read CurrentUser after mutation.
+mutation UpdateWorkspaceMemberRole($workspaceMemberId: UUID!, $roleId: UUID!) {
+  updateWorkspaceMemberRole(workspaceMemberId: $workspaceMemberId, roleId: $roleId) {
+    id
+    userId
+    userWorkspaceId
+    userEmail
+    name { firstName lastName }
+    # @genqlient(flatten: true)
+    roles {
+      ...RoleProperties
+    }
+  }
+}
+
+mutation DeleteUserFromWorkspace($workspaceMemberIdToDelete: String!) {
+  deleteUserFromWorkspace(workspaceMemberIdToDelete: $workspaceMemberIdToDelete) {
+    id
+    userId
+    deletedAt
+  }
+}
