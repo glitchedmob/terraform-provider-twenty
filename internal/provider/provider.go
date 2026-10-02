@@ -7,7 +7,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/glitchedmob/terraform-provider-twenty/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -17,24 +19,30 @@ import (
 
 var _ provider.Provider = &TwentyProvider{}
 
-// TwentyProvider implements the initial, configuration-only provider.
+// TwentyProvider configures an authenticated Twenty Metadata session.
 type TwentyProvider struct {
 	version string
 }
 
 // TwentyProviderModel describes the provider configuration.
 type TwentyProviderModel struct {
-	Endpoint types.String `tfsdk:"endpoint"`
-	Email    types.String `tfsdk:"email"`
-	Password types.String `tfsdk:"password"`
+	Endpoint          types.String `tfsdk:"endpoint"`
+	Email             types.String `tfsdk:"email"`
+	Password          types.String `tfsdk:"password"`
+	AllowInsecureHTTP types.Bool   `tfsdk:"allow_insecure_http"`
 }
 
-// providerConfig is a temporary handoff type, not an authenticated API client.
-// Keep credentials in provider-process memory, never in resource state or logs.
-type providerConfig struct {
-	endpoint string
-	email    string
-	password string
+// ClientData shares one in-memory session with resources and data sources.
+type ClientData struct {
+	Client *client.Session
+}
+
+// resolvedProviderConfig exists only while configuring the session.
+type resolvedProviderConfig struct {
+	endpoint  string
+	email     string
+	password  string
+	allowHTTP bool
 }
 
 func (p *TwentyProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -44,20 +52,24 @@ func (p *TwentyProvider) Metadata(_ context.Context, _ provider.MetadataRequest,
 
 func (p *TwentyProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Initial scaffold for Twenty IAM and configuration through Metadata GraphQL. Authentication, resources, and data sources are not implemented. Intended target: Twenty v2.44.0.",
+		MarkdownDescription: "Twenty IAM and configuration through Metadata GraphQL with an in-memory password session. Intended target: Twenty v2.44.0. Use a dedicated verified automation account and keep an independent recovery administrator.",
 		Attributes: map[string]schema.Attribute{
 			"endpoint": schema.StringAttribute{
-				MarkdownDescription: "Twenty instance base URL, without the `/metadata` suffix. May also be set with `TWENTY_ENDPOINT`. No default. Explicit values override the environment. This scaffold does not contact the endpoint.",
+				MarkdownDescription: "Twenty instance HTTPS base URL, without the `/metadata` suffix, credentials, other paths, query, or fragment. May also be set with `TWENTY_ENDPOINT`. No default. Explicit values, including empty values, override the environment. Redirects are rejected.",
 				Optional:            true,
 			},
 			"email": schema.StringAttribute{
-				MarkdownDescription: "Dedicated automation account email for forthcoming password-session authentication. May also be set with `TWENTY_EMAIL`. Explicit values override the environment. This scaffold does not authenticate.",
+				MarkdownDescription: "Dedicated verified automation account email for password-session authentication. Must be one bare ASCII mailbox address without a display name, comments, or control characters. Surrounding spaces are trimmed. May also be set with `TWENTY_EMAIL`. Explicit values, including empty values, override the environment. MFA and CAPTCHA flows are not supported.",
 				Optional:            true,
 			},
 			"password": schema.StringAttribute{
-				MarkdownDescription: "Automation account password for forthcoming password-session authentication. May also be set with `TWENTY_PASSWORD`. Explicit values override the environment. Sensitive values can still appear in saved Terraform plans; inject credentials through the environment.",
+				MarkdownDescription: "Automation account password for a new in-memory session on each provider configuration. May also be set with `TWENTY_PASSWORD`. Explicit values, including empty values, override the environment. Sensitive values can still appear in saved Terraform plans; inject credentials through the environment.",
 				Optional:            true,
 				Sensitive:           true,
+			},
+			"allow_insecure_http": schema.BoolAttribute{
+				MarkdownDescription: "Allow unencrypted HTTP only for deliberate local testing with localhost or a literal loopback IP address. Defaults to false. No environment fallback. HTTPS certificate verification is never disabled.",
+				Optional:            true,
 			},
 		},
 	}
@@ -71,36 +83,23 @@ func (p *TwentyProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	}
 
 	var config TwentyProviderModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if diags := req.Config.Get(ctx, &config); diags.HasError() {
+		resp.Diagnostics.AddError("Invalid Twenty Provider Configuration", "Provider configuration must contain string credentials and a boolean allow_insecure_http value.")
+		return
+	}
+	resolved, diags := resolveProviderConfig(config, os.Getenv)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if config.Endpoint.IsNull() && config.Email.IsNull() && config.Password.IsNull() {
+	session, err := client.NewSession(ctx, resolved.endpoint, resolved.email, resolved.password, resolved.allowHTTP)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to Configure Twenty Provider", client.DiagnosticMessage(err))
 		return
 	}
-
-	for name, value := range map[string]types.String{
-		"endpoint": config.Endpoint,
-		"email":    config.Email,
-		"password": config.Password,
-	} {
-		if value.IsUnknown() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root(name),
-				"Unknown Twenty Provider Configuration",
-				"The "+name+" value must be known when configuring the provider.",
-			)
-		}
-	}
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Stage 1 only resolves configuration. Do not add authentication or network
-	// requests here until the generated client and isolated container tests exist.
-	resolved := resolveProviderConfig(config, os.Getenv)
-	resp.DataSourceData = resolved
-	resp.ResourceData = resolved
+	data := &ClientData{Client: session}
+	resp.DataSourceData = data
+	resp.ResourceData = data
 }
 
 func (p *TwentyProvider) Resources(context.Context) []func() resource.Resource {
@@ -108,7 +107,7 @@ func (p *TwentyProvider) Resources(context.Context) []func() resource.Resource {
 }
 
 func (p *TwentyProvider) DataSources(context.Context) []func() datasource.DataSource {
-	return nil
+	return []func() datasource.DataSource{NewRoleDataSource}
 }
 
 // New returns a provider factory for protocol server registration and tests.
@@ -118,22 +117,45 @@ func New(version string) func() provider.Provider {
 	}
 }
 
-func resolveProviderConfig(config TwentyProviderModel, getenv func(string) string) *providerConfig {
-	endpoint := getenv("TWENTY_ENDPOINT")
-	if !config.Endpoint.IsNull() {
-		endpoint = config.Endpoint.ValueString()
+func resolveProviderConfig(config TwentyProviderModel, getenv func(string) string) (resolvedProviderConfig, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	attributes := []struct {
+		name  string
+		value types.String
+	}{
+		{"endpoint", config.Endpoint},
+		{"email", config.Email},
+		{"password", config.Password},
 	}
-	email := getenv("TWENTY_EMAIL")
-	if !config.Email.IsNull() {
-		email = config.Email.ValueString()
+	for _, attribute := range attributes {
+		if attribute.value.IsUnknown() {
+			diags.AddAttributeError(path.Root(attribute.name), "Unknown Twenty Provider Configuration", "The "+attribute.name+" value must be known when configuring the provider.")
+		}
 	}
-	password := getenv("TWENTY_PASSWORD")
-	if !config.Password.IsNull() {
-		password = config.Password.ValueString()
+	if config.AllowInsecureHTTP.IsUnknown() {
+		diags.AddAttributeError(path.Root("allow_insecure_http"), "Unknown Twenty Provider Configuration", "The allow_insecure_http value must be known when configuring the provider.")
 	}
-	return &providerConfig{
-		endpoint: strings.TrimSpace(endpoint),
-		email:    strings.TrimSpace(email),
-		password: password,
+	if diags.HasError() {
+		return resolvedProviderConfig{}, diags
 	}
+	values := make([]string, len(attributes))
+	for i, attribute := range attributes {
+		if attribute.value.IsNull() {
+			values[i] = getenv("TWENTY_" + strings.ToUpper(attribute.name))
+		} else {
+			values[i] = attribute.value.ValueString()
+		}
+		if strings.TrimSpace(values[i]) == "" {
+			diags.AddAttributeError(path.Root(attribute.name), "Missing Twenty Provider Configuration", "Set a nonempty "+attribute.name+" value or its TWENTY_"+strings.ToUpper(attribute.name)+" environment variable. Explicit empty values do not use environment fallback.")
+		}
+	}
+	if strings.TrimSpace(values[1]) != "" {
+		if err := client.ValidateEmail(values[1]); err != nil {
+			diags.AddAttributeError(path.Root("email"), "Invalid Twenty Provider Configuration", client.DiagnosticMessage(err))
+		}
+	}
+	return resolvedProviderConfig{
+		endpoint: strings.TrimSpace(values[0]), email: strings.TrimSpace(values[1]), password: values[2],
+		allowHTTP: config.AllowInsecureHTTP.ValueBool(),
+	}, diags
 }

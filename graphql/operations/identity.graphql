@@ -4,8 +4,6 @@ fragment WorkspaceIdentity on Workspace {
   activationStatus
   subdomain
   customDomain
-  createdAt
-  updatedAt
   workspaceMembersCount
   workspaceUrls { customUrl subdomainUrl }
   # @genqlient(flatten: true)
@@ -76,8 +74,14 @@ query CurrentUser {
   }
 }
 
+# CurrentUser returns a cached auth-workspace summary without timestamps.
+# Only the dedicated currentWorkspace resolver loads the complete entity.
 query CurrentWorkspace {
-  currentWorkspace { ...WorkspaceIdentity }
+  currentWorkspace {
+    ...WorkspaceIdentity
+    createdAt
+    updatedAt
+  }
 }
 
 # Explicit origin is required by this operation. The resolver's omitted-origin

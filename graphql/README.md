@@ -4,8 +4,9 @@ The committed SDL is the complete Twenty v2.44.0 Metadata schema. Only the
 handwritten IAM, identity, and password-session operations in `operations/`
 generate provider client code. The schema contains other upstream operations;
 they are not selected. Use `/metadata`, never Core GraphQL `/graphql` or CRM
-record REST endpoints. The stage-2 generation and unit checks do not establish
-end-to-end compatibility with a running server.
+record REST endpoints. Stage 3 tests password login, token exchange/renewal, identity, role reads,
+and disposable onboarding against the pinned container. Generated mutations
+for future resources are not a claim of tested Terraform resource behavior.
 
 ## Provenance and license
 
@@ -166,8 +167,9 @@ and synthetic response decoding without network calls.
 
 ## Resolver checks and next-stage cautions
 
-These contracts were checked against source at the pinned commit, not against
-a container. Paths below are relative to upstream `packages/twenty-server/`:
+These contracts were first checked against source at the pinned commit.
+Stage-3 container results and limitations are recorded in `DEVELOPMENT.md`.
+Paths below are relative to upstream `packages/twenty-server/`:
 
 - `src/engine/core-modules/auth/auth.resolver.ts` and
   `auth/token/services/renew-token.service.ts` confirm login/exchange origin
@@ -217,11 +219,11 @@ The five functions are `TestSignUp`, `TestVerifyEmail`,
 `TestCreateWorkspace`, `TestActivateWorkspace`, and `TestJoinWorkspace`.
 They select `signUp`, `verifyEmailAndGetWorkspaceAgnosticToken`,
 `signUpInNewWorkspace`, `activateWorkspace`, and `signUpInWorkspace`.
-These are needed to onboard verified automation and recovery identities in a
-future disposable stack without database edits or minted credentials.
+`internal/acceptance/` uses these to onboard verified automation and recovery
+identities in a disposable stack without database edits or minted credentials.
 
-Stage 3 must capture server-issued verification and personal invitation tokens
-from that stack's mail sink. Workspace creation requires a nonblank display
+The helpers capture server-issued verification and personal invitation tokens
+from the stack's mail sink. Workspace creation requires a nonblank display
 name despite SDL nullability. Activation takes `ActivateWorkspaceInput{}`;
 its legacy display-name field is ignored. Join with an explicit workspace and
 personal invitation, never implicit new-workspace signup. Invite the recovery
@@ -229,5 +231,17 @@ administrator with an explicit admin role. The relevant source is
 `auth/services/sign-in-up.service.ts` and
 `user-workspace/user-workspace.service.ts`.
 
-These documents do not implement bootstrap, weaken authentication settings,
-start containers, or exercise a live account.
+Operator signup consumes an email-verification token. In the pinned server,
+consuming a personal invitation from the recovery account's mailbox verifies
+that email itself; a subsequent verification mutation correctly fails as
+already verified. The helper checks persisted verification and the explicitly
+invited admin role. Global signup after the first workspace is not used in
+single-workspace mode.
+
+`CurrentUser.currentWorkspace` returns a cached auth-workspace summary without
+`createdAt`/`updatedAt`. Selecting those fields caused a real server error during
+stage-3 bootstrap. They now belong only to the dedicated `CurrentWorkspace`
+operation. Both source and generated code include this compatibility fix.
+
+The operation documents alone do not implement bootstrap or weaken settings.
+Only disposable acceptance helpers start containers or onboard test identities.

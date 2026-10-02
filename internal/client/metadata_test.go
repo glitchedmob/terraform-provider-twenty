@@ -694,10 +694,6 @@ func assertWorkspace(t *testing.T, workspace client.WorkspaceIdentity) {
 	assertNull(t, workspace.CustomDomain)
 	assertNull(t, workspace.WorkspaceUrls.CustomUrl)
 	assertRoleProperties(t, nullableValue(t, workspace.DefaultRole))
-	if !workspace.CreatedAt.Equal(time.Date(2029, time.January, 2, 3, 4, 5, 0, time.UTC)) ||
-		!workspace.UpdatedAt.Equal(time.Date(2029, time.February, 2, 3, 4, 5, 0, time.UTC)) {
-		t.Fatal("workspace timestamps did not decode")
-	}
 }
 
 func TestCurrentUserWorkspaceAndCompleteMembers(t *testing.T) {
@@ -805,6 +801,10 @@ func TestCurrentWorkspace(t *testing.T) {
 	}
 	assertVariables(t, c, nil)
 	assertWorkspace(t, response.CurrentWorkspace.WorkspaceIdentity)
+	if !response.CurrentWorkspace.CreatedAt.Equal(time.Date(2029, time.January, 2, 3, 4, 5, 0, time.UTC)) ||
+		!response.CurrentWorkspace.UpdatedAt.Equal(time.Date(2029, time.February, 2, 3, 4, 5, 0, time.UTC)) {
+		t.Fatal("workspace timestamps did not decode")
+	}
 }
 
 func TestPublicWorkspaceLookup(t *testing.T) {

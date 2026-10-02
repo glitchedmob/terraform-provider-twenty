@@ -1,0 +1,42 @@
+name: Acceptance tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance:
+    name: Twenty v2.44.0
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.14.7"
+          terraform_wrapper: false
+      - name: Check disposable-stack prerequisites
+        run: |
+          docker version
+          docker compose version
+          terraform version
+      - run: go mod download
+      - run: make testacc
+      - name: Upload redacted container diagnostics
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: twenty-v2.44.0-logs
+          path: _artifacts/
+          if-no-files-found: ignore
+          retention-days: 7

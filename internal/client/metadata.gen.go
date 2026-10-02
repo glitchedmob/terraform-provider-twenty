@@ -239,7 +239,15 @@ func (v *CurrentUserResponse) GetCurrentUser() CurrentUserCurrentUser { return v
 // CurrentWorkspaceCurrentWorkspace includes the requested fields of the GraphQL type Workspace.
 type CurrentWorkspaceCurrentWorkspace struct {
 	WorkspaceIdentity `json:"-"`
+	CreatedAt         time.Time `json:"createdAt"`
+	UpdatedAt         time.Time `json:"updatedAt"`
 }
+
+// GetCreatedAt returns CurrentWorkspaceCurrentWorkspace.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CurrentWorkspaceCurrentWorkspace) GetCreatedAt() time.Time { return v.CreatedAt }
+
+// GetUpdatedAt returns CurrentWorkspaceCurrentWorkspace.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *CurrentWorkspaceCurrentWorkspace) GetUpdatedAt() time.Time { return v.UpdatedAt }
 
 // GetId returns CurrentWorkspaceCurrentWorkspace.Id, and is useful for accessing the field via an interface.
 func (v *CurrentWorkspaceCurrentWorkspace) GetId() string { return v.WorkspaceIdentity.Id }
@@ -262,16 +270,6 @@ func (v *CurrentWorkspaceCurrentWorkspace) GetSubdomain() string {
 // GetCustomDomain returns CurrentWorkspaceCurrentWorkspace.CustomDomain, and is useful for accessing the field via an interface.
 func (v *CurrentWorkspaceCurrentWorkspace) GetCustomDomain() nullable.Nullable[string] {
 	return v.WorkspaceIdentity.CustomDomain
-}
-
-// GetCreatedAt returns CurrentWorkspaceCurrentWorkspace.CreatedAt, and is useful for accessing the field via an interface.
-func (v *CurrentWorkspaceCurrentWorkspace) GetCreatedAt() time.Time {
-	return v.WorkspaceIdentity.CreatedAt
-}
-
-// GetUpdatedAt returns CurrentWorkspaceCurrentWorkspace.UpdatedAt, and is useful for accessing the field via an interface.
-func (v *CurrentWorkspaceCurrentWorkspace) GetUpdatedAt() time.Time {
-	return v.WorkspaceIdentity.UpdatedAt
 }
 
 // GetWorkspaceMembersCount returns CurrentWorkspaceCurrentWorkspace.WorkspaceMembersCount, and is useful for accessing the field via an interface.
@@ -315,6 +313,10 @@ func (v *CurrentWorkspaceCurrentWorkspace) UnmarshalJSON(b []byte) error {
 }
 
 type __premarshalCurrentWorkspaceCurrentWorkspace struct {
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+
 	Id string `json:"id"`
 
 	DisplayName nullable.Nullable[string] `json:"displayName"`
@@ -324,10 +326,6 @@ type __premarshalCurrentWorkspaceCurrentWorkspace struct {
 	Subdomain string `json:"subdomain"`
 
 	CustomDomain nullable.Nullable[string] `json:"customDomain"`
-
-	CreatedAt time.Time `json:"createdAt"`
-
-	UpdatedAt time.Time `json:"updatedAt"`
 
 	WorkspaceMembersCount nullable.Nullable[float64] `json:"workspaceMembersCount"`
 
@@ -347,13 +345,13 @@ func (v *CurrentWorkspaceCurrentWorkspace) MarshalJSON() ([]byte, error) {
 func (v *CurrentWorkspaceCurrentWorkspace) __premarshalJSON() (*__premarshalCurrentWorkspaceCurrentWorkspace, error) {
 	var retval __premarshalCurrentWorkspaceCurrentWorkspace
 
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
 	retval.Id = v.WorkspaceIdentity.Id
 	retval.DisplayName = v.WorkspaceIdentity.DisplayName
 	retval.ActivationStatus = v.WorkspaceIdentity.ActivationStatus
 	retval.Subdomain = v.WorkspaceIdentity.Subdomain
 	retval.CustomDomain = v.WorkspaceIdentity.CustomDomain
-	retval.CreatedAt = v.WorkspaceIdentity.CreatedAt
-	retval.UpdatedAt = v.WorkspaceIdentity.UpdatedAt
 	retval.WorkspaceMembersCount = v.WorkspaceIdentity.WorkspaceMembersCount
 	retval.WorkspaceUrls = v.WorkspaceIdentity.WorkspaceUrls
 	retval.DefaultRole = v.WorkspaceIdentity.DefaultRole
@@ -2567,8 +2565,6 @@ type WorkspaceIdentity struct {
 	ActivationStatus      WorkspaceActivationStatus         `json:"activationStatus"`
 	Subdomain             string                            `json:"subdomain"`
 	CustomDomain          nullable.Nullable[string]         `json:"customDomain"`
-	CreatedAt             time.Time                         `json:"createdAt"`
-	UpdatedAt             time.Time                         `json:"updatedAt"`
 	WorkspaceMembersCount nullable.Nullable[float64]        `json:"workspaceMembersCount"`
 	WorkspaceUrls         WorkspaceIdentityWorkspaceUrls    `json:"workspaceUrls"`
 	DefaultRole           nullable.Nullable[RoleProperties] `json:"defaultRole"`
@@ -2590,12 +2586,6 @@ func (v *WorkspaceIdentity) GetSubdomain() string { return v.Subdomain }
 
 // GetCustomDomain returns WorkspaceIdentity.CustomDomain, and is useful for accessing the field via an interface.
 func (v *WorkspaceIdentity) GetCustomDomain() nullable.Nullable[string] { return v.CustomDomain }
-
-// GetCreatedAt returns WorkspaceIdentity.CreatedAt, and is useful for accessing the field via an interface.
-func (v *WorkspaceIdentity) GetCreatedAt() time.Time { return v.CreatedAt }
-
-// GetUpdatedAt returns WorkspaceIdentity.UpdatedAt, and is useful for accessing the field via an interface.
-func (v *WorkspaceIdentity) GetUpdatedAt() time.Time { return v.UpdatedAt }
 
 // GetWorkspaceMembersCount returns WorkspaceIdentity.WorkspaceMembersCount, and is useful for accessing the field via an interface.
 func (v *WorkspaceIdentity) GetWorkspaceMembersCount() nullable.Nullable[float64] {
@@ -2875,8 +2865,6 @@ fragment WorkspaceIdentity on Workspace {
 	activationStatus
 	subdomain
 	customDomain
-	createdAt
-	updatedAt
 	workspaceMembersCount
 	workspaceUrls {
 		customUrl
@@ -3018,6 +3006,8 @@ const CurrentWorkspace_Operation = `
 query CurrentWorkspace {
 	currentWorkspace {
 		... WorkspaceIdentity
+		createdAt
+		updatedAt
 	}
 }
 fragment WorkspaceIdentity on Workspace {
@@ -3026,8 +3016,6 @@ fragment WorkspaceIdentity on Workspace {
 	activationStatus
 	subdomain
 	customDomain
-	createdAt
-	updatedAt
 	workspaceMembersCount
 	workspaceUrls {
 		customUrl
@@ -3056,6 +3044,8 @@ fragment RoleProperties on Role {
 }
 `
 
+// CurrentUser returns a cached auth-workspace summary without timestamps.
+// Only the dedicated currentWorkspace resolver loads the complete entity.
 func CurrentWorkspace(
 	ctx_ context.Context,
 	client_ graphql.Client,

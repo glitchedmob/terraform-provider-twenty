@@ -6,8 +6,8 @@ terraform {
   }
 }
 
-# Unreleased. Build locally and use a Terraform CLI dev_overrides entry.
-# Inject TWENTY_EMAIL and TWENTY_PASSWORD outside checked-in configuration.
+# Unreleased. Use a locally built provider with Terraform CLI dev_overrides.
+# Inject TWENTY_EMAIL and TWENTY_PASSWORD through your secret-injection process.
 provider "twenty" {
   endpoint = "https://twenty.example.com"
 }
