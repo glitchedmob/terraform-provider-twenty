@@ -628,6 +628,8 @@ The new cancellation interleavings and response/read faults are synthetic, not i
 - [Invitation lifecycle service](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/workspace-invitation/services/workspace-invitation.service.ts)
 - [Accepted removal and cascades](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/user/services/user.service.ts)
 - [User-role assignment/cache service](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/metadata-modules/user-role/user-role.service.ts)
+- [Official targeted cache command](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/workspace-manager/workspace-migration/workspace-migration-runner/commands/flat-cache-invalidate.command.ts)
+- [Cache invalidation/recomputation runner](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/workspace-manager/workspace-migration/workspace-migration-runner/services/workspace-migration-runner.service.ts)
 
 These public source pins guide implementation. They are not end-to-end authentication or compatibility results.
 
@@ -636,3 +638,25 @@ These public source pins guide implementation. They are not end-to-end authentic
 Stages 3, 4A, 4B, and 4C use the stage-2 operation/type handoff above and `graphql/README.md`, not a new client generator. `make generate` uses committed SDL only. Authentication stays in `TwentyProvider.Configure`, while absent/raw-null configuration tests and credential-free documentation commands remain regression checks. Initial IAM work may continue under the user's serial authorization, one assigned step at a time, using the validated shared session and preserving bootstrap/recovery protections.
 
 `main.go` serves protocol 6 at `registry.terraform.io/glitchedmob/twenty`. The manifest advertises protocol 6.0. The release workflow follows Kaneo's GPG-signing layout but stays gated off, with no tags or secrets configured.
+
+## Operator-controlled role-cache maintenance follow-up
+
+This independent follow-up is based on `32934d3`, outside the invitation-fix stack. Provider runtime, invitation logic, and role-deletion guards are unchanged. The unattended combined-teardown regression still expects the pinned cache failure and leaves its role for disposable stack teardown.
+
+Pinned public source and the fresh server container's `--help` confirmed `yarn command:prod cache:flat-cache-invalidate --workspace-id <workspace-uuid> --metadataName roleTarget`. The command expands related metadata caches; the migration runner includes `userWorkspaceRoleMap` and calls workspace cache invalidation/recomputation. The test operator runs it only in Start's captured local server container, checking native container identity, Compose project/service labels, exact image digest, and the fixture operator's workspace UUID. It has no arbitrary command/container selector or host credential forwarding. A two-minute client context and in-container `timeout -k 10s 90s` bound execution. Output stays in memory; only fixed summaries are logged.
+
+The new real regression owns a custom role and member through Terraform, accepts server-issued invitation mail, and proves an empty plan. Its first destroy reproduces the classified cache failure with one role-deletion and one membership-deletion call. Membership is gone from server/state; the role remains in both. After explicit targeted operator maintenance, one deliberate subsequent destroy makes one additional role-deletion call and removes the role from server/state. Fresh reads and logins preserve both unmanaged administrators' user/member/user-workspace/workspace IDs, role assignments, permission flags, and original Admin role properties. There are no reassignment, permission elevation, implicit repair, or retry mutations.
+
+README and the generated role/member pages link to the version-specific operator procedure in the membership guide. It requires separate scoped server access, backups/change coordination, inspection of already-removed membership and retained role, targeted maintenance, then review and deliberate destroy. Provider authentication stays API-only, with no shell, cluster, DB, or Redis credentials. No result is claimed for untested versions or other failures.
+
+### Verification
+
+Checks used Go 1.27.1, Terraform 1.14.7 from `/tmp/twenty-terraform-1.14.7/terraform`, golangci-lint v2.13.2, and tfplugindocs v0.25.0. No dependencies, GraphQL operations, SDL, image, or Compose definitions changed.
+
+- `go mod download` and `go mod verify` passed. Two offline `make generate` runs passed the SDL/license checksums and matched the pre-run generated-file manifest.
+- `make fmt`, `make fmt-check`, `make lint`, `make test`, `go test -race ./...`, and `make build` passed. Lint reported zero issues. Unit coverage was 94.0% provider, 53.7% client, and 10.5% disposable helpers. Scope/completion unit cases reject remote/foreign targets, unpinned images, invalid workspace IDs, extra workspace output, and unconfirmed maintenance. A source-import regression excludes acceptance/execution/container dependencies from provider runtime.
+- Two documentation generations/validations matched. Synthetic ambient Twenty credentials pointed at a loopback sentinel, which observed zero requests.
+- A focused real-container run passed both regressions in 124.897 seconds. Full `make testacc` passed in 151.245 seconds with the unchanged disposable v2.44.0 stack. The unattended failure regression passed in 11.67 seconds; explicit maintenance recovery passed in 19.75 seconds. All existing IAM/session/permission cases passed, including final recovery-administrator verification. Registered cleanup removed only each test's own containers, volumes, and temporary Terraform directories.
+- `git diff --check` passed. Read-only review found no concrete issues.
+
+The first full run stopped on an overly strict test-only completion parser after the CLI exited successfully. Nest's logger adds color resets and a `+Nms` suffix. The parser now ignores only that formatting, still requires exactly one exact workspace UUID, and has corresponding unit cases. No raw command logs, state, tokens, or member data were emitted to diagnose it. The corrected full run verified the subsequent destroy. No production, infrastructure, reference repository, live accounts, signing secrets, release, tag, merge, push, or PR creation was used.

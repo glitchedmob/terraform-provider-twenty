@@ -34,6 +34,12 @@ type Stack struct {
 	Endpoint string
 	Origin   string
 	MailURL  string
+
+	// Captured by Start, never resolved from an operator-supplied container name.
+	server     *testcontainers.DockerContainer
+	serverID   string
+	projectID  string
+	dockerHost string
 }
 
 // Start registers cleanup before starting containers. No credential or endpoint
@@ -56,9 +62,10 @@ func Start(t *testing.T) *Stack {
 	if !ok {
 		t.Fatal("locate acceptance compose file")
 	}
+	projectID := "twenty-acc-" + randomString(t)
 	stack, err := compose.NewDockerComposeWith(
 		compose.WithStackFiles(filepath.Join(filepath.Dir(source), "../../integration/compose.yml")),
-		compose.StackIdentifier("twenty-acc-"+randomString(t)),
+		compose.StackIdentifier(projectID),
 		compose.WithLogger(log.New(io.Discard, "", 0)),
 	)
 	if err != nil {
@@ -110,7 +117,10 @@ func Start(t *testing.T) *Stack {
 		t.Fatal("locate disposable mail sink port")
 	}
 	origin := "http://127.0.0.1:" + strconv.Itoa(port)
-	return &Stack{Endpoint: origin, Origin: origin, MailURL: "http://127.0.0.1:" + mailPort.Port()}
+	return &Stack{
+		Endpoint: origin, Origin: origin, MailURL: "http://127.0.0.1:" + mailPort.Port(),
+		server: server, serverID: server.GetContainerID(), projectID: projectID, dockerHost: os.Getenv("DOCKER_HOST"),
+	}
 }
 
 // Refuse remote daemon contexts before any daemon call. Both Compose's Docker

@@ -8,7 +8,9 @@ All operations use Metadata GraphQL at `/metadata`, not Core GraphQL or CRM reco
 
 Combined teardown of an accepted member and its Terraform-owned custom role is not fully supported on Twenty v2.44.0. Membership removal succeeds, but a stale upstream role-assignment cache can block the following role deletion. Terraform retains the custom role in state and on the server; the removed member is absent from both. The provider reports a fixed error and does not retry or change other assignments to repair the cache.
 
-Inspect membership and retained role state before taking further action. Teardown remains constrained until the upstream cache is refreshed or the defect is fixed. No safe Metadata-only cache refresh or tested repair procedure is available in this pin. Do not assume an immediate retry or server restart will resolve it. See the [membership guide](docs/guides/membership.md).
+Inspect membership and retained role state before taking further action. A version-specific [operator-controlled maintenance procedure](docs/guides/membership.md#operator-controlled-cache-maintenance-on-v2440) was verified in a disposable v2.44.0 container. It requires separate server access, then a deliberate destroy rerun. Unattended combined teardown remains unsupported. The provider stays Metadata-only and never runs maintenance or needs shell, cluster, or database credentials.
+
+A maintenance regression reproduces the classified teardown failure, explicitly runs the official targeted maintenance CLI as the test operator, then verifies one requested destroy succeeds without changing either administrator.
 
 ## Supported types
 

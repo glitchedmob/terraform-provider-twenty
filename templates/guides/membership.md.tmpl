@@ -13,7 +13,34 @@ The [membership resource](../resources/workspace_member.md) owns access for decl
 
 Destroying an accepted member and its Terraform-owned custom role is not fully supported on v2.44.0. The server removes membership but can retain its user-workspace ID in the role-assignment cache. The following role deletion then fails. The provider returns a fixed cache diagnostic, retains the role in state, and does not retry or rebind other users. The member can already be absent from both state and server while the role remains in both.
 
-Inspect actual membership and retained role state. Combined teardown remains constrained until the upstream cache is refreshed or fixed. This pin has no verified safe Metadata-only cache refresh or tested repair procedure. Do not assume an immediate retry or server restart will resolve it.
+Inspect actual membership and retained role state before any further destroy. Unattended combined teardown remains unsupported. The provider has no Metadata-only cache repair and never invokes server maintenance. The following procedure is a separate operator action, not automatic provider recovery.
+
+## Operator-controlled cache maintenance on v2.44.0
+
+A disposable acceptance test verified Twenty v2.44.0's official targeted cache invalidation command at source commit `f7a4720eb4d479bfa3f6634bcdd703bb4de66600` and image digest `sha256:01fb6d2c00397976fd7613dbeb9703b514b52fb6270339b7a326a2a975d15b26`. It reproduced the exact cached-role deletion failure, ran maintenance for that workspace, then completed one deliberately requested Terraform destroy. This does not establish compatibility or safety for untested versions, deployments, or other deletion failures.
+
+The failed destroy has already removed the accepted member. Inspect the remaining Terraform role ID and actual server membership/role assignments first. Do not remove the retained role from state, recreate the member, raise permissions, or retry destroy blindly. Back up through your normal administration process, pause competing IAM writers, and coordinate the maintenance with the instance owner. Appropriate Twenty server access is required outside the provider. Do not weaken authentication or security settings to obtain it.
+
+Confirm the Docker context and server container belong to the intended instance, verify its version and command help, and confirm the exact authenticated workspace UUID. Replace every placeholder below. Run from the Twenty server package directory in the server container, not the worker, database, or Redis container:
+
+```shell
+docker --context <confirmed-container-context> exec \
+  --workdir /app/packages/twenty-server <twenty-server-container> \
+  timeout -k 10s 90s yarn command:prod cache:flat-cache-invalidate \
+  --workspace-id <workspace-uuid> --metadataName roleTarget
+```
+
+Check `yarn command:prod cache:flat-cache-invalidate --help` in the same scoped server first. Keep `--workspace-id` and its exact UUID; the official command can process all eligible workspaces when that selector is omitted. Do not broaden this procedure with `--all-metadata` or additional workspace selectors. The targeted `roleTarget` operation also refreshes related caches, including `userWorkspaceRoleMap`. It is not a role reassignment or a direct database/Redis edit.
+
+After maintenance reports completion for only the intended workspace, inspect the retained role and assignments again. Review `terraform plan -destroy`, then deliberately run `terraform destroy` once. Confirm that both membership and role are absent from server and state, and that the unmanaged automation/recovery accounts and their roles are unchanged. If maintenance or the subsequent destroy fails, stop and inspect the new error. The provider still makes one deletion call per explicit attempt, with no repair or automatic retry. Do not treat a server restart as a verified cache repair.
+
+The pinned official sources are the [CLI command][cache-command], [workspace selector][workspace-command], [migration runner cache invalidation][cache-runner], [workspace cache recomputation][workspace-cache], and [user-workspace role-map provider][role-map-cache]. The provider remains API-only. It does not accept shell, cluster, database, or Redis credentials and does not execute this procedure.
+
+[cache-command]: https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/workspace-manager/workspace-migration/workspace-migration-runner/commands/flat-cache-invalidate.command.ts
+[workspace-command]: https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/database/commands/command-runners/workspace.command-runner.ts
+[cache-runner]: https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/workspace-manager/workspace-migration/workspace-migration-runner/services/workspace-migration-runner.service.ts
+[workspace-cache]: https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/workspace-cache/services/workspace-cache.service.ts
+[role-map-cache]: https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/metadata-modules/role-target/services/workspace-user-workspace-role-map-cache.service.ts
 
 ## Roles and declared emails
 
