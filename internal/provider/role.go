@@ -142,6 +142,12 @@ func validateRoleResponse(raw json.RawMessage) error {
 		if err := json.Unmarshal(role["label"], &label); err != nil || blankRoleLabel(label) {
 			return errors.New("invalid role label")
 		}
+		for _, name := range []string{"description", "icon"} {
+			var value *string
+			if len(role[name]) == 0 || json.Unmarshal(role[name], &value) != nil {
+				return errors.New("missing or invalid nullable role string")
+			}
+		}
 		for _, name := range []string{
 			"isEditable", "canBeAssignedToUsers", "canBeAssignedToAgents", "canBeAssignedToApiKeys",
 			"canUpdateAllSettings", "canAccessAllTools", "canReadAllObjectRecords", "canUpdateAllObjectRecords",

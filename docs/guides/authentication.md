@@ -7,9 +7,9 @@ description: |-
 
 # Authentication
 
-Use an existing, verified automation account in an active Twenty workspace. Give it the `ROLES` settings permission to read the `twenty_role` data source. Object-record permissions are separate.
+Use an existing, verified automation account in an active Twenty workspace. Give it the `ROLES` settings permission for role lookup and management. Role mutation guards also need visibility of current workspace members. Role deletion needs `APPLICATIONS` to inspect application defaults, or the global full-settings grant. Object-record permissions are separate.
 
-Provision this account outside Terraform. Keep its membership and its own role outside future Terraform-managed resources too. Maintain a separate recovery administrator with credentials the automation job does not use. The provider currently has no resources and cannot bootstrap accounts.
+Provision this account outside Terraform. Keep its membership and its current assigned roles outside Terraform-managed resources too. Maintain a separate recovery administrator with credentials the automation job does not use. The role resource cannot bootstrap accounts or manage assignments.
 
 ## Supply credentials
 

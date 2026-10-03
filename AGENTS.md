@@ -2,9 +2,9 @@
 
 ## Scope and safety
 
-Stages 1, 2, and 3 are complete. Stage 3 implemented password-session authentication, the read-only `twenty_role` data source, and disposable local container tests. Stage 4 resources are not authorized. Read the serial checklist and tested handoff in [DEVELOPMENT.md](DEVELOPMENT.md) before any broader IAM work.
+Stages 1, 2, and 3 are complete. Initial IAM work is authorized in serial steps: the `twenty_role` resource in step 4A, then the workspace data source and membership resource in later assigned steps. Implement only the assigned step, one agent at a time. Read the serial checklist and tested handoff in [DEVELOPMENT.md](DEVELOPMENT.md) before continuing. Workspace settings and object/field permission ownership are outside this authorization.
 
-The provider uses Twenty's Metadata GraphQL endpoint, `/metadata`. Stage 3 may authenticate, validate identity, and read roles, but must not register resources. Do not add CRM record CRUD, Core GraphQL `/graphql` calls, or Core REST record operations.
+The provider uses Twenty's Metadata GraphQL endpoint, `/metadata`. Step 4A may register only the role resource alongside the existing role data source. Later assigned IAM steps may register their own authorized types. Do not add CRM record CRUD, Core GraphQL `/graphql` calls, or Core REST record operations.
 
 Do not access production Twenty instances, infrastructure repositories, Kubernetes clusters, databases, secret stores, or live user accounts. Do not use local ambient credentials for tests. Acceptance tests must create a disposable local container stack with test-only automation and recovery accounts and destroy only that stack.
 
@@ -54,7 +54,7 @@ Authorized disposable container target:
 twentycrm/twenty:v2.44.0@sha256:01fb6d2c00397976fd7613dbeb9703b514b52fb6270339b7a326a2a975d15b26
 ```
 
-Use this image for both server and worker and pin supporting services in `integration/compose.yml`. Container testing is authorized only for the disposable stage-3 stack. It does not authorize deployment or infrastructure changes.
+Use this image for both server and worker and pin supporting services in `integration/compose.yml`. Container testing is authorized only for the disposable IAM acceptance stack. It does not authorize deployment or infrastructure changes.
 
 The upstream source pin is `twentyhq/twenty` commit `f7a4720eb4d479bfa3f6634bcdd703bb4de66600`, corresponding to v2.44.0. The [Metadata SDL](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-client-sdk/src/metadata/generated/schema.graphql) is the committed genqlient input. Follow the resolver links in [DEVELOPMENT.md](DEVELOPMENT.md) when choosing operations.
 

@@ -16,7 +16,7 @@ import (
 	"github.com/glitchedmob/terraform-provider-twenty/internal/client"
 )
 
-// One disposable stack is reused across this stage's read-only provider tests.
+// One disposable stack is reused across session, data source, and role resource tests.
 // No managed resources alter the operator or its independent recovery admin.
 func TestAccSessionAndRole(t *testing.T) {
 	fixture := acceptance.Bootstrap(t, acceptance.Start(t))
@@ -76,6 +76,8 @@ func TestAccSessionAndRole(t *testing.T) {
 			},
 		})
 	})
+
+	t.Run("role_resource", func(t *testing.T) { testAccRoleResource(t, fixture) })
 
 	t.Run("missing_role", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
@@ -142,8 +144,82 @@ func TestAccSessionAndRole(t *testing.T) {
 				Steps: []resource.TestStep{{
 					Config:      roleAcceptanceConfig("role_id", fixture.AdminRole.Id),
 					ExpectError: regexp.MustCompile("Unable to Read Twenty Roles"),
+				}, {
+					Config: `provider "twenty" { allow_insecure_http = true }
+resource "twenty_role" "denied" {
+ label = "Denied create"
+ permission_flags = []
+}`,
+					ExpectError: regexp.MustCompile("Unable to Create Twenty Role"),
+				}, {
+					Config: fmt.Sprintf(`provider "twenty" { allow_insecure_http = true }
+import {
+ to = twenty_role.denied
+ id = %q
+}
+resource "twenty_role" "denied" {
+ label = "Denied import"
+ permission_flags = []
+}`, fixture.AdminRole.Id),
+					PlanOnly:    true,
+					ExpectError: regexp.MustCompile("Unable to Read Twenty Role"),
 				}},
 			})
+		})
+		t.Run("settings_flags_are_distinct", func(t *testing.T) {
+			if _, err := client.UpsertPermissionFlags(t.Context(), fixture.Operator.API, client.UpsertPermissionFlagsInput{RoleId: roleID, PermissionFlagKeys: []string{"ROLES"}}); err != nil {
+				t.Fatal("grant ROLES to disposable restricted member")
+			}
+			rolesOnly, err := client.NewSession(t.Context(), fixture.Stack.Endpoint, restricted.Email, restricted.Password, true)
+			if err != nil {
+				t.Fatal("authenticate ROLES-only member")
+			}
+			if _, err := rolesOnly.GetRoles(t.Context()); err != nil {
+				t.Fatal("ROLES must permit role reads")
+			}
+			t.Run("roles_only_create_update_and_application_guard", func(t *testing.T) {
+				t.Setenv("TWENTY_EMAIL", restricted.Email)
+				t.Setenv("TWENTY_PASSWORD", restricted.Password)
+				resource.Test(t, resource.TestCase{ProtoV6ProviderFactories: acceptanceFactories(), Steps: []resource.TestStep{
+					{Config: `provider "twenty" { allow_insecure_http = true }
+resource "twenty_role" "scoped" {
+ label = "ROLES-only created role"
+ permission_flags = ["ROLES"]
+}`},
+					{Config: `provider "twenty" { allow_insecure_http = true }
+resource "twenty_role" "scoped" {
+ label = "ROLES-only updated role"
+ permission_flags = []
+}`},
+					{Config: `provider "twenty" { allow_insecure_http = true }
+resource "twenty_role" "scoped" {
+ label = "ROLES-only updated role"
+ permission_flags = []
+}`, Destroy: true, ExpectError: regexp.MustCompile("Unable to Delete Twenty Role")},
+					{PreConfig: func() {
+						if _, err := client.UpsertPermissionFlags(t.Context(), fixture.Operator.API, client.UpsertPermissionFlagsInput{RoleId: roleID, PermissionFlagKeys: []string{"ROLES", "APPLICATIONS"}}); err != nil {
+							t.Fatal("grant application assignment visibility for deletion")
+						}
+					}, Config: `provider "twenty" { allow_insecure_http = true }
+resource "twenty_role" "scoped" {
+ label = "ROLES-only updated role"
+ permission_flags = []
+}`, Destroy: true},
+				}})
+			})
+			if _, err := client.SendInvitations(t.Context(), rolesOnly.Client(), []string{"not-invited@example.test"}, nullable.NewNullableWithValue(roleID)); err == nil {
+				t.Fatal("ROLES unexpectedly granted WORKSPACE_MEMBERS")
+			}
+			if _, err := client.UpsertPermissionFlags(t.Context(), fixture.Operator.API, client.UpsertPermissionFlagsInput{RoleId: roleID, PermissionFlagKeys: []string{"WORKSPACE_MEMBERS"}}); err != nil {
+				t.Fatal("replace settings flags")
+			}
+			membersOnly, err := client.NewSession(t.Context(), fixture.Stack.Endpoint, restricted.Email, restricted.Password, true)
+			if err != nil {
+				t.Fatal("authenticate WORKSPACE_MEMBERS-only member")
+			}
+			if _, err := membersOnly.GetRoles(t.Context()); err == nil {
+				t.Fatal("WORKSPACE_MEMBERS unexpectedly granted ROLES")
+			}
 		})
 	})
 

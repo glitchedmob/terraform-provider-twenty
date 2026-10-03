@@ -98,6 +98,15 @@ query GetRoles {
   }
 }
 
+# Application defaults are not exposed through Role's assignment relations.
+# Deletion must check these separately before calling the rebinding mutation.
+query FindManyApplications {
+  findManyApplications {
+    id
+    defaultRoleId
+  }
+}
+
 # Mutation DTOs do not hydrate relations. Re-read GetRoles after mutation.
 # @genqlient(for: "CreateRoleInput.id", omitempty: true)
 # @genqlient(for: "CreateRoleInput.description", omitempty: true)

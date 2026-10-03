@@ -6,6 +6,7 @@ import (
 	"context"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/glitchedmob/terraform-provider-twenty/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -35,6 +36,9 @@ type TwentyProviderModel struct {
 // ClientData shares one in-memory session with resources and data sources.
 type ClientData struct {
 	Client *client.Session
+	// MutationLock serializes fresh safety checks and role mutations across all
+	// resources sharing this provider configuration. It is not a server lock.
+	MutationLock sync.Mutex
 }
 
 // resolvedProviderConfig exists only while configuring the session.
@@ -103,7 +107,7 @@ func (p *TwentyProvider) Configure(ctx context.Context, req provider.ConfigureRe
 }
 
 func (p *TwentyProvider) Resources(context.Context) []func() resource.Resource {
-	return nil
+	return []func() resource.Resource{NewRoleResource}
 }
 
 func (p *TwentyProvider) DataSources(context.Context) []func() datasource.DataSource {

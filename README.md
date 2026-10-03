@@ -1,8 +1,15 @@
 # Terraform provider for Twenty
 
-Unreleased Terraform provider tested against Twenty v2.44.0. The current subset authenticates an existing automation account with an in-memory password session and reads existing roles with the `twenty_role` data source. No resources are implemented.
+Unreleased Terraform provider tested against Twenty v2.44.0. It authenticates an existing automation account with an in-memory password session, reads existing roles, and manages custom roles.
 
-All operations use Metadata GraphQL at `/metadata`, not Core GraphQL or CRM record APIs. Broader IAM resources are planned for stage 4 and are not part of the authorized stage-3 work. API keys do not cover the intended membership operations in this Twenty release.
+All operations use Metadata GraphQL at `/metadata`, not Core GraphQL or CRM record APIs. Workspace lookup and membership management are the next serial IAM steps. They are not implemented yet. API keys do not cover the intended membership operations in this Twenty release.
+
+## Supported types
+
+- `twenty_role` data source, lookup by native UUID or exact label
+- `twenty_role` resource, custom role CRUD, native UUID import, global booleans, and complete explicit permission flag ownership
+
+The role resource protects bootstrap/default/built-in roles and refuses assigned-role deletion. It does not manage assignments or object/field permission rows. See [role resource documentation](docs/resources/role.md), [permissions](docs/guides/permissions.md), and [import guidance](docs/guides/import.md).
 
 ## Configuration
 
@@ -55,7 +62,7 @@ make validate-docs
 
 `make testacc` sets `TF_ACC=1` and runs a bounded suite against its own disposable stack from `integration/compose.yml`. Both Twenty server and worker use the v2.44.0 digest recorded in [DEVELOPMENT.md](DEVELOPMENT.md). The suite supplies test-only credentials and tears down only its own containers and volumes. The target removes ambient Twenty credentials and Terraform logging settings. Never use a live deployment for acceptance tests. Failure diagnostics belong in ignored `_artifacts/` and must omit credentials, tokens, and private member data.
 
-The real-container suite has passed login and identity checks, two server-issued token renewals, role ID/label lookup using environment-only credentials, missing-role and wrong-password errors, actual `ROLES` permission denial, and preservation of both bootstrap administrators. See the exact versions and check results in [DEVELOPMENT.md](DEVELOPMENT.md).
+The real-container suite covers session renewal, role lookup, custom role CRUD/import/drift, explicit false/default values, null and empty strings, flag replacement and clearing, missing roles, actual settings permission denial, assigned-role deletion refusal, and preservation of both bootstrap administrators. See the exact versions and check results in [DEVELOPMENT.md](DEVELOPMENT.md).
 
 Documentation commands also remove Twenty credential environment variables. They inspect schemas without login. The release workflow remains gated by an unset `RELEASE_ENABLED` repository variable. Releases and signing secrets need separate authorization.
 

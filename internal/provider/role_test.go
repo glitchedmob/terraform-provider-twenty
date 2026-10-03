@@ -50,6 +50,8 @@ func TestRoleResponseMalformedValues(t *testing.T) {
 		"missing label":       func(role map[string]any) { delete(role, "label") },
 		"blank label":         func(role map[string]any) { role["label"] = " \n" },
 		"invalid description": func(role map[string]any) { role["description"] = false },
+		"missing description": func(role map[string]any) { delete(role, "description") },
+		"missing icon":        func(role map[string]any) { delete(role, "icon") },
 		"invalid icon":        func(role map[string]any) { role["icon"] = 12 },
 		"missing flags":       func(role map[string]any) { delete(role, "permissionFlags") },
 		"null flag":           func(role map[string]any) { role["permissionFlags"] = []any{nil} },

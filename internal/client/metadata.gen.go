@@ -471,6 +471,30 @@ func (v *FieldPermissionInput) GetCanUpdateFieldValue() nullable.Nullable[bool] 
 	return v.CanUpdateFieldValue
 }
 
+// FindManyApplicationsFindManyApplicationsApplication includes the requested fields of the GraphQL type Application.
+type FindManyApplicationsFindManyApplicationsApplication struct {
+	Id            string                    `json:"id"`
+	DefaultRoleId nullable.Nullable[string] `json:"defaultRoleId"`
+}
+
+// GetId returns FindManyApplicationsFindManyApplicationsApplication.Id, and is useful for accessing the field via an interface.
+func (v *FindManyApplicationsFindManyApplicationsApplication) GetId() string { return v.Id }
+
+// GetDefaultRoleId returns FindManyApplicationsFindManyApplicationsApplication.DefaultRoleId, and is useful for accessing the field via an interface.
+func (v *FindManyApplicationsFindManyApplicationsApplication) GetDefaultRoleId() nullable.Nullable[string] {
+	return v.DefaultRoleId
+}
+
+// FindManyApplicationsResponse is returned by FindManyApplications on success.
+type FindManyApplicationsResponse struct {
+	FindManyApplications []FindManyApplicationsFindManyApplicationsApplication `json:"findManyApplications"`
+}
+
+// GetFindManyApplications returns FindManyApplicationsResponse.FindManyApplications, and is useful for accessing the field via an interface.
+func (v *FindManyApplicationsResponse) GetFindManyApplications() []FindManyApplicationsFindManyApplicationsApplication {
+	return v.FindManyApplications
+}
+
 // FindWorkspaceInvitationsResponse is returned by FindWorkspaceInvitations on success.
 type FindWorkspaceInvitationsResponse struct {
 	FindWorkspaceInvitations []Invitation `json:"findWorkspaceInvitations"`
@@ -3157,6 +3181,39 @@ func DeleteWorkspaceInvitation(
 	}
 
 	data_ = &DeleteWorkspaceInvitationResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by FindManyApplications.
+const FindManyApplications_Operation = `
+query FindManyApplications {
+	findManyApplications {
+		id
+		defaultRoleId
+	}
+}
+`
+
+// Application defaults are not exposed through Role's assignment relations.
+// Deletion must check these separately before calling the rebinding mutation.
+func FindManyApplications(
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *FindManyApplicationsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "FindManyApplications",
+		Query:  FindManyApplications_Operation,
+	}
+
+	data_ = &FindManyApplicationsResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

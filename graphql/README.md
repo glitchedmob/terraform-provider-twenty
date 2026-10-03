@@ -5,8 +5,9 @@ handwritten IAM, identity, and password-session operations in `operations/`
 generate provider client code. The schema contains other upstream operations;
 they are not selected. Use `/metadata`, never Core GraphQL `/graphql` or CRM
 record REST endpoints. Stage 3 tests password login, token exchange/renewal, identity, role reads,
-and disposable onboarding against the pinned container. Generated mutations
-for future resources are not a claim of tested Terraform resource behavior.
+and disposable onboarding against the pinned container. Step 4A also tests role
+CRUD and flag replacement through the Terraform resource. Other generated
+mutations remain unimplemented provider behavior.
 
 ## Provenance and license
 
@@ -93,7 +94,7 @@ it does not construct a transport, authenticate, or validate server responses.
 | --- | --- | --- |
 | `operations/auth.graphql` | `GetLoginTokenFromCredentials`, `GetAuthTokensFromLoginToken`, `RenewToken` | `Token`, `TokenPair` |
 | `operations/identity.graphql` | `CurrentUser`, `CurrentWorkspace`, `GetPublicWorkspaceDataByDomain`, `GetPublicWorkspaceDataById` | `WorkspaceIdentity`, `AvailableWorkspaceIdentity`, `MemberIdentity` |
-| `operations/roles.graphql` | `GetRoles`, `CreateOneRole`, `UpdateOneRole`, `DeleteOneRole`, `UpsertPermissionFlags`, `UpsertObjectPermissions`, `UpsertFieldPermissions` | `RoleProperties`, `RoleDetails`, `PermissionFlag`, `ObjectPermissionDetails`, `FieldPermissionDetails`, `PermissionPredicate`, `PermissionPredicateGroup` |
+| `operations/roles.graphql` | `GetRoles`, `FindManyApplications`, `CreateOneRole`, `UpdateOneRole`, `DeleteOneRole`, `UpsertPermissionFlags`, `UpsertObjectPermissions`, `UpsertFieldPermissions` | `RoleProperties`, `RoleDetails`, `PermissionFlag`, `ObjectPermissionDetails`, `FieldPermissionDetails`, `PermissionPredicate`, `PermissionPredicateGroup` |
 | `operations/members.graphql` | `FindWorkspaceInvitations`, `SendInvitations`, `DeleteWorkspaceInvitation`, `UpdateWorkspaceMemberRole`, `DeleteUserFromWorkspace` | `Invitation` |
 
 Each function returns its generated `<Operation>Response` and an error.
@@ -204,7 +205,15 @@ Role operations require the `ROLES` settings permission. Invitations require
 can delete a workspace when its last member is removed, and role deletion can
 rebind assignments. Later resource code must protect the bootstrap identity and
 role, independent recovery administrator, last administrator, and last member.
-The generated code implements none of those protections. Member removal returns
+The generated code implements none of those protections. Step 4A implements
+role guards in `internal/provider/role_safety.go`. The added
+`FindManyApplications` selection reads `id` and `defaultRoleId` because role
+assignment relations do not expose application defaults. The pinned
+`src/engine/core-modules/application/application-install/application-install.resolver.ts`
+guards this query with `APPLICATIONS`. Only role deletion queries it, and missing
+application visibility blocks deletion rather than assuming there are no
+assignments. Role create/update need no additional application grant.
+Object/field upserts are still generated only; the role resource never calls them. Member removal returns
 the membership loaded before deletion, so `deletedAt` is not proof of removal.
 Confirm disappearance with a fresh member read.
 
