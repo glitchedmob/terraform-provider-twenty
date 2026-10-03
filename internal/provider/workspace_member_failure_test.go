@@ -166,20 +166,44 @@ func TestMemberAcceptanceRaceDoesNotRemoveOrReassign(t *testing.T) {
 				if getMemberState(t, resp.State).Status.ValueString() != "accepted" {
 					t.Fatal("newly accepted access not retained in state")
 				}
+				if strings.Contains(action, "during cancel") {
+					assertMemberCancellationWarning(t, resp.Diagnostics)
+				}
+				state = resp.State
 			} else {
 				resp := resource.DeleteResponse{State: state}
 				r.Delete(t.Context(), resource.DeleteRequest{State: state}, &resp)
 				if !resp.Diagnostics.HasError() {
 					t.Fatal("acceptance race deletion silently succeeded")
 				}
+				if strings.Contains(action, "during cancel") {
+					assertMemberCancellationWarning(t, resp.Diagnostics)
+				}
+				state = resp.State
 			}
 			if memberCallCount(mock, "UpdateWorkspaceMemberRole") != 0 || memberCallCount(mock, "DeleteUserFromWorkspace") != 0 || memberCallCount(mock, "SendInvitations") != 0 || len(mock.members) != 3 {
 				t.Fatal("pending operation changed accepted access")
 			}
 			read := resource.ReadResponse{State: state}
 			r.Read(t.Context(), resource.ReadRequest{State: state}, &read)
-			if read.Diagnostics.HasError() || getMemberState(t, read.State).ID.ValueString() != m.ID.ValueString() || getMemberState(t, read.State).RoleID.ValueString() != roleTestID {
+			got := getMemberState(t, read.State)
+			if read.Diagnostics.HasError() || got.ID.ValueString() != m.ID.ValueString() || got.RoleID.ValueString() != roleTestID {
 				t.Fatal("race did not preserve accepted identity/role")
+			}
+			if got.OwnershipConfirmed.ValueBool() != strings.Contains(action, "before read") {
+				t.Fatal("only acceptance observed before cancellation may keep ownership")
+			}
+			if strings.Contains(action, "during cancel") {
+				mock.calls = nil
+				got.RoleID = types.StringValue(roleTestOther)
+				updated := resource.UpdateResponse{State: read.State}
+				r.Update(t.Context(), resource.UpdateRequest{State: read.State, Plan: memberPlan(t, got)}, &updated)
+				deleted := resource.DeleteResponse{State: read.State}
+				r.Delete(t.Context(), resource.DeleteRequest{State: read.State}, &deleted)
+				if !updated.Diagnostics.HasError() || !deleted.Diagnostics.HasError() {
+					t.Fatal("post-cancellation acceptance allowed a later write without import")
+				}
+				assertNoMemberWrites(t, mock)
 			}
 		})
 	}

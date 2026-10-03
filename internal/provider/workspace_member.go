@@ -278,6 +278,8 @@ func (s *memberSnapshot) guardMutation(a *memberAccess, roleID string, deleting 
 
 const memberReplacementSummary = "Twenty Membership Ownership Changed"
 const memberReplacementDetail = "The native invitation or member ID changed for this email. Ownership confirmation was cleared; the replacement access was not adopted. Inspect the current access and match its role in configuration, remove only the local state binding, then explicitly import the compound ID before any update or destroy."
+const memberCancellationSummary = "Twenty Membership Ownership Unconfirmed"
+const memberCancellationDetail = "Access ownership could not be established after the invitation cancellation attempt. Ownership confirmation was cleared; no accepted or replacement access was adopted. Inspect the current access and match its role in configuration, remove only the local state binding, then explicitly import the compound ID before any update or destroy."
 
 func (m workspaceMemberModel) replacedBy(a *memberAccess) bool {
 	memberID, invitationID := m.MemberID.ValueString(), m.InvitationID.ValueString()
@@ -285,14 +287,31 @@ func (m workspaceMemberModel) replacedBy(a *memberAccess) bool {
 		(invitationID != "" && a.invitation != nil && a.invitation.Id != invitationID)
 }
 
-// Acceptance consumes the original invitation and creates a member, so that
-// transition keeps ownership. Replacement of an already known native ID does
-// not. An unconfirmed binding is never confirmed by reconciliation.
+// Ordinary pending-to-accepted reads keep ownership. After cancellation, the
+// API cannot prove which invitation was consumed; use reconcileAfterCancellation
+// instead. An unconfirmed binding is never confirmed by reconciliation.
 func (m *workspaceMemberModel) reconcileAccess(a *memberAccess) bool {
 	replaced := m.replacedBy(a)
 	m.fromAccess(a)
 	if replaced || a.status == "absent" {
 		m.OwnershipConfirmed = types.BoolValue(false)
+	}
+	return replaced
+}
+
+// Only used after attempting to cancel a validated pending invitation. An
+// accepted member first observed here could have consumed an external invitation,
+// even after a successful cancellation. A failed snapshot also cannot establish
+// provenance, so retain the last readable attributes without confirmation.
+func (m *workspaceMemberModel) reconcileAfterCancellation(a *memberAccess) bool {
+	if a == nil {
+		m.OwnershipConfirmed = types.BoolValue(false)
+		return true
+	}
+	replaced := m.reconcileAccess(a)
+	if a.member != nil {
+		m.OwnershipConfirmed = types.BoolValue(false)
+		return true
 	}
 	return replaced
 }

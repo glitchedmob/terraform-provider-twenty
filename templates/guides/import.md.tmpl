@@ -31,6 +31,6 @@ Existing pending, expired, and accepted access requires explicit import. Match t
 
 Malformed IDs, foreign workspaces, operator identity, missing access, and ambiguous duplicates fail import. Expired invitations import as `expired` and plan replacement. Never use invitation links or mail tokens as identifiers.
 
-After an ambiguous send or external native-ID replacement, readable state can have `ownership_confirmed = false`. Inspect actual access and match its role. If the resource already has a state binding, use `terraform state rm ADDRESS` before importing that same compound ID. This changes only local ownership and does not revoke access. See [membership recovery](membership.md).
+After an ambiguous send, external native-ID replacement, or unverified access following invitation cancellation, readable state can have `ownership_confirmed = false`. Inspect actual access and match its role. If the resource already has a state binding, use `terraform state rm ADDRESS` before importing that same compound ID. This changes only local ownership and does not revoke access. See [membership recovery](membership.md).
 
 Credentials and sessions are never import identifiers. Inject provider credentials outside checked-in files. Lost access or a malformed response is not proof of deletion; restore access before retrying import or refresh.

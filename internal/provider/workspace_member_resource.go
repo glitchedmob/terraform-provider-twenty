@@ -61,7 +61,7 @@ func (r *workspaceMemberResource) Schema(_ context.Context, _ resource.SchemaReq
 			"invitation_id":       schema.StringAttribute{Computed: true, MarkdownDescription: "Native invitation UUID while pending or expired, otherwise null. No invitation token or link is stored."},
 			"status":              schema.StringAttribute{Computed: true, MarkdownDescription: "pending, accepted, or expired on successful reads. Expired invitations plan replacement. unconfirmed or absent can remain after a failed mutation until refresh confirms the remaining access."},
 			"expires_at":          schema.StringAttribute{Computed: true, MarkdownDescription: "Invitation expiration in RFC3339 format, otherwise null. Expired invitations do not count as active desired access."},
-			"ownership_confirmed": schema.BoolAttribute{Computed: true, MarkdownDescription: "True after explicit import or a confirmed invitation send. False after an ambiguous send or native-ID replacement requires inspection and explicit import before further writes, even when refresh can see pending or accepted access. Prevents accidental adoption of external access."},
+			"ownership_confirmed": schema.BoolAttribute{Computed: true, MarkdownDescription: "True after explicit import or a confirmed invitation send. False after an ambiguous send, native-ID replacement, or unverified access after invitation cancellation. Further writes require inspection and explicit import, even when refresh can see pending or accepted access. Prevents accidental adoption of external access."},
 		},
 	}
 }
@@ -301,10 +301,10 @@ func (r *workspaceMemberResource) Update(ctx context.Context, req resource.Updat
 		if a.roleID != desired {
 			originalInvitationID := a.invitation.Id
 			a, err = r.cancel(ctx, state, a)
-			if state.reconcileAccess(a) {
-				resp.Diagnostics.AddWarning(memberReplacementSummary, memberReplacementDetail)
+			if state.reconcileAfterCancellation(a) {
+				resp.Diagnostics.AddWarning(memberCancellationSummary, memberCancellationDetail)
 			}
-			if a.invitation != nil && a.invitation.Id != originalInvitationID {
+			if a != nil && a.invitation != nil && a.invitation.Id != originalInvitationID {
 				err = errMemberOwnership
 			}
 			resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -313,7 +313,9 @@ func (r *workspaceMemberResource) Update(ctx context.Context, req resource.Updat
 				// operator, target role and recovery administrators before the second write.
 				s, a, err = r.snapshot(ctx, state)
 				if err == nil && a.status != "absent" {
-					err = errMemberRace
+					state.reconcileAfterCancellation(a)
+					resp.Diagnostics.AddWarning(memberCancellationSummary, memberCancellationDetail)
+					err = errMemberOwnership
 				}
 				if err == nil {
 					err = s.guardMutation(a, desired, false, r.identity)
@@ -352,7 +354,8 @@ func (r *workspaceMemberResource) Update(ctx context.Context, req resource.Updat
 }
 
 // cancel only the validated target invitation. A concurrent acceptance never
-// falls through to member deletion or role reassignment, even on "error".
+// falls through to member deletion or role reassignment, even on "error". A nil
+// result means the follow-up snapshot failed, not that access is absent.
 func (r *workspaceMemberResource) cancel(ctx context.Context, state workspaceMemberModel, before *memberAccess) (*memberAccess, error) {
 	revoked, mutationErr := client.DeleteWorkspaceInvitation(ctx, memberQueryClient{r.client}, before.invitation.Id)
 	if mutationErr == nil && revoked.DeleteWorkspaceInvitation != "success" {
@@ -360,10 +363,10 @@ func (r *workspaceMemberResource) cancel(ctx context.Context, state workspaceMem
 	}
 	_, after, readErr := r.snapshot(ctx, state)
 	if readErr != nil {
-		return before, readErr
+		return nil, readErr
 	}
 	if after.member != nil {
-		return after, errMemberRace
+		return after, errMemberOwnership
 	}
 	if mutationErr != nil {
 		return after, mutationErr
@@ -410,8 +413,8 @@ func (r *workspaceMemberResource) Delete(ctx context.Context, req resource.Delet
 		}
 		var actual *memberAccess
 		actual, err = r.cancel(ctx, state, a)
-		if state.reconcileAccess(actual) {
-			resp.Diagnostics.AddWarning(memberReplacementSummary, memberReplacementDetail)
+		if state.reconcileAfterCancellation(actual) {
+			resp.Diagnostics.AddWarning(memberCancellationSummary, memberCancellationDetail)
 		}
 		if err != nil {
 			resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

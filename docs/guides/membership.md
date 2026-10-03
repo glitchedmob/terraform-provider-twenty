@@ -104,7 +104,7 @@ Existing pending, expired, or accepted access requires [explicit import](import.
 
 ## External replacement and ownership
 
-Revoking and recreating an invitation for the same email does not transfer Terraform ownership. The same rule applies to accepted-member removal/recreation. If a known native ID changes, refresh or update reconciliation records the replacement, clears `ownership_confirmed`, and returns a fixed warning. Further update/destroy operations refuse it until explicit inspection/import. Acceptance of the original pending invitation keeps its confirmation and compound ID. An unconfirmed binding never becomes confirmed just because refresh can see access.
+Revoking and recreating an invitation for the same email does not transfer Terraform ownership. The same rule applies to accepted-member removal/recreation. If a known native ID changes, refresh or update reconciliation records the replacement, clears `ownership_confirmed`, and returns a fixed warning. Further update/destroy operations refuse it until explicit inspection/import. Ordinary Read acceptance, or acceptance observed before any cancellation attempt, keeps confirmation and the compound ID. An unconfirmed binding never becomes confirmed just because refresh can see access.
 
 Inspect the current access and match its role in configuration. Use `terraform state rm ADDRESS` to remove only the local binding, then import `workspaceUUID/email`. Neither operation revokes access. Review the next plan before applying.
 
@@ -123,7 +123,9 @@ After a failure:
 
 If ownership is already confirmed, repair the reported problem and review the next plan rather than sending again manually. Revocation can succeed while replacement fails; there may be no access to restore automatically. The provider does not roll back by deleting a member or an unrelated invitation.
 
-If invitation acceptance races cancellation, the operation fails without removing or changing accepted access. Refresh and decide deliberately whether to keep, change, or remove that member. Duplicate target invitations or members fail closed; resolve them through supported Twenty administration before continuing.
+If accepted access is first observed after a cancellation attempt, the operation fails without removing or changing it and clears `ownership_confirmed`. This applies even after successful cancellation: another administrator could have created a different invitation and the recipient could have accepted it before the follow-up snapshot. Twenty does not report which invitation created the member. A failed follow-up snapshot also clears confirmation while retaining the last readable attributes. Refresh cannot restore confirmation; inspect remaining access and explicitly import it using the recovery steps above before another update or destroy.
+
+Acceptance observed before cancellation, or during an ordinary Read, keeps existing confirmation. Duplicate target invitations or members fail closed; resolve them through supported Twenty administration before continuing.
 
 ## Removal effects and limits
 
