@@ -7,9 +7,9 @@ description: |-
 
 # Authentication
 
-Use an existing, verified automation account in an active Twenty workspace. Give it the `ROLES` settings permission for role lookup and management. Role mutation guards also need visibility of current workspace members. Role deletion needs `APPLICATIONS` to inspect application defaults, or the global full-settings grant. Object-record permissions are separate.
+Use an existing, verified automation account in an active Twenty workspace. Give it the `ROLES` settings permission for role lookup and management. Role mutation guards also need visibility of current workspace members. Role deletion needs `APPLICATIONS` to inspect application defaults, or the global full-settings grant. Membership management needs both `ROLES` and `WORKSPACE_MEMBERS` for fresh validated safety reads. Object-record permissions are separate.
 
-Provision this account outside Terraform. Keep its membership and its current assigned roles outside Terraform-managed resources too. Maintain a separate recovery administrator with credentials the automation job does not use. The role resource cannot bootstrap accounts or manage assignments.
+Provision this account outside Terraform. Keep its membership and its current assigned roles outside Terraform-managed resources too. Maintain a separate recovery administrator with credentials the automation job does not use. The provider cannot bootstrap global accounts or passwords. Membership resources invite only declared emails; never declare either protected account.
 
 ## Supply credentials
 
@@ -47,7 +47,7 @@ Use HTTPS. Local HTTP requires `allow_insecure_http = true` and a `localhost` or
 
 Password-disabled or SSO-only accounts, interactive MFA, CAPTCHA, and unverified email cannot complete unattended password login. The provider returns redacted errors rather than weakening server settings. Resolve account eligibility outside Terraform under your normal security policy.
 
-API keys and userless client-credentials tokens do not support all planned membership operations in Twenty v2.44.0. The provider exposes password-session authentication only.
+API keys and userless client-credentials tokens do not support all implemented membership operations in Twenty v2.44.0. The provider exposes password-session authentication only.
 
 ## Local acceptance tests
 

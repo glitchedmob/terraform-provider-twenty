@@ -1,6 +1,6 @@
 # Development plan and handoff
 
-Work in separate, serial stages. Stages 1, 2, 3, and steps 4A/4B are complete. Initial IAM work is authorized one assigned step at a time. Step 4A added the `twenty_role` resource; step 4B adds only the read-only `twenty_workspace` data source and docs/tests. Membership management is the next assigned step. Workspace settings and object/field permission ownership remain out of scope. Checkboxes record completed work; the handoffs below record actual checks and container results.
+Work in separate, serial stages. Stages 1, 2, 3, and steps 4A/4B/4C are complete. Initial IAM work is authorized one assigned step at a time. Step 4A added the `twenty_role` resource; step 4B added the read-only `twenty_workspace` data source; step 4C added `twenty_workspace_member`. Further implementation requires its own serial assignment. Workspace settings and object/field permission ownership remain out of scope. Checkboxes record completed work; the handoffs below record actual checks and container results.
 
 ## Stage 1: scaffold
 
@@ -276,14 +276,14 @@ starting with step 4A below.
 - [x] Add a `twenty_role` resource. Cover create/read/update/delete, native-ID import, drift, disappeared roles, and protection for built-in or bootstrap roles.
 - [x] Expose explicit permission flags. Test `ROLES` and `WORKSPACE_MEMBERS` settings permissions separately from object-record permissions. Confirm server defaults and preserve explicit false values.
 - [x] Add a `twenty_workspace` data source using Metadata identity or lookup operations, with no CRM record queries.
-- [ ] Add `twenty_workspace_member`, keyed by workspace and normalized email. Validate a stable import format before documenting it.
-- [ ] Create sends an invitation and returns without waiting for acceptance. Read distinguishes pending invitations from accepted members and preserves identity when the invitation is accepted.
-- [ ] Update changes an accepted member's role. For pending invitations, test cancellation and replacement if the API cannot update the role.
-- [ ] Destroy revokes pending invitations or removes accepted members with `deleteUserFromWorkspace`, never Core record deletion.
-- [ ] Test existing-member adoption, missing members, duplicate invitations, pagination, role drift, out-of-band acceptance and revocation, and eventual consistency.
-- [ ] Reject managing the bootstrap identity; guard the last administrator and last workspace member. Manage only declared identities, never reconcile by evicting unlisted members.
-- [ ] Add import, authentication, permission, and invitation-lifecycle guides under `templates/guides/`. Add examples and per-resource import snippets, then regenerate `docs/`.
-- [ ] Test full role and membership lifecycles against disposable identities in the pinned container. Include imports, pending-to-accepted transitions, permission-denied cases, and safety guards.
+- [x] Add `twenty_workspace_member`, keyed by workspace and normalized email. Validate a stable import format before documenting it.
+- [x] Create sends an invitation and returns without waiting for acceptance. Read distinguishes pending invitations from accepted members and preserves identity when the invitation is accepted.
+- [x] Update changes an accepted member's role. Pending updates cancel and reissue with race and partial-failure guards.
+- [x] Destroy revokes pending invitations or removes accepted members with `deleteUserFromWorkspace`, never Core record deletion.
+- [x] Require explicit import for existing access. Test missing/duplicate/expired access, role drift, out-of-band acceptance/revocation, incomplete responses, and races. Lists are unpaginated in this pin.
+- [x] Reject managing the bootstrap identity; guard the last administrator and last workspace member. Manage only declared identities, never reconcile by evicting unlisted members.
+- [x] Add import, authentication, permission, and invitation-lifecycle guides under `templates/guides/`. Add examples and per-resource import snippets, then regenerate `docs/`.
+- [x] Test full role and membership lifecycles against disposable identities in the pinned container. Include imports, pending-to-accepted transitions, permission-denied cases, and safety guards.
 - [ ] Keep workspace setting and object/field/relation configuration work separate. Schema deletion can destroy business data and needs its own safeguards.
 - [ ] Review release readiness only after acceptance and documentation pass. Do not publish or configure signing secrets as part of these implementation stages without separate authorization.
 
@@ -489,10 +489,9 @@ limited-role lookup. Existing operator/recovery preservation checks still run.
 No production instance, infrastructure, release, tag, signing secret, or push
 was used.
 
-### Next serial IAM step: membership
+### Step 4B carry-forward safety requirements
 
-The workspace data source is complete. Implement membership only in its next
-assigned task. Reuse `ClientData.Client`, the shared mutation lock, and the
+The workspace data source is complete. The step 4C membership implementation below follows these requirements. Reuse `ClientData.Client`, the shared mutation lock, and the
 fresh validated read pattern. Do not use `Session.Identity().RoleIDs` or the
 workspace data source's count as a membership or administrator reconciliation
 snapshot. Keep bootstrap membership and its
@@ -519,6 +518,47 @@ Partial-failure recovery also has mock coverage, without forced server faults.
 Revoked API-key assignment history is not enumerable through the pinned role
 or API-key lists. Active and expired returned assignments block deletion.
 
+### Step 4C: workspace membership resource handoff
+
+`twenty_workspace_member` manages only declared normalized emails in the provider's authenticated workspace. Required attributes are `email` and `role_id`, both explicit and lowercase. Role IDs are nonzero UUIDs of existing user-assignable roles. Built-in, non-editable, and workspace-default role assignment is allowed without taking ownership of those role definitions. There is no optional workspace selector.
+
+Computed attributes are `id`, `workspace_id`, `member_id`, `invitation_id`, `status`, `expires_at`, and `ownership_confirmed`. The stable ID and import format are `lowercase-workspace-UUID/lowercase-email`. A slash in a mailbox is unsupported to keep this format unambiguous. Foreign workspaces, malformed IDs, the operator identity, missing access, and ambiguous duplicate target rows fail import. Existing pending, expired, or accepted access must be imported explicitly; create never adopts it. Import reads the existing role without mutation and confirms ownership.
+
+`NewWorkspaceMemberResource` shares `ClientData.MutationLock` with roles. `readMemberSnapshot` uses fresh Metadata identity, current workspace, role/assignment, member, and invitation reads. It pins the operator's user/member/user-workspace/workspace identity, cross-checks member-role assignments, rejects duplicate IDs/emails/users/memberships and nil UUIDs, and validates consumed wire values before generated decoding can lose missing/null values. Lists are unpaginated in this pin. No session role snapshot or workspace count is used for authorization decisions.
+
+Create calls `sendInvitations` with exactly one email and explicit role, then returns pending without waiting for login. Read preserves the compound ID when the invitation becomes an accepted member. Accepted updates call `updateWorkspaceMemberRole` with the workspace-member UUID. Pending updates revoke only the validated invitation, re-read complete safety data, and reissue once. Expired invitations remain visible as `expired` and plan replacement through `ModifyPlan`; they never count as active desired access.
+
+Destroy revokes pending/expired invitations or calls `deleteUserFromWorkspace`. It compares the returned pre-deletion user-workspace identity and verifies absence with fresh complete reads. No raw member CRUD, global signup/password operation, Core operation, or undeclared-member eviction is implemented. Guards reject the operator by email/user/member/user-workspace ID and preserve the final workspace member, a full-settings administrator, and an independent full-settings administrator outside the operator. Maintain the designated recovery identity and its login reachability outside Terraform.
+
+A pending acceptance race during update/delete returns an error without falling through to accepted removal or reassignment. Multi-step updates can still partially succeed because the API has no transaction or conditional mutation. Sends are never blindly retried or rolled back. The stable ID and readable remaining access survive errors. `ownership_confirmed = false` after ambiguous sends prevents later writes, including tainted replacement, until explicit inspection/import. Refresh does not silently confirm ownership of a possibly external concurrent invitation. Confirmed absence removes state only after successful complete reads.
+
+`Fixture.AcceptInvitation` in `internal/acceptance/bootstrap.go` consumes server-issued test mail for a fresh disposable mailbox. It sends no additional invitation and keeps test-only passwords/tokens outside Terraform and artifacts. The single parent suite still owns one pinned container stack. Provider code does not import disposable onboarding code.
+
+Templates/examples now cover membership lifecycle, expiration, import, partial-failure inspection/state removal/import, server removal cascades, and role dependencies. README includes a roles-plus-members configuration using workspace/role data sources, declared-email `for_each`, and sensitive ephemeral auth. Generated pages were regenerated with their source templates. AGENTS and the serial checklist no longer describe membership as unimplemented.
+
+### Step 4C verification
+
+Checks used Go 1.27.1, Terraform 1.14.7 on linux/amd64, golangci-lint v2.13.2, and tfplugindocs v0.25.0. Docker server/client were 29.8.1/29.8.2; Compose was 5.5.1. Acceptance selected the previously checksum-verified `/tmp/twenty-terraform-1.14.7/terraform` through `TF_ACC_TERRAFORM_PATH`; formatting/docs put that directory first in PATH. No dependency, SDL, generator, image, or Compose changes were needed.
+
+Passed checks:
+
+- `go mod download` and `go mod verify`.
+- Two offline `make generate` runs with cached Go 1.27.1, `GOTOOLCHAIN=local`, `GOPROXY=off`, and `GOSUMDB=off`. SDL/license checksums passed; both generated file hashes matched each other and committed output.
+- `make fmt`, `make fmt-check`, `make lint`, `make test`, `go test -race ./...`, and `make build`. Lint reported zero issues. Final unit coverage was 93.7% in provider, 53.2% in client, and 9.0% in disposable helpers. Entrypoint and generated bootstrap code still have no unit coverage.
+- Two `make generate-docs` and `make validate-docs` runs using synthetic ambient credentials at a local sentinel. Both generated documentation manifests matched, and the sentinel observed zero requests.
+- Full real-container `make testacc` passed twice after cleanup diagnosis, in 121.095 and 121.112 seconds. The final membership suite passed in 13.27 seconds, including pending lifecycle in 3.54 seconds and server-mail acceptance/accepted drift/removal in 4.47 seconds. All earlier role/workspace/session tests passed. No disposable `twenty-acc-` containers or volumes remained.
+- `git diff --check`.
+
+Unit/mock cases cover pending and accepted CRUD, stable acceptance identity, role drift, explicit import/adoption refusal, canonical email/UUID inputs, foreign workspace and identity changes, expiration/replacement, missing/unassignable roles, duplicates, null/lossy/malformed responses, HTTP/permission failures, absent versus failed reads, mail/payload failures, cancellation/reissue failures, accepted mutation failures, acceptance races before reads and during cancellation, replaced member/invitation IDs, operator and final/independent administrator guards, ambiguous ownership recovery, one-send concurrent creates, and serialization across role/member resources.
+
+Real Terraform cases cover invitation create/update/import/revoke, out-of-band revocation/recreation, server-issued mail acceptance with an unchanged compound ID and empty plan, accepted import/role update/drift restoration/removal, existing accepted/pending adoption refusal followed by import, built-in role assignment, accepted out-of-band removal/recreation, foreign/operator import refusal, and real operator update/delete refusal. Separate ROLES-only and WORKSPACE_MEMBERS-only configurations both fail membership create/import, proving list visibility is required before ownership. Final fresh login/identity/role reads verify the unmanaged operator and recovery administrator retain their original member/user IDs and Admin assignments.
+
+The first two full runs passed every membership lifecycle but failed auxiliary role cleanup. v2.44.0 removes role-target rows with membership deletion but `getUserWorkspaceIdsAssignedToRole` reads the cached `userWorkspaceRoleMap`; a later role deletion can reject those removed IDs as `User workspaces not found`. A fixed allowlisted diagnostic confirmed this exact condition on the next runs. Tests tolerate only that known fixture-role cleanup error and leave final role cleanup to destruction of their disposable stack. They do not skip any membership case, retry mutations, rebind other users, edit identity rows, or alter server settings. The guide documents the same role-deletion limitation for users. Other cleanup errors still fail.
+
+Expiration, ambiguous/partial server failures, and independent/final administrator downscope refusals have synthetic coverage. No live invitation TTL was shortened and no protected administrator was downscoped to test those paths. The shared lock remains per provider configuration, not distributed. Pause competing IAM writers. Server-side accepted removal may transfer connected-account ownership, alter workflow ownership/grants, delete chat history, and soft-delete a global user with no remaining workspace; Terraform cannot undo those cascades.
+
+No production instance, infrastructure, reference repository modification, release, tag, signing secret, or push was used. Workspace resources/settings and object/field permission ownership remain outside this step. Further implementation needs a separate serial assignment.
+
 ## Upstream pins
 
 - Twenty target: `v2.44.0`
@@ -530,12 +570,15 @@ or API-key lists. Active and expired returned assignments block deletion.
 - [Invitation resolver](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/workspace-invitation/workspace-invitation.resolver.ts)
 - [User resolver](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/user/user.resolver.ts)
 - [Workspace resolver](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/workspace/workspace.resolver.ts)
-- [Workspace user count](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/user-workspace/user-workspace.service.ts)
+- [Workspace user count and removal](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/user-workspace/user-workspace.service.ts)
+- [Invitation lifecycle service](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/workspace-invitation/services/workspace-invitation.service.ts)
+- [Accepted removal and cascades](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/user/services/user.service.ts)
+- [User-role assignment/cache service](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/metadata-modules/user-role/user-role.service.ts)
 
 These public source pins guide implementation. They are not end-to-end authentication or compatibility results.
 
 ## Next-stage integration points
 
-Stages 3, 4A, and 4B use the stage-2 operation/type handoff above and `graphql/README.md`, not a new client generator. `make generate` uses committed SDL only. Authentication stays in `TwentyProvider.Configure`, while absent/raw-null configuration tests and credential-free documentation commands remain regression checks. Initial IAM work may continue under the user's serial authorization, one assigned step at a time, using the validated shared session and preserving bootstrap/recovery protections.
+Stages 3, 4A, 4B, and 4C use the stage-2 operation/type handoff above and `graphql/README.md`, not a new client generator. `make generate` uses committed SDL only. Authentication stays in `TwentyProvider.Configure`, while absent/raw-null configuration tests and credential-free documentation commands remain regression checks. Initial IAM work may continue under the user's serial authorization, one assigned step at a time, using the validated shared session and preserving bootstrap/recovery protections.
 
 `main.go` serves protocol 6 at `registry.terraform.io/glitchedmob/twenty`. The manifest advertises protocol 6.0. The release workflow follows Kaneo's GPG-signing layout but stays gated off, with no tags or secrets configured.

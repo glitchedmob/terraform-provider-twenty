@@ -39,9 +39,9 @@ Before each create, update, or delete operation, the provider reads current iden
 
 Downscoping must leave at least one assigned user with a full-settings role. Explicit settings flags alone do not count as the independent full-settings administrator. This guard does not prove that another administrator can still log in; keep recovery credentials usable outside Terraform.
 
-Twenty can silently rebind assignments during role deletion. The provider therefore refuses deletion when members, agents, API keys returned by the server, or application defaults reference the role. Expired keys still count. The pinned server excludes revoked keys from both role assignment lists and deletion rebinding; those inactive keys cannot be enumerated for this guard. Remove assignments deliberately outside this resource before deleting. Missing or inconsistent safety data fails closed.
+Twenty can silently rebind assignments during role deletion. The provider therefore refuses deletion when members, agents, API keys returned by the server, or application defaults reference the role. Expired keys still count. The pinned server excludes revoked keys from both role assignment lists and deletion rebinding; those inactive keys cannot be enumerated for this guard. Remove assignments deliberately outside this resource before deleting, through declared membership resources where applicable. v2.44.0 may retain removed membership IDs in its role-assignment cache and reject later role deletion. See the [membership guide](../guides/membership.md). Missing or inconsistent safety data fails closed.
 
-A shared provider-configuration lock covers these reads and mutations. It prevents races between role resources in one configured provider, not concurrent changes from another provider configuration, Terraform run, or administrator. Pause other IAM writers during applies.
+A shared provider-configuration lock covers these reads and mutations. It prevents races between role and membership resources in one configured provider, not concurrent changes from another provider configuration, Terraform run, or administrator. Pause other IAM writers during applies.
 
 ## Drift and recovery
 

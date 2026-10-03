@@ -144,6 +144,27 @@ func (f *Fixture) inviteAndJoin(t *testing.T, public graphql.Client, account *Ac
 	if !invitation.SendInvitations.Success || len(invitation.SendInvitations.Errors) != 0 || len(invitation.SendInvitations.Result) != 1 {
 		t.Fatal("disposable identity invitation failed")
 	}
+	f.acceptInvitation(t, public, account, roleID)
+}
+
+// AcceptInvitation consumes only server-issued mail in this disposable stack.
+// It does not send another invitation or invent a token. Call it after Terraform
+// has invited a fresh test mailbox; keep its credentials out of Terraform.
+func (f *Fixture) AcceptInvitation(t *testing.T, email, roleID string) *Account {
+	t.Helper()
+	if !strings.HasSuffix(email, "@acceptance.example") || client.ValidateEmail(email) != nil ||
+		strings.EqualFold(email, f.Operator.Email) || strings.EqualFold(email, f.Recovery.Email) {
+		t.Fatal("refuse to accept an invitation outside a fresh disposable test identity")
+	}
+	account := newAccount(t, "terraform-invited")
+	account.Email = email
+	f.acceptInvitation(t, f.Stack.api(""), account, roleID)
+	return account
+}
+
+func (f *Fixture) acceptInvitation(t *testing.T, public graphql.Client, account *Account, roleID string) {
+	t.Helper()
+	ctx := t.Context()
 	token, err := f.Stack.mailToken(ctx, account.Email, "inviteToken")
 	if err != nil {
 		t.Fatal(err)
@@ -239,6 +260,9 @@ func (s *sanitizedClient) MakeRequest(ctx context.Context, request *graphql.Requ
 			if strings.Contains(err.Error(), code) {
 				return errors.New("disposable Metadata operation rejected: " + code)
 			}
+		}
+		if strings.Contains(err.Error(), "User workspaces not found") {
+			return errors.New("disposable Metadata operation failed: User workspaces not found")
 		}
 		if len(response.Errors) != 0 {
 			classes := []string{}

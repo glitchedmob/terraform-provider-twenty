@@ -59,8 +59,8 @@ func TestProviderSchema(t *testing.T) {
 	if !ok || !allow.Optional || allow.Required || !strings.Contains(allow.MarkdownDescription, "Defaults to false") {
 		t.Fatal("local HTTP must be an optional deliberate opt-in with a false default")
 	}
-	if len(p.Resources(t.Context())) != 1 || len(p.DataSources(t.Context())) != 2 {
-		t.Fatal("stage 4B must register only the role resource and the role/workspace data sources")
+	if len(p.Resources(t.Context())) != 2 || len(p.DataSources(t.Context())) != 2 {
+		t.Fatal("register only role/member resources and role/workspace data sources")
 	}
 }
 
@@ -74,7 +74,7 @@ func TestProviderProtocolSchema(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(response.Diagnostics) != 0 || response.Provider == nil || response.Provider.Block == nil || len(response.Provider.Block.Attributes) != 4 || len(response.ResourceSchemas) != 1 || response.ResourceSchemas["twenty_role"] == nil || len(response.DataSourceSchemas) != 2 || response.DataSourceSchemas["twenty_role"] == nil || response.DataSourceSchemas["twenty_workspace"] == nil {
+	if len(response.Diagnostics) != 0 || response.Provider == nil || response.Provider.Block == nil || len(response.Provider.Block.Attributes) != 4 || len(response.ResourceSchemas) != 2 || response.ResourceSchemas["twenty_role"] == nil || response.ResourceSchemas["twenty_workspace_member"] == nil || len(response.DataSourceSchemas) != 2 || response.DataSourceSchemas["twenty_role"] == nil || response.DataSourceSchemas["twenty_workspace"] == nil {
 		t.Fatal("protocol server must export schema without credentials")
 	}
 }

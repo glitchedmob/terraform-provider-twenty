@@ -6,8 +6,7 @@ generate provider client code. The schema contains other upstream operations;
 they are not selected. Use `/metadata`, never Core GraphQL `/graphql` or CRM
 record REST endpoints. Stage 3 tests password login, token exchange/renewal, identity, role reads,
 and disposable onboarding against the pinned container. Step 4A also tests role
-CRUD and flag replacement through the Terraform resource. Other generated
-mutations remain unimplemented provider behavior.
+CRUD and flag replacement through the Terraform resource. Step 4C tests invitation and accepted-member management through `twenty_workspace_member`. Object/field upserts remain generated operations without provider resources.
 
 ## Provenance and license
 
@@ -203,10 +202,7 @@ Paths below are relative to upstream `packages/twenty-server/`:
 Role operations require the `ROLES` settings permission. Invitations require
 `WORKSPACE_MEMBERS`. Removal has an authenticated-self exception. The server
 can delete a workspace when its last member is removed, and role deletion can
-rebind assignments. Later resource code must protect the bootstrap identity and
-role, independent recovery administrator, last administrator, and last member.
-The generated code implements none of those protections. Step 4A implements
-role guards in `internal/provider/role_safety.go`. The added
+rebind assignments. Provider resources protect the bootstrap identity and role, independent recovery administrator, last administrator, and last member through fresh safety reads. The generated code implements none of those protections. Step 4A implements role guards in `internal/provider/role_safety.go`; step 4C implements membership guards in `internal/provider/workspace_member.go`. The added
 `FindManyApplications` selection reads `id` and `defaultRoleId` because role
 assignment relations do not expose application defaults. The pinned
 `src/engine/core-modules/application/application-install/application-install.resolver.ts`

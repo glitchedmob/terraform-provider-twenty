@@ -7,9 +7,9 @@ description: |-
 
 # Twenty provider
 
-The provider authenticates a dedicated automation account with a password session. The `twenty_workspace` data source reads the authenticated workspace with no selectors. The `twenty_role` data source reads existing roles; the separate `twenty_role` resource manages custom roles and their complete explicit permission flag sets. It targets Twenty v2.44.0 and uses Metadata GraphQL at `/metadata`. No membership resources, object/field permission ownership, or CRM record operations are implemented.
+The provider authenticates a dedicated automation account with a password session. The `twenty_workspace` data source reads the authenticated workspace with no selectors. The `twenty_role` data source reads existing roles; the separate `twenty_role` resource manages custom roles and their complete explicit permission flag sets. It targets Twenty v2.44.0 and uses Metadata GraphQL at `/metadata`. The `twenty_workspace_member` resource manages declared email invitations and accepted role assignments. Workspace mutations, object/field permission ownership, and CRM record operations are not implemented.
 
-See [current workspace](data-sources/workspace.md), [custom roles](resources/role.md), [permissions](guides/permissions.md), and [import guidance](guides/import.md).
+See [current workspace](data-sources/workspace.md), [custom roles](resources/role.md), [membership lifecycle](guides/membership.md), [permissions](guides/permissions.md), and [import guidance](guides/import.md).
 
 This provider is unreleased. Build it locally and use Terraform CLI `dev_overrides`; the Registry cannot install it yet.
 

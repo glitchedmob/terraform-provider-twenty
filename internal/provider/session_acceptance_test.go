@@ -16,7 +16,7 @@ import (
 	"github.com/glitchedmob/terraform-provider-twenty/internal/client"
 )
 
-// One disposable stack is reused across session, role/workspace data sources, and role resource tests.
+// One disposable stack is reused across session, data source, and IAM resource tests.
 // No managed resources alter the operator or its independent recovery admin.
 func TestAccSessionAndRole(t *testing.T) {
 	fixture := acceptance.Bootstrap(t, acceptance.Start(t))
@@ -80,6 +80,8 @@ func TestAccSessionAndRole(t *testing.T) {
 	t.Run("workspace_current_and_count_refresh", func(t *testing.T) { testAccWorkspaceDataSource(t, fixture) })
 
 	t.Run("role_resource", func(t *testing.T) { testAccRoleResource(t, fixture) })
+
+	t.Run("workspace_member_resource", func(t *testing.T) { testAccWorkspaceMemberResource(t, fixture) })
 
 	t.Run("missing_role", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{
@@ -192,6 +194,11 @@ resource "twenty_role" "denied" {
 			if _, err := rolesOnly.GetRoles(t.Context()); err != nil {
 				t.Fatal("ROLES must permit role reads")
 			}
+			t.Run("roles_only_membership_denied", func(t *testing.T) {
+				t.Setenv("TWENTY_EMAIL", restricted.Email)
+				t.Setenv("TWENTY_PASSWORD", restricted.Password)
+				testAccMemberPermissionDenied(t, fixture)
+			})
 			t.Run("roles_only_create_update_and_application_guard", func(t *testing.T) {
 				t.Setenv("TWENTY_EMAIL", restricted.Email)
 				t.Setenv("TWENTY_PASSWORD", restricted.Password)
@@ -235,6 +242,11 @@ resource "twenty_role" "scoped" {
 			if _, err := membersOnly.GetRoles(t.Context()); err == nil {
 				t.Fatal("WORKSPACE_MEMBERS unexpectedly granted ROLES")
 			}
+			t.Run("members_only_membership_denied", func(t *testing.T) {
+				t.Setenv("TWENTY_EMAIL", restricted.Email)
+				t.Setenv("TWENTY_PASSWORD", restricted.Password)
+				testAccMemberPermissionDenied(t, fixture)
+			})
 		})
 	})
 
@@ -249,6 +261,14 @@ resource "twenty_role" "scoped" {
 			}
 			if _, err := session.GetRoles(t.Context()); err != nil {
 				t.Fatal("protected administrator lost settings permissions")
+			}
+			user, err := client.CurrentUser(t.Context(), session.Client())
+			if err != nil {
+				t.Fatal("read protected administrator assignment")
+			}
+			own, err := user.CurrentUser.WorkspaceMember.Get()
+			if err != nil || len(own.Roles) != 1 || own.Roles[0].Id != fixture.AdminRole.Id || own.UserId != account.UserID {
+				t.Fatal("unmanaged administrator assignment changed")
 			}
 		}
 	})

@@ -36,7 +36,7 @@ type TwentyProviderModel struct {
 // ClientData shares one in-memory session with resources and data sources.
 type ClientData struct {
 	Client *client.Session
-	// MutationLock serializes fresh safety checks and role mutations across all
+	// MutationLock serializes fresh safety checks and IAM mutations across all
 	// resources sharing this provider configuration. It is not a server lock.
 	MutationLock sync.Mutex
 }
@@ -107,7 +107,7 @@ func (p *TwentyProvider) Configure(ctx context.Context, req provider.ConfigureRe
 }
 
 func (p *TwentyProvider) Resources(context.Context) []func() resource.Resource {
-	return []func() resource.Resource{NewRoleResource}
+	return []func() resource.Resource{NewRoleResource, NewWorkspaceMemberResource}
 }
 
 func (p *TwentyProvider) DataSources(context.Context) []func() datasource.DataSource {

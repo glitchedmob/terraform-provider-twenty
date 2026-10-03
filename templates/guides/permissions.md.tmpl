@@ -9,7 +9,7 @@ description: |-
 
 The [role resource](../resources/role.md) manages six global capability booleans and the complete explicit permission flag set. The [role data source](../data-sources/role.md) reports those values without changing them. Neither computes effective object/field permissions.
 
-`ROLES` permits Metadata role operations. The resource also needs `APPLICATIONS` before deletion to prove that no application default uses the role. Create and update do not need that extra grant. `WORKSPACE_MEMBERS` permits invitation and membership settings operations. They are separate grants. Object-record access provides neither. A role with `can_update_all_settings = true` has all settings permissions regardless of its explicit flag set; `can_access_all_tools = true` grants all tools.
+`ROLES` permits Metadata role operations. The resource also needs `APPLICATIONS` before deletion to prove that no application default uses the role. Create and update do not need that extra grant. `WORKSPACE_MEMBERS` permits invitation and membership settings operations. They are separate grants. The membership resource requires both so it can validate target roles and inspect invitations before any write. Object-record access provides neither. A role with `can_update_all_settings = true` has all settings permissions regardless of its explicit flag set; `can_access_all_tools = true` grants all tools.
 
 `permission_flags` is a required set in the resource. Null sets and null elements are invalid. Keys are case-sensitive and must use this exact v2.44.0 vocabulary:
 
@@ -40,4 +40,4 @@ Updates replace the whole flag set. Do not share flag ownership with UI automati
 
 Global object writes and deletions require global read access. Setting `can_read_all_object_records = false` does not clear object/field override rows or calculate effective access. The resource does not call their upserts, and it does not query or modify CRM records.
 
-Keep a verified automation identity and an independent full-settings recovery administrator outside managed memberships and roles. Role mutation guards use fresh assignment data, not the configuration-time identity snapshot. They count assigned full-settings roles, not access inferred from a selected subset of flags.
+Keep a verified automation identity and an independent full-settings recovery administrator outside managed memberships and roles. Role and membership mutation guards use fresh assignment data, not the configuration-time identity snapshot. They count assigned full-settings roles, not access inferred from a selected subset of flags.

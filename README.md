@@ -1,8 +1,8 @@
 # Terraform provider for Twenty
 
-Unreleased Terraform provider tested against Twenty v2.44.0. It authenticates an existing automation account with an in-memory password session, reads the current workspace and existing roles, and manages custom roles.
+Unreleased Terraform provider tested against Twenty v2.44.0. It authenticates an existing automation account with an in-memory password session, reads the current workspace and existing roles, and manages custom roles and declared email memberships.
 
-All operations use Metadata GraphQL at `/metadata`, not Core GraphQL or CRM record APIs. Membership management is the next serial IAM step and is not implemented yet. Workspace settings are not managed. API keys do not cover the intended membership operations in this Twenty release.
+All operations use Metadata GraphQL at `/metadata`, not Core GraphQL or CRM record APIs. Create sends invitations without waiting for login; accepted membership updates manage role assignments. Workspace settings and global users/passwords are not managed. API keys do not cover the intended membership operations in this Twenty release.
 
 ## Supported types
 
@@ -10,7 +10,9 @@ All operations use Metadata GraphQL at `/metadata`, not Core GraphQL or CRM reco
 - `twenty_role` data source, lookup by native UUID or exact label
 - `twenty_role` resource, custom role CRUD, native UUID import, global booleans, and complete explicit permission flag ownership
 
-The role resource protects bootstrap/default/built-in roles and refuses assigned-role deletion. It does not manage assignments or object/field permission rows. See [role resource documentation](docs/resources/role.md), [permissions](docs/guides/permissions.md), and [import guidance](docs/guides/import.md).
+- `twenty_workspace_member` resource, single-email invitations, stable workspace/email import, accepted role updates, revocation/removal, and expiration replacement
+
+The role resource protects bootstrap/default/built-in roles and refuses assigned-role deletion. It does not manage assignments or object/field permission rows. Membership create refuses existing access until explicit import. Keep the operator and independent recovery administrator outside managed resources. See [role resource documentation](docs/resources/role.md), [membership lifecycle and recovery](docs/guides/membership.md), [permissions](docs/guides/permissions.md), and [import guidance](docs/guides/import.md).
 
 ## Configuration
 
@@ -31,6 +33,46 @@ Each authenticated configuration starts a new session and verifies the active wo
 Use a dedicated verified automation identity that supports password sign-in. Interactive MFA, CAPTCHA, SSO-only sign-in, and unverified email are unsupported; do not weaken those settings on a live instance. Keep the bootstrap identity and its own role outside Terraform-managed resources and preserve an independent recovery administrator.
 
 Inject credentials outside checked-in Terraform files. Sensitive schema attributes redact display output but do not keep their sources out of saved plans. Use environment secret injection or sensitive ephemeral inputs, not persisted token attributes or outputs.
+
+## Initial IAM configuration
+
+Inject sensitive ephemeral authentication at runtime. This example uses the authenticated workspace, looks up a built-in role, creates a custom role, and manages only declared emails. Import preexisting access first. Never include the automation or recovery administrator in the member map.
+
+```terraform
+variable "twenty_email" {
+  type      = string
+  sensitive = true
+  ephemeral = true
+}
+variable "twenty_password" {
+  type      = string
+  sensitive = true
+  ephemeral = true
+}
+provider "twenty" {
+  endpoint = "https://twenty.example.com"
+  email    = var.twenty_email
+  password = var.twenty_password
+}
+data "twenty_workspace" "current" {}
+data "twenty_role" "member" { label = "Member" }
+resource "twenty_role" "triage" {
+  label                      = "Support triage"
+  can_read_all_object_records = true
+  permission_flags           = []
+}
+resource "twenty_workspace_member" "declared" {
+  for_each = {
+    "alice@example.com" = twenty_role.triage.id
+    "bob@example.com"   = data.twenty_role.member.id
+  }
+  email   = each.key
+  role_id = each.value
+}
+output "workspace_id" { value = data.twenty_workspace.current.id }
+```
+
+Use Terraform 1.10 or later for ephemeral variables. The [complete example](examples/guides/membership/main.tf) includes provider requirements and member-map validation. Removing a declared key removes its access. Destroying accepted access can trigger Twenty's connected-account, workflow, chat-history, and global-user cascades. Review the [membership guide](docs/guides/membership.md) before applying.
 
 ## Development
 
@@ -63,7 +105,7 @@ make validate-docs
 
 `make testacc` sets `TF_ACC=1` and runs a bounded suite against its own disposable stack from `integration/compose.yml`. Both Twenty server and worker use the v2.44.0 digest recorded in [DEVELOPMENT.md](DEVELOPMENT.md). The suite supplies test-only credentials and tears down only its own containers and volumes. The target removes ambient Twenty credentials and Terraform logging settings. Never use a live deployment for acceptance tests. Failure diagnostics belong in ignored `_artifacts/` and must omit credentials, tokens, and private member data.
 
-The real-container suite covers session renewal, current workspace lookup without settings permissions, member-count refresh after a disposable invitation is accepted, role lookup, custom role CRUD/import/drift, explicit false/default values, null and empty strings, flag replacement and clearing, missing roles, actual settings permission denial, assigned-role deletion refusal, and preservation of both bootstrap administrators. See the exact versions and check results in [DEVELOPMENT.md](DEVELOPMENT.md).
+The real-container suite covers session renewal, current workspace lookup without settings permissions, member-count refresh after a disposable invitation is accepted, role lookup, custom role CRUD/import/drift, explicit false/default values, null and empty strings, flag replacement and clearing, missing roles, actual settings permission denial, assigned-role deletion refusal, pending invitation create/update/import/revoke, server-mail acceptance with a stable state ID, accepted role drift/removal, existing-access import, and preservation of both bootstrap administrators. See the exact versions and check results in [DEVELOPMENT.md](DEVELOPMENT.md).
 
 Documentation commands also remove Twenty credential environment variables. They inspect schemas without login. The release workflow remains gated by an unset `RELEASE_ENABLED` repository variable. Releases and signing secrets need separate authorization.
 
