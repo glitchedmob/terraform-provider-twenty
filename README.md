@@ -1,11 +1,12 @@
 # Terraform provider for Twenty
 
-Unreleased Terraform provider tested against Twenty v2.44.0. It authenticates an existing automation account with an in-memory password session, reads existing roles, and manages custom roles.
+Unreleased Terraform provider tested against Twenty v2.44.0. It authenticates an existing automation account with an in-memory password session, reads the current workspace and existing roles, and manages custom roles.
 
-All operations use Metadata GraphQL at `/metadata`, not Core GraphQL or CRM record APIs. Workspace lookup and membership management are the next serial IAM steps. They are not implemented yet. API keys do not cover the intended membership operations in this Twenty release.
+All operations use Metadata GraphQL at `/metadata`, not Core GraphQL or CRM record APIs. Membership management is the next serial IAM step and is not implemented yet. Workspace settings are not managed. API keys do not cover the intended membership operations in this Twenty release.
 
 ## Supported types
 
+- `twenty_workspace` data source, current authenticated workspace identity, default role, domains/URLs, timestamps, and member count, with no selectors
 - `twenty_role` data source, lookup by native UUID or exact label
 - `twenty_role` resource, custom role CRUD, native UUID import, global booleans, and complete explicit permission flag ownership
 
@@ -13,7 +14,7 @@ The role resource protects bootstrap/default/built-in roles and refuses assigned
 
 ## Configuration
 
-See the [provider documentation](docs/index.md), [authentication guide](docs/guides/authentication.md), [role lookup](docs/data-sources/role.md), and [example configuration](examples/provider/provider.tf). The planned Registry address is `glitchedmob/twenty`; it is not published, so use a locally built binary with Terraform CLI `dev_overrides`.
+See the [provider documentation](docs/index.md), [authentication guide](docs/guides/authentication.md), [role lookup](docs/data-sources/role.md), [current workspace](docs/data-sources/workspace.md), and [example configuration](examples/provider/provider.tf). The planned Registry address is `glitchedmob/twenty`; it is not published, so use a locally built binary with Terraform CLI `dev_overrides`.
 
 | Attribute | Environment fallback |
 | --- | --- |
@@ -62,7 +63,7 @@ make validate-docs
 
 `make testacc` sets `TF_ACC=1` and runs a bounded suite against its own disposable stack from `integration/compose.yml`. Both Twenty server and worker use the v2.44.0 digest recorded in [DEVELOPMENT.md](DEVELOPMENT.md). The suite supplies test-only credentials and tears down only its own containers and volumes. The target removes ambient Twenty credentials and Terraform logging settings. Never use a live deployment for acceptance tests. Failure diagnostics belong in ignored `_artifacts/` and must omit credentials, tokens, and private member data.
 
-The real-container suite covers session renewal, role lookup, custom role CRUD/import/drift, explicit false/default values, null and empty strings, flag replacement and clearing, missing roles, actual settings permission denial, assigned-role deletion refusal, and preservation of both bootstrap administrators. See the exact versions and check results in [DEVELOPMENT.md](DEVELOPMENT.md).
+The real-container suite covers session renewal, current workspace lookup without settings permissions, member-count refresh after a disposable invitation is accepted, role lookup, custom role CRUD/import/drift, explicit false/default values, null and empty strings, flag replacement and clearing, missing roles, actual settings permission denial, assigned-role deletion refusal, and preservation of both bootstrap administrators. See the exact versions and check results in [DEVELOPMENT.md](DEVELOPMENT.md).
 
 Documentation commands also remove Twenty credential environment variables. They inspect schemas without login. The release workflow remains gated by an unset `RELEASE_ENABLED` repository variable. Releases and signing secrets need separate authorization.
 

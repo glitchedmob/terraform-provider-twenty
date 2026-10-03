@@ -16,7 +16,7 @@ import (
 	"github.com/glitchedmob/terraform-provider-twenty/internal/client"
 )
 
-// One disposable stack is reused across session, data source, and role resource tests.
+// One disposable stack is reused across session, role/workspace data sources, and role resource tests.
 // No managed resources alter the operator or its independent recovery admin.
 func TestAccSessionAndRole(t *testing.T) {
 	fixture := acceptance.Bootstrap(t, acceptance.Start(t))
@@ -76,6 +76,8 @@ func TestAccSessionAndRole(t *testing.T) {
 			},
 		})
 	})
+
+	t.Run("workspace_current_and_count_refresh", func(t *testing.T) { testAccWorkspaceDataSource(t, fixture) })
 
 	t.Run("role_resource", func(t *testing.T) { testAccRoleResource(t, fixture) })
 
@@ -164,6 +166,19 @@ resource "twenty_role" "denied" {
 					PlanOnly:    true,
 					ExpectError: regexp.MustCompile("Unable to Read Twenty Role"),
 				}},
+			})
+		})
+		t.Run("workspace_without_settings_permissions", func(t *testing.T) {
+			t.Setenv("TWENTY_EMAIL", restricted.Email)
+			t.Setenv("TWENTY_PASSWORD", restricted.Password)
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: acceptanceFactories(),
+				Steps: []resource.TestStep{{Config: workspaceAcceptanceConfig, Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("data.twenty_workspace.current", "id", fixture.WorkspaceID),
+					resource.TestCheckResourceAttr("data.twenty_workspace.current", "activation_status", "ACTIVE"),
+					resource.TestCheckResourceAttrSet("data.twenty_workspace.current", "default_role_id"),
+					resource.TestCheckResourceAttrSet("data.twenty_workspace.current", "workspace_members_count"),
+				)}},
 			})
 		})
 		t.Run("settings_flags_are_distinct", func(t *testing.T) {

@@ -1,6 +1,6 @@
 # Development plan and handoff
 
-Work in separate, serial stages. Stages 1, 2, and 3 are complete. Initial IAM work is now authorized one assigned step at a time. Step 4A adds only the `twenty_role` resource, its guards, and docs/tests. Workspace lookup and membership management are the next serial steps; workspace settings and object/field permission ownership remain out of scope. Checkboxes record completed work; the handoffs below record actual checks and container results.
+Work in separate, serial stages. Stages 1, 2, 3, and steps 4A/4B are complete. Initial IAM work is authorized one assigned step at a time. Step 4A added the `twenty_role` resource; step 4B adds only the read-only `twenty_workspace` data source and docs/tests. Membership management is the next assigned step. Workspace settings and object/field permission ownership remain out of scope. Checkboxes record completed work; the handoffs below record actual checks and container results.
 
 ## Stage 1: scaffold
 
@@ -275,7 +275,7 @@ starting with step 4A below.
 
 - [x] Add a `twenty_role` resource. Cover create/read/update/delete, native-ID import, drift, disappeared roles, and protection for built-in or bootstrap roles.
 - [x] Expose explicit permission flags. Test `ROLES` and `WORKSPACE_MEMBERS` settings permissions separately from object-record permissions. Confirm server defaults and preserve explicit false values.
-- [ ] Add a `twenty_workspace` data source using Metadata identity or lookup operations, with no CRM record queries.
+- [x] Add a `twenty_workspace` data source using Metadata identity or lookup operations, with no CRM record queries.
 - [ ] Add `twenty_workspace_member`, keyed by workspace and normalized email. Validate a stable import format before documenting it.
 - [ ] Create sends an invitation and returns without waiting for acceptance. Read distinguishes pending invitations from accepted members and preserves identity when the invitation is accepted.
 - [ ] Update changes an accepted member's role. For pending invitations, test cancellation and replacement if the API cannot update the role.
@@ -406,12 +406,96 @@ only their own disposable stack; existing unrelated local containers are not
 part of cleanup. No production, infrastructure, live account, signing secret,
 release, tag, or push was used.
 
-### Next serial IAM steps
+### Step 4B: current workspace data source handoff
 
-Add the workspace data source before the membership resource in separate
-assigned tasks. Reuse `ClientData.Client`, the shared mutation lock, and the
-fresh validated read pattern. Do not use `Session.Identity().RoleIDs` as a
-membership or role reconciliation snapshot. Keep bootstrap membership and its
+`data "twenty_workspace" "current" {}` reads only the authenticated workspace.
+All eleven attributes are computed; there is no selector, workspace resource,
+import, or mutation API. String attributes are `id`, `display_name`,
+`default_role_id`, `activation_status`, `subdomain`, `custom_domain`,
+`subdomain_url`, `custom_url`, `created_at`, and `updated_at`.
+`workspace_members_count` is an integer. Display name, default role, custom
+domain/URL, and count preserve server nulls; empty strings remain distinct.
+The default role is the workspace default, not the operator's assigned role.
+Timestamps use RFC3339 with fractional seconds when returned.
+
+`NewWorkspaceDataSource.Configure` reuses `ClientData.Client` and pins its
+user, workspace, workspace-member, and user-workspace IDs. Schema-only
+configuration clears the client and identity without authenticating.
+`readCurrentWorkspace` makes fresh generated `CurrentUser` and
+`CurrentWorkspace` requests on each read. It checks identity against those
+pins, then maps properties only from the dedicated workspace response.
+The cached `CurrentUser.currentWorkspace` contributes only its workspace ID.
+No unrelated workspace lookup, role-list query, Core call, member export,
+or plaintext credential storage was added.
+
+`workspaceQueryClient` validates consumed wire fields before generated code
+can decode missing/null required values as zeros. Invalid UUIDs including the
+nil UUID, unknown activation statuses, malformed URLs, missing nullable
+selections, absent membership, invalid timestamps, and negative/fractional or
+inexact-range counts fail with redacted diagnostics and no new state.
+Wrapped known errors also use fixed text. Returned URLs are informational;
+the provider does not follow them or require them to equal the endpoint.
+
+The pinned workspace resolver uses `NoPermissionGuard` for current-workspace
+identity. Its member count comes from `userWorkspaceRepository.countBy`, not
+pending invitations. Real Terraform checks confirm that a custom role with
+no settings flags can read the data source despite denied role listing.
+The count refreshed from two to three after a disposable account accepted an
+invitation. No workspace setting was changed. Computed property changes also
+have synthetic tests that retain a stale cached workspace summary.
+
+Source examples and a data-source template follow the Kaneo documentation
+layout without importing its API client or changing the reference repository.
+The README, generated index, and generated workspace page now list this type.
+
+### Step 4B verification
+
+Checks use Go 1.27.1, Terraform 1.14.7 on linux/amd64, golangci-lint v2.13.2,
+and tfplugindocs v0.25.0. Docker server/client are 29.8.1/29.8.2 and Compose
+is 5.5.1. Acceptance explicitly selects
+`/tmp/twenty-terraform-1.14.7/terraform` through `TF_ACC_TERRAFORM_PATH`;
+formatting and documentation put that directory first in PATH.
+
+Passed checks:
+
+- `go mod download` and `go mod verify`, with no dependency changes.
+- Two offline `make generate` runs with cached Go 1.27.1,
+  `GOTOOLCHAIN=local`, `GOPROXY=off`, and `GOSUMDB=off`. SDL/license checksums
+  passed; both generated-file SHA256 values matched the committed output.
+- `make fmt`, `make fmt-check`, `make lint`, `make test`, `go test -race ./...`,
+  and `make build`. Lint reported zero issues. Unit coverage is 94.2% in
+  provider, 53.2% in client, and 9.0% in disposable helpers. The entrypoint
+  and generated test-bootstrap package have no unit coverage.
+- `make generate-docs` and `make validate-docs` with synthetic ambient
+  credentials pointing to a local sentinel, which observed zero requests.
+  A second generation matched the first documentation SHA256 manifest.
+- Full real-container `make testacc` against the unchanged pinned IAM stack,
+  rerun after final validation/redaction changes. It passed in 99.346 seconds.
+  The current-identity/count-refresh subtest passed in 3.08 seconds; the
+  no-settings-permissions workspace subtest passed in 0.80 seconds. All existing
+  session and role subtests passed. No disposable project containers or volumes
+  remained after cleanup.
+- `git diff --check`.
+
+Unit tests cover schema/registration, typed client configuration and reset,
+unconfigured reads, fresh properties, null versus zero/empty values, current
+user/member/workspace identity mismatch, missing/malformed wire data, sanitized
+upstream errors, and actual session transport permission/authentication denial.
+The real suite reuses one disposable stack through
+`acceptance.Start/Bootstrap/Fixture.InviteAccount`; it adds no startup or
+onboarding implementation. Its workspace subtests check current identity,
+default role, URLs, timestamps, count refresh, an empty follow-up plan, and
+limited-role lookup. Existing operator/recovery preservation checks still run.
+No production instance, infrastructure, release, tag, signing secret, or push
+was used.
+
+### Next serial IAM step: membership
+
+The workspace data source is complete. Implement membership only in its next
+assigned task. Reuse `ClientData.Client`, the shared mutation lock, and the
+fresh validated read pattern. Do not use `Session.Identity().RoleIDs` or the
+workspace data source's count as a membership or administrator reconciliation
+snapshot. Keep bootstrap membership and its
 roles outside management, preserve an independent recovery administrator, and
 never evict undeclared users or the final workspace member.
 
@@ -445,11 +529,13 @@ or API-key lists. Active and expired returned assignments block deletion.
 - [Role resolver](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/metadata-modules/role/role.resolver.ts)
 - [Invitation resolver](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/workspace-invitation/workspace-invitation.resolver.ts)
 - [User resolver](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/user/user.resolver.ts)
+- [Workspace resolver](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/workspace/workspace.resolver.ts)
+- [Workspace user count](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/user-workspace/user-workspace.service.ts)
 
 These public source pins guide implementation. They are not end-to-end authentication or compatibility results.
 
 ## Next-stage integration points
 
-Stages 3 and 4A use the stage-2 operation/type handoff above and `graphql/README.md`, not a new client generator. `make generate` uses committed SDL only. Authentication stays in `TwentyProvider.Configure`, while absent/raw-null configuration tests and credential-free documentation commands remain regression checks. Initial IAM work may continue under the user's serial authorization, one assigned step at a time, using the validated shared session and preserving bootstrap/recovery protections.
+Stages 3, 4A, and 4B use the stage-2 operation/type handoff above and `graphql/README.md`, not a new client generator. `make generate` uses committed SDL only. Authentication stays in `TwentyProvider.Configure`, while absent/raw-null configuration tests and credential-free documentation commands remain regression checks. Initial IAM work may continue under the user's serial authorization, one assigned step at a time, using the validated shared session and preserving bootstrap/recovery protections.
 
 `main.go` serves protocol 6 at `registry.terraform.io/glitchedmob/twenty`. The manifest advertises protocol 6.0. The release workflow follows Kaneo's GPG-signing layout but stays gated off, with no tags or secrets configured.

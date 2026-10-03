@@ -111,7 +111,7 @@ func (p *TwentyProvider) Resources(context.Context) []func() resource.Resource {
 }
 
 func (p *TwentyProvider) DataSources(context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{NewRoleDataSource}
+	return []func() datasource.DataSource{NewRoleDataSource, NewWorkspaceDataSource}
 }
 
 // New returns a provider factory for protocol server registration and tests.

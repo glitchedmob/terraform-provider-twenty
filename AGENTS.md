@@ -2,9 +2,9 @@
 
 ## Scope and safety
 
-Stages 1, 2, and 3 are complete. Initial IAM work is authorized in serial steps: the `twenty_role` resource in step 4A, then the workspace data source and membership resource in later assigned steps. Implement only the assigned step, one agent at a time. Read the serial checklist and tested handoff in [DEVELOPMENT.md](DEVELOPMENT.md) before continuing. Workspace settings and object/field permission ownership are outside this authorization.
+Stages 1, 2, 3, and steps 4A/4B are complete. Initial IAM work continues in serial assigned steps; the membership resource is next. Step 4B implemented only the read-only `twenty_workspace` data source. Implement only the assigned step, one agent at a time. Read the serial checklist and tested handoff in [DEVELOPMENT.md](DEVELOPMENT.md) before continuing. Workspace settings and object/field permission ownership are outside this authorization.
 
-The provider uses Twenty's Metadata GraphQL endpoint, `/metadata`. Step 4A may register only the role resource alongside the existing role data source. Later assigned IAM steps may register their own authorized types. Do not add CRM record CRUD, Core GraphQL `/graphql` calls, or Core REST record operations.
+The provider uses Twenty's Metadata GraphQL endpoint, `/metadata`. Implemented types are the role resource and the role/workspace data sources. Workspace lookup reads only the current authenticated workspace, with no selectors or mutations. Do not add workspace resources or workspace mutation calls. Membership implementation and registration require the next assigned IAM step. Do not add CRM record CRUD, Core GraphQL `/graphql` calls, or Core REST record operations.
 
 Do not access production Twenty instances, infrastructure repositories, Kubernetes clusters, databases, secret stores, or live user accounts. Do not use local ambient credentials for tests. Acceptance tests must create a disposable local container stack with test-only automation and recovery accounts and destroy only that stack.
 
