@@ -15,7 +15,7 @@ The caller needs both `ROLES` and `WORKSPACE_MEMBERS`, or a full-settings grant.
 
 Destroying an accepted member and its Terraform-owned custom role is not fully supported on v2.44.0. The server removes membership but can retain its user-workspace ID in the role-assignment cache. The following role deletion then fails. The provider returns a fixed cache diagnostic, retains the role in state, and does not retry or rebind other users. The member can already be absent from both state and server while the role remains in both.
 
-Inspect actual membership and retained role state. Combined teardown remains constrained until the upstream cache is refreshed or fixed. This pin has no verified safe Metadata-only cache refresh or tested repair procedure. Do not assume an immediate retry or server restart will resolve it.
+Inspect actual membership and retained role state. Unattended combined teardown remains unsupported. The [operator-controlled v2.44.0 maintenance procedure](../guides/membership.md#operator-controlled-cache-maintenance-on-v2440) was verified in a disposable container, followed by one deliberately requested destroy. It requires appropriate server access outside Terraform. The provider has no Metadata-only cache repair, never invokes the CLI, and needs no shell, cluster, or database credentials.
 
 ## Example usage
 

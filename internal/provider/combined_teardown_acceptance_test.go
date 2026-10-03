@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -30,13 +31,60 @@ import (
 // Testing's automatic cleanup would repeat that unsupported destroy, so use a
 // local binary/dev override and keep CLI output/state only in a temporary dir.
 func testAccCombinedTeardown(t *testing.T, fixture *acceptance.Fixture) {
+	newCombinedTeardownFailure(t, fixture)
+	// No second destroy, cache write, rebind, or cleanup mutation. The parent
+	// suite destroys this disposable stack, including the retained fixture role.
+}
+
+// This separate regression exercises explicit operator maintenance, not an
+// automatic provider repair. The first destroy still must fail identically.
+func testAccOperatorCacheMaintenanceTeardown(t *testing.T, fixture *acceptance.Fixture) {
+	failed := newCombinedTeardownFailure(t, fixture)
+	fixture.OperatorInvalidateRoleTargetCache(t)
+	// One deliberate subsequent user request. No polling or mutation retry.
+	failed.cli.requireSuccess(t, "destroy", "-auto-approve")
+	if failed.count("DeleteOneRole") != 2 || failed.count("DeleteUserFromWorkspace") != 1 || failed.count("SendInvitations") != 1 || failed.count("UpdateWorkspaceMemberRole") != 0 || failed.count("DeleteWorkspaceInvitation") != 0 || failed.count("CreateOneRole") != 1 || failed.count("UpsertPermissionFlags") != 1 || failed.count("UpdateOneRole") != 0 {
+		t.Fatal("operator-maintained destroy must issue only one additional role deletion")
+	}
+	if len(failed.cli.resources(t)) != 0 {
+		t.Fatal("operator-maintained destroy did not remove the retained role from Terraform state")
+	}
+	session, err := client.NewSession(t.Context(), fixture.Stack.Endpoint, fixture.Operator.Email, fixture.Operator.Password, true)
+	if err != nil {
+		t.Fatal("authenticate fresh operator after maintained destroy")
+	}
+	snapshot, err := readMemberSnapshot(t.Context(), session.Client(), session.Identity())
+	if err != nil {
+		t.Fatal("read fresh server state after maintained destroy")
+	}
+	access, err := snapshot.access(failed.email)
+	if err != nil || access.status != "absent" || snapshot.role(failed.roleID) != nil {
+		t.Fatal("maintained destroy must leave both role and membership absent on the server")
+	}
+	if !reflect.DeepEqual(combinedTeardownAdminIdentities(t, fixture), failed.admins) {
+		t.Fatal("operator maintenance or subsequent destroy changed protected administrator identities/roles")
+	}
+	t.Log("verified v2.44 operator maintenance recovery: first destroy failed, targeted official CLI completed, one subsequent destroy removed the role from server/state without changing either administrator")
+}
+
+type combinedTeardownFailure struct {
+	cli    *disposableTerraform
+	count  func(string) int
+	roleID string
+	email  string
+	admins []client.Identity
+}
+
+func newCombinedTeardownFailure(t *testing.T, fixture *acceptance.Fixture) *combinedTeardownFailure {
+	t.Helper()
+	admins := combinedTeardownAdminIdentities(t, fixture)
 	endpoint, err := url.Parse(fixture.Stack.Endpoint)
 	if err != nil {
 		t.Fatal("parse disposable endpoint")
 	}
 	proxy := httputil.NewSingleHostReverseProxy(endpoint)
 	transport := &http.Transport{Proxy: nil}
-	defer transport.CloseIdleConnections()
+	t.Cleanup(transport.CloseIdleConnections)
 	proxy.Transport = transport
 	proxy.ErrorHandler = func(w http.ResponseWriter, _ *http.Request, _ error) {
 		http.Error(w, "disposable Metadata forwarding failed", http.StatusBadGateway)
@@ -66,7 +114,7 @@ func testAccCombinedTeardown(t *testing.T, fixture *acceptance.Fixture) {
 		r.Body = io.NopCloser(bytes.NewReader(body))
 		proxy.ServeHTTP(w, r)
 	}))
-	defer server.Close()
+	t.Cleanup(server.Close)
 	count := func(op string) int { lock.Lock(); defer lock.Unlock(); return calls[op] }
 	cli := newDisposableTerraform(t, fixture, server.URL)
 	email := "combined-teardown-" + uuid.NewString() + "@acceptance.example"
@@ -75,14 +123,14 @@ func testAccCombinedTeardown(t *testing.T, fixture *acceptance.Fixture) {
 }
 provider "twenty" { allow_insecure_http = true }
 resource "twenty_role" "custom" {
- label = "Combined teardown regression"
+ label = %q
  permission_flags = []
 }
 resource "twenty_workspace_member" "declared" {
  email = %q
  role_id = twenty_role.custom.id
 }
-`, email))
+`, "Combined teardown "+uuid.NewString(), email))
 	cli.requireSuccess(t, "apply", "-auto-approve")
 	before := cli.resources(t)
 	roleID, validID := before["twenty_role.custom"]["id"].(string)
@@ -130,6 +178,16 @@ resource "twenty_workspace_member" "declared" {
 	if err != nil || access.status != "absent" || snapshot.role(roleID) == nil {
 		t.Fatal("server must retain the custom role but not the accepted member or invitation")
 	}
+	if !reflect.DeepEqual(combinedTeardownAdminIdentities(t, fixture), admins) {
+		t.Fatal("combined teardown changed protected administrator identities/roles")
+	}
+	t.Log("expected v2.44 destroy failure: member absent from state/server, custom role retained in state/server, one deletion request each, both administrators preserved")
+	return &combinedTeardownFailure{cli: cli, count: count, roleID: roleID, email: email, admins: admins}
+}
+
+func combinedTeardownAdminIdentities(t *testing.T, fixture *acceptance.Fixture) []client.Identity {
+	t.Helper()
+	var admins []client.Identity
 	for _, admin := range []*acceptance.Account{fixture.Operator, fixture.Recovery} {
 		fresh, err := client.NewSession(t.Context(), fixture.Stack.Endpoint, admin.Email, admin.Password, true)
 		if err != nil || fresh.Identity().WorkspaceMemberID != admin.MemberID || fresh.Identity().UserID != admin.UserID {
@@ -140,13 +198,25 @@ resource "twenty_workspace_member" "declared" {
 			t.Fatal("read protected administrator after combined teardown")
 		}
 		member, err := identity.CurrentUser.WorkspaceMember.Get()
-		if err != nil || len(member.Roles) != 1 || member.Roles[0].Id != fixture.AdminRole.Id {
-			t.Fatal("combined teardown changed a protected administrator's role")
+		if err != nil || len(member.Roles) != 1 || member.Roles[0].Id != fixture.AdminRole.Id || fresh.Identity().WorkspaceID != fixture.WorkspaceID {
+			t.Fatal("combined teardown changed a protected administrator's role/workspace")
 		}
+		roles, err := fresh.GetRoles(t.Context())
+		if err != nil {
+			t.Fatal("read protected administrator role properties")
+		}
+		found := false
+		for _, role := range roles.GetRoles {
+			if role.Id == fixture.AdminRole.Id {
+				found = reflect.DeepEqual(role.RoleProperties, fixture.AdminRole)
+			}
+		}
+		if !found {
+			t.Fatal("combined teardown changed the unmanaged administrator role properties")
+		}
+		admins = append(admins, fresh.Identity())
 	}
-	t.Log("expected v2.44 destroy failure: member absent from state/server, custom role retained in state/server, one deletion request each, both administrators preserved")
-	// No second destroy, cache write, rebind, or cleanup mutation. The parent
-	// suite destroys this disposable stack, including the retained fixture role.
+	return admins
 }
 
 type disposableTerraform struct {
