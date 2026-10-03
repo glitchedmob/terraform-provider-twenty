@@ -57,7 +57,7 @@ The example UUID is a placeholder. Read the existing role through Metadata `getR
 
 Import does not bypass role safety guards. The bootstrap account's current roles, workspace default, built-in and non-editable roles remain protected from mutation. Use the data source for those roles instead.
 
-Literal UUIDs do not create Terraform dependencies. Use `twenty_role.triage.id` when referencing a managed role in a membership resource. This gives Terraform a dependency for create and destroy order.
+Literal UUIDs do not create Terraform dependencies. Use `twenty_role.triage.id` when referencing a managed role in a membership resource. This gives Terraform a dependency for create and destroy order. External invitations create no dependency but still block role deletion when their stored explicit role ID matches, including expired rows. Import does not bypass this guard. Role deletion needs `ROLES`, `APPLICATIONS`, and `WORKSPACE_MEMBERS`, or a full-settings grant. Inspect and deliberately revoke or replace external invitations through supported Twenty administration; do not import or evict undeclared access just to force role deletion.
 
 ## Memberships
 

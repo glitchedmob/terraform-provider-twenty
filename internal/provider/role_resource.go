@@ -71,7 +71,7 @@ func (r *roleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 	for _, field := range roleBooleanFields() {
 		attrs[field.name] = schema.BoolAttribute{Optional: true, Computed: true, Default: booldefault.StaticBool(field.defaultValue), MarkdownDescription: field.description}
 	}
-	resp.Schema = schema.Schema{MarkdownDescription: "Manages a custom Twenty role and its complete explicit permission flag set through Metadata GraphQL. Requires ROLES and visibility of current workspace members and roles. Deletion also requires APPLICATIONS to check application defaults. Protects the operator's current roles, the workspace default, built-in roles, and the final full-settings administrator. Deletion refuses assigned roles.", Attributes: attrs}
+	resp.Schema = schema.Schema{MarkdownDescription: "Manages a custom Twenty role and its complete explicit permission flag set through Metadata GraphQL. Requires ROLES and visibility of current workspace members and roles. Deletion also requires APPLICATIONS to check application defaults and WORKSPACE_MEMBERS to inspect all stored invitation role references. Protects the operator's current roles, the workspace default, built-in roles, and the final full-settings administrator. Deletion refuses assigned roles and explicit invitation references, including expired invitations.", Attributes: attrs}
 }
 
 type roleBooleanField struct {
@@ -262,8 +262,11 @@ func readManagedRole(ctx context.Context, api graphql.Client, id string) (*clien
 }
 func roleError(d *diag.Diagnostics, action string, err error) {
 	detail := client.DiagnosticMessage(err)
-	if errors.Is(err, errInvalidRoleResponse) || errors.Is(err, errUnsafeRole) {
-		detail = err.Error()
+	for _, known := range []error{errInvalidRoleResponse, errUnsafeRole, errInvalidInvitationResponse, errRoleInvitationReference} {
+		if errors.Is(err, known) {
+			detail = known.Error()
+			break
+		}
 	}
 	d.AddError("Unable to "+action+" Twenty Role", detail)
 }
@@ -444,15 +447,24 @@ func (r *roleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	if snapshot.role(state.ID.ValueString()) == nil {
 		return
 	}
-	// Application defaults are not in role assignment relations. Only deletion
-	// needs this extra APPLICATIONS read; create/update need no application grant.
+	// Application defaults and invitation references are not in role assignment
+	// relations. Only deletion needs APPLICATIONS and WORKSPACE_MEMBERS reads.
 	applications, err := client.FindManyApplications(ctx, roleSafetyClient{r.client})
 	if err != nil {
 		roleError(&resp.Diagnostics, "Delete", err)
 		return
 	}
 	snapshot.applications = applications.FindManyApplications
+	snapshot.invitations, err = readWorkspaceInvitations(ctx, r.client)
+	if err != nil {
+		roleError(&resp.Diagnostics, "Delete", err)
+		return
+	}
 	if err := snapshot.guard(state.ID.ValueString(), true, false, false); err != nil {
+		roleError(&resp.Diagnostics, "Delete", err)
+		return
+	}
+	if err := ctx.Err(); err != nil {
 		roleError(&resp.Diagnostics, "Delete", err)
 		return
 	}

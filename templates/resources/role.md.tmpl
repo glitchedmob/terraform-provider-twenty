@@ -9,7 +9,7 @@ description: |-
 
 Manages a custom role in the authenticated workspace. The separate [role data source](../data-sources/role.md) only looks up existing roles. This resource owns the label, description, icon, nine booleans, and the entire explicit permission flag set. It does not assign members, agents, API keys, or applications.
 
-The caller needs `ROLES` and visibility of current workspace members and roles. Deletion also needs `APPLICATIONS` to inspect application defaults. A full-settings administrator already has both grants. Object-record grants do not provide those settings permissions. Keep the automation account's membership and roles outside Terraform and maintain an independent recovery administrator.
+The caller needs `ROLES` and visibility of current workspace members and roles. Deletion also needs `APPLICATIONS` to inspect application defaults and `WORKSPACE_MEMBERS` to inspect all stored invitation role references. A full-settings administrator already has these grants. Create and update need neither extra grant. Object-record grants do not provide those settings permissions. Keep the automation account's membership and roles outside Terraform and maintain an independent recovery administrator.
 
 ## Known v2.44 teardown constraint
 
@@ -41,11 +41,13 @@ Obtain the ID through an authenticated Metadata `getRoles` query or the role dat
 
 ## Mutation guards
 
-Before each create, update, or delete operation, the provider reads current identity, members, role assignments, and the workspace default role. Before deletion it also reads application defaults. Missing `APPLICATIONS` blocks deletion; it does not block creation or update. It rejects mutations of the operator's current roles, the workspace default, non-editable roles, and the pinned standard Admin role. Admin, Member, and Guest labels are also reserved case-insensitively, including custom roles with those labels.
+Before each create, update, or delete operation, the provider reads current identity, members, role assignments, and the workspace default role. Before deletion it also reads application defaults and the complete stored invitation list. Missing `APPLICATIONS` or `WORKSPACE_MEMBERS` blocks deletion; neither blocks creation or update. It rejects mutations of the operator's current roles, the workspace default, non-editable roles, and the pinned standard Admin role. Admin, Member, and Guest labels are also reserved case-insensitively, including custom roles with those labels.
 
 Downscoping settings access or user assignability must leave an assigned full-settings administrator outside the operator. Explicit settings flags alone do not count as the independent full-settings administrator. This guard does not prove that another administrator can still log in; keep recovery credentials usable outside Terraform.
 
 Twenty can silently rebind assignments during role deletion. The provider therefore refuses deletion when members, agents, API keys returned by the server, or application defaults reference the role. Expired keys still count. The pinned server excludes revoked keys from both role assignment lists and deletion rebinding; those inactive keys cannot be enumerated for this guard. Remove assignments deliberately outside this resource before deleting, through declared membership resources where applicable. v2.44.0 may retain removed membership IDs in its role-assignment cache and reject later role deletion. See the [membership guide](../guides/membership.md). Missing or inconsistent safety data fails closed.
+
+Stored invitations with an explicit reference to the role also block deletion, even when expired or outside Terraform. Null invitation roles follow the protected workspace default. This prevents deletion from stranding invitation metadata or breaking acceptance and membership reads. The provider never cancels or rebinds invitations during role deletion. Inspect and deliberately revoke or replace those invitations through supported Twenty administration first. Failed, incomplete, malformed, or duplicate-ID invitation reads retain role state and refuse deletion. A role already absent from a complete validated role read needs no invitation changes.
 
 A shared provider-configuration lock covers these reads and mutations. It prevents races between role and membership resources in one configured provider, not concurrent changes from another provider configuration, Terraform run, or administrator. Pause other IAM writers during applies.
 

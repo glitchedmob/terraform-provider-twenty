@@ -613,6 +613,25 @@ Checks used Go 1.27.1, Terraform 1.14.7 on linux/amd64, golangci-lint v2.13.2, a
 
 The new cancellation interleavings and response/read faults are synthetic, not injected into the real server. The real suite verifies the existing lifecycles remain supported. The per-provider lock is still not distributed, and ordinary Read cannot prove the historical provenance of an externally replaced invitation that was never observed. Pause competing IAM writers. No production, live accounts, release, tag, signing secret, or push was used.
 
+## Role invitation deletion review fix
+
+The current assignment permits parallel independent work in isolated worktrees, with branch/file ownership kept separate and the parent agent managing the PR stack. This layer uses the validated invitation reader from the preceding layer; it does not change that reader, the pinned SDL/operations, dependencies, images, or cache-maintenance behavior.
+
+Role Delete now reads the complete stored invitation list into its fresh safety snapshot under the existing mutation lock. Any explicit role reference blocks deletion, case-insensitively, including expired rows and invitations outside Terraform. Null references follow the protected workspace default. Read denial, malformed/incomplete/duplicate-ID responses, partial GraphQL data, cancellation, and timeouts retain role state and prevent mutation. Refusal and malformed-response diagnostics use fixed text with no invitation IDs, emails, or tokens. No invitations are canceled or rebound, and no mutation is retried. A complete role read proving the target already absent still skips unrelated invitation/application reads.
+
+Deletion now requires `ROLES`, `APPLICATIONS`, and `WORKSPACE_MEMBERS`, or full-settings access. Create/update retain their existing role/member safety reads and need neither extra deletion grant. Templates, generated guides, schema prose, examples, and the README state this boundary. Existing accepted-member/custom-role cache-defect sections and their expected-failure regression remain unchanged.
+
+The new real Terraform regression owns only the custom role. A direct supported API call creates an external pending invitation referencing it, with no Terraform dependency. Destroy refuses and retains role state; fresh membership reads prove the same valid invitation and role still exist. Revoking only that test-created invitation through the supported API permits successful role cleanup. Both administrators retain their identity, login, and Admin assignment. The real permission case creates/updates with `ROLES` alone, refuses deletion with `ROLES` plus `APPLICATIONS` but no `WORKSPACE_MEMBERS`, then deletes safely after adding invitation visibility.
+
+Verification used Go 1.27.1, Terraform 1.14.7, golangci-lint v2.13.2, tfplugindocs v0.25.0, Docker client/server 29.8.2/29.8.1, and Compose 5.5.1:
+
+- `go mod download`, `go mod verify`, two offline `make generate` runs, `make fmt`, `make fmt-check`, `make lint`, `make test`, `go test -race ./...`, and `make build` passed. Lint reported zero issues. Generated-client hashes matched committed output. Unit coverage was 94.0% provider, 53.7% client, and 9.0% disposable helpers.
+- `make generate-docs` and `make validate-docs` passed twice with identical documentation hashes. Synthetic credentials pointed to a loopback sentinel for the final run; it observed zero requests.
+- Full disposable-container `make testacc` passed in 131.946 seconds. The external-invitation regression passed in 11.23 seconds; the deletion-visibility case passed in 2.68 seconds. All existing suites passed, including the unchanged accepted-member/custom-role expected cache failure. No `twenty-acc-` containers/volumes or acceptance temporary Terraform directories remained.
+- `git diff --check` passed.
+
+An initial full run passed the new regressions but failed an older ROLES-only invitation-denial check because the expanded permission test had just granted `WORKSPACE_MEMBERS`. The test now restores `ROLES` alone before that independent check. This was a test-premise error, not an invitation guard failure. No production, infrastructure, live account, release, merge, tag, signing secret, push, or PR-management action was used.
+
 ## Upstream pins
 
 - Twenty target: `v2.44.0`

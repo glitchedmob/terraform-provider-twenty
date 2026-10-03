@@ -1,3 +1,5 @@
+# The caller needs ROLES; deletion also needs APPLICATIONS and WORKSPACE_MEMBERS.
+# Stored invitation references, including expired rows, block role deletion.
 resource "twenty_role" "triage" {
   label       = "Support triage"
   description = "Read records and manage workspace invitations"
