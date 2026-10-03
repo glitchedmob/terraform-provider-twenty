@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"testing"
 	"time"
 
@@ -39,22 +38,9 @@ func testAccWorkspaceMemberResource(t *testing.T, fixture *acceptance.Fixture) {
 		}
 		roles[i] = created.CreateOneRole.Id
 	}
-	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		for _, id := range roles {
-			if _, err := client.DeleteOneRole(ctx, fixture.Operator.API, id); err != nil {
-				// v2.44.0 deletes role targets but can retain removed membership
-				// IDs in its role-assignment cache. Never rebind live users or
-				// edit the database to make disposable role cleanup succeed.
-				if strings.Contains(err.Error(), "User workspaces not found") {
-					t.Log("pinned role deletion rejected a stale removed-membership cache entry; the disposable stack owns final cleanup")
-				} else {
-					t.Errorf("cleanup disposable membership role: %s", err)
-				}
-			}
-		}
-	})
+	// Fixture roles are not Terraform-owned. Leave them to stack teardown;
+	// the separate combined regression tests Terraform-owned role deletion.
+
 	empty := resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()}}
 	update := resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(address, plancheck.ResourceActionUpdate)}}
 	freshEmail := func() string { return "terraform-member-" + uuid.NewString() + "@acceptance.example" }

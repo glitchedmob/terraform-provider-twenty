@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 	"sync"
@@ -442,23 +443,46 @@ func assertRoleMutationRejected(t *testing.T, mock *roleMock, deleting bool) {
 	}
 }
 func TestRoleAdministratorGuard(t *testing.T) {
-	mock := newRoleMock()
-	mock.roles[0]["canUpdateAllSettings"] = true
-	mock.roles[1]["canUpdateAllSettings"] = false
-	// The recovery member is the only remaining full-settings administrator.
-	mock.roles[0]["workspaceMembers"] = []any{mock.members[1]}
-	mock.roles[1]["workspaceMembers"] = []any{mock.own}
-	mock.members[1]["roles"] = []any{map[string]any{"id": roleTestID}}
-	snapshot, err := readRoleSafety(t.Context(), mock, mockRoleResource(mock).identity)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if snapshot.guard(roleTestID, false, false, true) == nil || snapshot.guard(roleTestID, true, false, false) == nil {
-		t.Fatal("last full-settings administrator must be preserved")
-	}
-	snapshot.roles[1].CanUpdateAllSettings = true
-	if snapshot.guard(roleTestID, false, false, true) != nil {
-		t.Fatal("independent full-settings administrator allows downscope")
+	for _, attribute := range []string{"can_update_all_settings", "can_be_assigned_to_users"} {
+		for _, alternative := range []bool{false, true} {
+			t.Run(attribute+"/independent_alternative="+fmt.Sprint(alternative), func(t *testing.T) {
+				mock := newRoleMock()
+				mock.roles[0]["canUpdateAllSettings"] = true
+				// Admin remains on the operator. Only the recovery user has the
+				// editable custom role that Terraform is about to downscope.
+				mock.roles[0]["workspaceMembers"] = []any{mock.members[1]}
+				mock.roles[1]["workspaceMembers"] = []any{mock.own}
+				mock.members[1]["roles"] = []any{map[string]any{"id": roleTestID}}
+				if alternative {
+					other := map[string]any{"id": safetyWorkspace, "userId": safetyWorkspace, "userWorkspaceId": safetyWorkspace, "roles": []any{map[string]any{"id": roleTestOther}}}
+					mock.members = append(mock.members, other)
+					mock.roles[1]["workspaceMembers"] = []any{mock.own, other}
+				}
+				r := mockRoleResource(mock)
+				model := roleResourceTestModel()
+				model.CanUpdateAllSettings = types.BoolValue(true)
+				state := roleResourceState(t, model)
+				if attribute == "can_update_all_settings" {
+					model.CanUpdateAllSettings = types.BoolValue(false)
+				} else {
+					model.CanBeAssignedToUsers = types.BoolValue(false)
+				}
+				resp := resource.UpdateResponse{State: state}
+				r.Update(t.Context(), resource.UpdateRequest{State: state, Plan: roleResourcePlan(t, model)}, &resp)
+				if resp.Diagnostics.HasError() == alternative {
+					t.Fatal("role downscope must preserve a non-operator administrator", resp.Diagnostics)
+				}
+				mutations := 0
+				for _, op := range mock.calls {
+					if op == "UpdateOneRole" || op == "UpsertPermissionFlags" {
+						mutations++
+					}
+				}
+				if (!alternative && (mutations != 0 || !resp.State.Raw.Equal(state.Raw))) || (alternative && mutations != 2) {
+					t.Fatal("unsafe downscope mutated the role, or safe downscope was not applied")
+				}
+			})
+		}
 	}
 }
 func TestRoleSafetyWireValidation(t *testing.T) {

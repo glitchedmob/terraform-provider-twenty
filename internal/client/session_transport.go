@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/Khan/genqlient/graphql"
+	"github.com/google/uuid"
 )
 
 const (
@@ -46,6 +47,7 @@ var (
 	errRenewalFailed       = errors.New("twenty session renewal failed; configure the provider again")
 	errAuthentication      = errors.New("twenty session authentication was rejected; configure the provider again")
 	errServer              = errors.New("twenty could not complete the Metadata operation")
+	errRoleDeletionCache   = errors.New("twenty v2.44 could not delete the role because its role-assignment cache references missing workspace memberships. Membership removal may already have succeeded. The role remains managed in state; inspect current membership and role state and resolve the upstream cache defect before another teardown attempt. No automatic retry or assignment repair was attempted")
 )
 
 // DiagnosticMessage returns only canonical messages for known session errors.
@@ -56,7 +58,7 @@ func DiagnosticMessage(err error) string {
 		errPasswordDisabled, errCaptchaRequired, errMFARequired, errEmailUnverified,
 		errAccountDisabled, errPermissionDenied, errMalformedResponse, errMalformedIdentity,
 		errRedirect, errRequestFailed, errResponseTooLarge, errRequestTooLarge,
-		errSessionExpired, errRenewalFailed, errAuthentication, errServer,
+		errSessionExpired, errRenewalFailed, errAuthentication, errRoleDeletionCache, errServer,
 		context.Canceled, context.DeadlineExceeded,
 	} {
 		if errors.Is(err, known) {
@@ -249,6 +251,9 @@ func (c *sessionWireClient) makeRequest(ctx context.Context, req *graphql.Reques
 				return errPasswordDisabled
 			}
 		}
+		if roleDeletionMissingMembership(req.OpName, e.Message) {
+			return errRoleDeletionCache
+		}
 		// This server uses generic FORBIDDEN/INVALID_INPUT codes for these two
 		// cases. Match the pinned messages but only return our fixed text.
 		switch e.Message {
@@ -301,6 +306,28 @@ func (c *sessionWireClient) makeRequest(ctx context.Context, req *graphql.Reques
 		return errMalformedResponse
 	}
 	return nil
+}
+
+// Match only the pinned DeleteOneRole missing-membership condition. The service
+// can include a list of native IDs; none of that text escapes into diagnostics.
+func roleDeletionMissingMembership(operation, message string) bool {
+	if operation != "DeleteOneRole" {
+		return false
+	}
+	if message == "User workspaces not found" {
+		return true
+	}
+	ids, ok := strings.CutPrefix(message, "User workspaces not found: ")
+	if !ok {
+		return false
+	}
+	for _, id := range strings.Split(ids, ", ") {
+		parsed, err := uuid.Parse(id)
+		if err != nil || parsed.String() != strings.ToLower(id) {
+			return false
+		}
+	}
+	return true
 }
 
 func validateCurrentUserResponse(value json.RawMessage) error {

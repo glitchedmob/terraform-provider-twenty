@@ -61,7 +61,7 @@ func (r *workspaceMemberResource) Schema(_ context.Context, _ resource.SchemaReq
 			"invitation_id":       schema.StringAttribute{Computed: true, MarkdownDescription: "Native invitation UUID while pending or expired, otherwise null. No invitation token or link is stored."},
 			"status":              schema.StringAttribute{Computed: true, MarkdownDescription: "pending, accepted, or expired on successful reads. Expired invitations plan replacement. unconfirmed or absent can remain after a failed mutation until refresh confirms the remaining access."},
 			"expires_at":          schema.StringAttribute{Computed: true, MarkdownDescription: "Invitation expiration in RFC3339 format, otherwise null. Expired invitations do not count as active desired access."},
-			"ownership_confirmed": schema.BoolAttribute{Computed: true, MarkdownDescription: "True after explicit import or a confirmed invitation send. False after an ambiguous send requires inspection and explicit import before further writes, even when refresh can see pending or accepted access. Prevents accidental adoption of a concurrent external invitation."},
+			"ownership_confirmed": schema.BoolAttribute{Computed: true, MarkdownDescription: "True after explicit import or a confirmed invitation send. False after an ambiguous send or native-ID replacement requires inspection and explicit import before further writes, even when refresh can see pending or accepted access. Prevents accidental adoption of external access."},
 		},
 	}
 }
@@ -233,7 +233,9 @@ func (r *workspaceMemberResource) Read(ctx context.Context, req resource.ReadReq
 		resp.State.RemoveResource(ctx)
 		return
 	}
-	state.fromAccess(a)
+	if state.reconcileAccess(a) {
+		resp.Diagnostics.AddWarning(memberReplacementSummary, memberReplacementDetail)
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 func (r *workspaceMemberResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -258,6 +260,13 @@ func (r *workspaceMemberResource) Update(ctx context.Context, req resource.Updat
 	r.mutationLock.Lock()
 	defer r.mutationLock.Unlock()
 	s, a, err := r.snapshot(ctx, state)
+	if err == nil && state.replacedBy(a) {
+		state.reconcileAccess(a)
+		resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+		resp.Diagnostics.AddWarning(memberReplacementSummary, memberReplacementDetail)
+		memberError(&resp.Diagnostics, "Update", errMemberOwnership)
+		return
+	}
 	if err == nil {
 		err = s.guardMutation(a, plan.RoleID.ValueString(), false, r.identity)
 	}
@@ -272,7 +281,7 @@ func (r *workspaceMemberResource) Update(ctx context.Context, req resource.Updat
 	desired := plan.RoleID.ValueString()
 	if a.member != nil {
 		if state.Status.ValueString() != "accepted" || state.MemberID.ValueString() != a.member.Id {
-			state.fromAccess(a)
+			state.reconcileAccess(a)
 			resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 			memberError(&resp.Diagnostics, "Update", errMemberRace)
 			return
@@ -292,9 +301,11 @@ func (r *workspaceMemberResource) Update(ctx context.Context, req resource.Updat
 		if a.roleID != desired {
 			originalInvitationID := a.invitation.Id
 			a, err = r.cancel(ctx, state, a)
-			state.fromAccess(a)
+			if state.reconcileAccess(a) {
+				resp.Diagnostics.AddWarning(memberReplacementSummary, memberReplacementDetail)
+			}
 			if a.invitation != nil && a.invitation.Id != originalInvitationID {
-				state.OwnershipConfirmed = types.BoolValue(false)
+				err = errMemberOwnership
 			}
 			resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 			if err == nil {
@@ -322,9 +333,12 @@ func (r *workspaceMemberResource) Update(ctx context.Context, req resource.Updat
 	}
 	_, actual, readErr := r.snapshot(ctx, state)
 	if readErr == nil {
-		state.fromAccess(actual)
+		if state.reconcileAccess(actual) {
+			resp.Diagnostics.AddWarning(memberReplacementSummary, memberReplacementDetail)
+			readErr = errMemberOwnership
+		}
 		resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-		if actual.roleID != desired || (actual.status != "accepted" && actual.status != "pending") {
+		if readErr == nil && (actual.roleID != desired || (actual.status != "accepted" && actual.status != "pending")) {
 			readErr = errMemberPartial
 		}
 	}
@@ -368,6 +382,13 @@ func (r *workspaceMemberResource) Delete(ctx context.Context, req resource.Delet
 	r.mutationLock.Lock()
 	defer r.mutationLock.Unlock()
 	s, a, err := r.snapshot(ctx, state)
+	if err == nil && state.replacedBy(a) {
+		state.reconcileAccess(a)
+		resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+		resp.Diagnostics.AddWarning(memberReplacementSummary, memberReplacementDetail)
+		memberError(&resp.Diagnostics, "Delete", errMemberOwnership)
+		return
+	}
 	if err == nil {
 		err = s.guardMutation(a, "", true, r.identity)
 	}
@@ -387,7 +408,14 @@ func (r *workspaceMemberResource) Delete(ctx context.Context, req resource.Delet
 			memberError(&resp.Diagnostics, "Delete", errMemberRace)
 			return
 		}
-		_, err = r.cancel(ctx, state, a)
+		var actual *memberAccess
+		actual, err = r.cancel(ctx, state, a)
+		if state.reconcileAccess(actual) {
+			resp.Diagnostics.AddWarning(memberReplacementSummary, memberReplacementDetail)
+		}
+		if err != nil {
+			resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+		}
 	} else {
 		if state.Status.ValueString() != "accepted" || state.MemberID.ValueString() != a.member.Id {
 			memberError(&resp.Diagnostics, "Delete", errMemberRace)
@@ -401,6 +429,10 @@ func (r *workspaceMemberResource) Delete(ctx context.Context, req resource.Delet
 		}
 		_, actual, readErr := r.snapshot(ctx, state)
 		if readErr == nil && actual.status != "absent" {
+			if state.reconcileAccess(actual) {
+				resp.Diagnostics.AddWarning(memberReplacementSummary, memberReplacementDetail)
+			}
+			resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 			readErr = errMemberPartial
 		}
 		if err == nil {

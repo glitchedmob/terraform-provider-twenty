@@ -11,6 +11,12 @@ Manages a custom role in the authenticated workspace. The separate [role data so
 
 The caller needs `ROLES` and visibility of current workspace members and roles. Deletion also needs `APPLICATIONS` to inspect application defaults. A full-settings administrator already has both grants. Object-record grants do not provide those settings permissions. Keep the automation account's membership and roles outside Terraform and maintain an independent recovery administrator.
 
+## Known v2.44 teardown constraint
+
+Destroying an accepted member and its Terraform-owned custom role is not fully supported on v2.44.0. The server removes membership but can retain its user-workspace ID in the role-assignment cache. The following role deletion then fails. The provider returns a fixed cache diagnostic, retains the role in state, and does not retry or rebind other users. The member can already be absent from both state and server while the role remains in both.
+
+Inspect actual membership and retained role state. Combined teardown remains constrained until the upstream cache is refreshed or fixed. This pin has no verified safe Metadata-only cache refresh or tested repair procedure. Do not assume an immediate retry or server restart will resolve it.
+
 ## Example usage
 
 {{ tffile "examples/resources/twenty_role/resource.tf" }}
@@ -37,7 +43,7 @@ Obtain the ID through an authenticated Metadata `getRoles` query or the role dat
 
 Before each create, update, or delete operation, the provider reads current identity, members, role assignments, and the workspace default role. Before deletion it also reads application defaults. Missing `APPLICATIONS` blocks deletion; it does not block creation or update. It rejects mutations of the operator's current roles, the workspace default, non-editable roles, and the pinned standard Admin role. Admin, Member, and Guest labels are also reserved case-insensitively, including custom roles with those labels.
 
-Downscoping must leave at least one assigned user with a full-settings role. Explicit settings flags alone do not count as the independent full-settings administrator. This guard does not prove that another administrator can still log in; keep recovery credentials usable outside Terraform.
+Downscoping settings access or user assignability must leave an assigned full-settings administrator outside the operator. Explicit settings flags alone do not count as the independent full-settings administrator. This guard does not prove that another administrator can still log in; keep recovery credentials usable outside Terraform.
 
 Twenty can silently rebind assignments during role deletion. The provider therefore refuses deletion when members, agents, API keys returned by the server, or application defaults reference the role. Expired keys still count. The pinned server excludes revoked keys from both role assignment lists and deletion rebinding; those inactive keys cannot be enumerated for this guard. Remove assignments deliberately outside this resource before deleting, through declared membership resources where applicable. v2.44.0 may retain removed membership IDs in its role-assignment cache and reject later role deletion. See the [membership guide](../guides/membership.md). Missing or inconsistent safety data fails closed.
 

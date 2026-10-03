@@ -11,6 +11,12 @@ Manages access for one declared email in the provider's authenticated workspace.
 
 The caller needs both `ROLES` and `WORKSPACE_MEMBERS`, or a full-settings grant. The role must exist in this workspace and allow assignment to users. Assigning a valid built-in, non-editable, or workspace-default role is allowed; protections against changing those role definitions do not prevent assignment.
 
+## Known v2.44 teardown constraint
+
+Destroying an accepted member and its Terraform-owned custom role is not fully supported on v2.44.0. The server removes membership but can retain its user-workspace ID in the role-assignment cache. The following role deletion then fails. The provider returns a fixed cache diagnostic, retains the role in state, and does not retry or rebind other users. The member can already be absent from both state and server while the role remains in both.
+
+Inspect actual membership and retained role state. Combined teardown remains constrained until the upstream cache is refreshed or fixed. This pin has no verified safe Metadata-only cache refresh or tested repair procedure. Do not assume an immediate retry or server restart will resolve it.
+
 ## Example usage
 
 ```terraform
@@ -61,6 +67,8 @@ If acceptance races a pending update or revocation, the provider does not remove
 
 A failed send can leave a real invitation even when mail delivery or the response failed. State retains the stable ID and readable remaining access. `ownership_confirmed = false` prevents further writes until you inspect and explicitly import that access. Refresh does not silently confirm ownership. There are no automatic resends, mutation retries, rollback deletions, or multi-email sends.
 
+If a known invitation or accepted member is removed and externally recreated for the same email, refresh records the new native ID but clears `ownership_confirmed` and warns. The compound ID stays stable. Update reconciliation applies the same rule. No further update or destroy can change that replacement until you inspect it, match its role in configuration, remove only the local binding with `terraform state rm ADDRESS`, and explicitly import the compound ID. Original invitation acceptance keeps confirmation; refresh never confirms an already unconfirmed binding.
+
 Cancellation may succeed while replacement fails, leaving no access. Complete refresh then removes absent state. It may instead discover a replacement invitation requiring explicit import. See the [membership guide](../guides/membership.md) for recovery steps and server-side removal cascades.
 
 The lock is per provider configuration, not distributed. The API has no conditional writes or transaction across these calls. Pause competing IAM writers, including other Terraform runs and provider aliases.
@@ -79,6 +87,6 @@ The lock is per provider configuration, not distributed. The API has no conditio
 - `id` (String) Stable identity and import format: lowercase workspace UUID/email. Remains unchanged when an invitation is accepted.
 - `invitation_id` (String) Native invitation UUID while pending or expired, otherwise null. No invitation token or link is stored.
 - `member_id` (String) Workspace-member UUID after acceptance, otherwise null. Not the global user or user-workspace ID.
-- `ownership_confirmed` (Boolean) True after explicit import or a confirmed invitation send. False after an ambiguous send requires inspection and explicit import before further writes, even when refresh can see pending or accepted access. Prevents accidental adoption of a concurrent external invitation.
+- `ownership_confirmed` (Boolean) True after explicit import or a confirmed invitation send. False after an ambiguous send or native-ID replacement requires inspection and explicit import before further writes, even when refresh can see pending or accepted access. Prevents accidental adoption of external access.
 - `status` (String) pending, accepted, or expired on successful reads. Expired invitations plan replacement. unconfirmed or absent can remain after a failed mutation until refresh confirms the remaining access.
 - `workspace_id` (String) Authenticated workspace UUID. This is not a selector.

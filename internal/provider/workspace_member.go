@@ -22,7 +22,7 @@ var (
 	errMemberExists          = errors.New("access already exists for this email; import it explicitly before managing its role")
 	errUnsafeMember          = errors.New("membership mutation refused: preserve the final workspace member, a full-settings administrator, and an independent full-settings recovery administrator outside the operator")
 	errMemberRace            = errors.New("membership changed during the operation; newly accepted access was not removed or reassigned. Refresh and review the next plan before retrying")
-	errMemberOwnership       = errors.New("invitation ownership was not confirmed. Inspect the remaining access and explicitly import this compound ID before updating or destroying it; no automatic adoption or resend is allowed")
+	errMemberOwnership       = errors.New("membership ownership was not confirmed. Inspect the remaining access and explicitly import this compound ID before updating or destroying it; no automatic adoption or resend is allowed")
 	errMemberPartial         = errors.New("membership operation was not confirmed. The stable ID and any readable remaining access were retained. Inspect refreshed state and test mail delivery before retrying; no automatic resend or rollback was attempted")
 )
 
@@ -275,6 +275,28 @@ func (s *memberSnapshot) guardMutation(a *memberAccess, roleID string, deleting 
 	}
 	return nil
 }
+
+const memberReplacementSummary = "Twenty Membership Ownership Changed"
+const memberReplacementDetail = "The native invitation or member ID changed for this email. Ownership confirmation was cleared; the replacement access was not adopted. Inspect the current access and match its role in configuration, remove only the local state binding, then explicitly import the compound ID before any update or destroy."
+
+func (m workspaceMemberModel) replacedBy(a *memberAccess) bool {
+	memberID, invitationID := m.MemberID.ValueString(), m.InvitationID.ValueString()
+	return (memberID != "" && (a.invitation != nil || (a.member != nil && a.member.Id != memberID))) ||
+		(invitationID != "" && a.invitation != nil && a.invitation.Id != invitationID)
+}
+
+// Acceptance consumes the original invitation and creates a member, so that
+// transition keeps ownership. Replacement of an already known native ID does
+// not. An unconfirmed binding is never confirmed by reconciliation.
+func (m *workspaceMemberModel) reconcileAccess(a *memberAccess) bool {
+	replaced := m.replacedBy(a)
+	m.fromAccess(a)
+	if replaced || a.status == "absent" {
+		m.OwnershipConfirmed = types.BoolValue(false)
+	}
+	return replaced
+}
+
 func (m *workspaceMemberModel) fromAccess(a *memberAccess) {
 	m.MemberID, m.InvitationID, m.ExpiresAt = types.StringNull(), types.StringNull(), types.StringNull()
 	m.Status = types.StringValue(a.status)

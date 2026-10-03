@@ -24,7 +24,7 @@ func reservedRoleLabel(label string) bool {
 	return false
 }
 
-var errUnsafeRole = errors.New("role mutation refused: the role is protected, in use, or would remove the final full-settings administrator")
+var errUnsafeRole = errors.New("role mutation refused: the role is protected, in use, or would remove the independent full-settings recovery administrator outside the operator")
 
 // Validate wire values before genqlient turns missing non-null fields into zeros.
 // Only selected Metadata operations are allowed through this guard client.
@@ -292,6 +292,11 @@ func (s *roleSafetySnapshot) guard(id string, deleting, canUpdateAllSettings, ca
 	}
 	if role.CanUpdateAllSettings && (deleting || !canUpdateAllSettings || !canBeAssignedToUsers) {
 		for _, member := range s.user.WorkspaceMembers {
+			// The operator's settings access is not an independent recovery path.
+			// Apply the same identity exclusion as the membership mutation guard.
+			if member.Id == own.Id || member.UserId == own.UserId {
+				continue
+			}
 			for _, assigned := range member.Roles {
 				other := s.role(assigned.Id)
 				if other != nil && !strings.EqualFold(other.Id, id) && other.CanUpdateAllSettings && other.CanBeAssignedToUsers {

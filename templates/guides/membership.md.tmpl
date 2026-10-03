@@ -9,6 +9,12 @@ description: |-
 
 The [membership resource](../resources/workspace_member.md) owns access for declared emails, not global user provisioning. Configure one active workspace per provider. Keep the verified automation identity, its roles, and a usable independent recovery administrator outside Terraform-managed resources.
 
+## Known v2.44 teardown constraint
+
+Destroying an accepted member and its Terraform-owned custom role is not fully supported on v2.44.0. The server removes membership but can retain its user-workspace ID in the role-assignment cache. The following role deletion then fails. The provider returns a fixed cache diagnostic, retains the role in state, and does not retry or rebind other users. The member can already be absent from both state and server while the role remains in both.
+
+Inspect actual membership and retained role state. Combined teardown remains constrained until the upstream cache is refreshed or fixed. This pin has no verified safe Metadata-only cache refresh or tested repair procedure. Do not assume an immediate retry or server restart will resolve it.
+
 ## Roles and declared emails
 
 Use managed-role references to create dependencies. Use the role data source for built-in roles and definitions owned elsewhere. The workspace data source confirms which workspace the provider binds; it does not select or create a workspace.
@@ -26,6 +32,12 @@ Create sends one invitation and returns immediately. The recipient completes the
 Pending role changes cancel and reissue. Expiration records `expired` and plans replacement. Old mail links stop working after revocation. Neither case waits for acceptance or sends mail during Read.
 
 Existing pending, expired, or accepted access requires [explicit import](import.md). Import reads the actual role; it does not grant the configured role until a later apply. A legacy invitation with a null role resolves the current workspace default on read.
+
+## External replacement and ownership
+
+Revoking and recreating an invitation for the same email does not transfer Terraform ownership. The same rule applies to accepted-member removal/recreation. If a known native ID changes, refresh or update reconciliation records the replacement, clears `ownership_confirmed`, and returns a fixed warning. Further update/destroy operations refuse it until explicit inspection/import. Acceptance of the original pending invitation keeps its confirmation and compound ID. An unconfirmed binding never becomes confirmed just because refresh can see access.
+
+Inspect the current access and match its role in configuration. Use `terraform state rm ADDRESS` to remove only the local binding, then import `workspaceUUID/email`. Neither operation revokes access. Review the next plan before applying.
 
 ## Partial failures
 
@@ -50,6 +62,6 @@ Destroy uses the server's `deleteUserFromWorkspace`, not raw member CRUD. The se
 
 The provider prevents its own attempt to remove the final workspace member or independent full-settings administrator. Another administrator must retain a role with `can_update_all_settings = true` and user assignability. A subset of explicit settings flags is not counted as a full-settings administrator. These checks do not test the other administrator's password, MFA, or recovery process.
 
-v2.44.0 can retain removed user-workspace IDs in its role-assignment cache and reject subsequent role deletion with missing-membership errors. A real disposable test observed this after accepted removal. The provider reports the failure rather than changing other users to clear it. Verify actual membership and use supported server cache repair before retrying role deletion.
+The combined teardown regression owns both resources in Terraform, accepts the server-issued invitation, and verifies an empty plan before destroy. On the pinned v2.44.0 server, destroy returns the classified role-cache failure. Fresh reads confirm membership is absent from state and server, the custom role remains in state and server, and both unmanaged administrators retain their identity and Admin assignment. There is one member deletion and one role deletion request, with no repair mutations. This is an expected upstream failure, not a successful combined lifecycle.
 
 All lists used here are unpaginated in this pin. The lock shared by role and membership resources serializes one provider configuration only. There is no server transaction or conditional mutation. Pause other IAM writers and provider aliases during apply.

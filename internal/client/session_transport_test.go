@@ -23,7 +23,7 @@ func TestDiagnosticMessage(t *testing.T) {
 		errPasswordDisabled, errCaptchaRequired, errMFARequired, errEmailUnverified,
 		errAccountDisabled, errPermissionDenied, errMalformedResponse, errMalformedIdentity,
 		errRedirect, errRequestFailed, errResponseTooLarge, errRequestTooLarge,
-		errSessionExpired, errRenewalFailed, errAuthentication, errServer,
+		errSessionExpired, errRenewalFailed, errAuthentication, errRoleDeletionCache, errServer,
 		context.Canceled, context.DeadlineExceeded,
 	} {
 		t.Run(known.Error(), func(t *testing.T) {
