@@ -46,7 +46,7 @@ An expired invitation reads as `expired` and plans replacement, rather than sile
 
 Destroy revokes pending or expired invitations, or uses `deleteUserFromWorkspace` for accepted members. The provider verifies disappearance with fresh complete reads; the returned deletion entity is the pre-deletion user-workspace row. Read failures retain state.
 
-Changing email replaces access. Removing an email from `for_each` destroys that declared membership. Undeclared users and invitations are never evicted.
+Changing email replaces access. Removing an email from `for_each` destroys that declared membership. Undeclared users and invitations are never evicted. A managed role cannot be deleted while any stored invitation explicitly references it, including expired or undeclared invitations. Role deletion additionally needs `APPLICATIONS` and reads invitations with `WORKSPACE_MEMBERS`; it never cancels or rebinds them. Use a managed-role reference for Terraform ordering, and deliberately resolve external references through supported Twenty administration.
 
 ## Import
 

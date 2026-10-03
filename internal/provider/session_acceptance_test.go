@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/oapi-codegen/nullable"
 
 	"github.com/glitchedmob/terraform-provider-twenty/internal/acceptance"
@@ -80,6 +81,8 @@ func TestAccSessionAndRole(t *testing.T) {
 	t.Run("workspace_current_and_count_refresh", func(t *testing.T) { testAccWorkspaceDataSource(t, fixture) })
 
 	t.Run("role_resource", func(t *testing.T) { testAccRoleResource(t, fixture) })
+
+	t.Run("external_pending_invitation_blocks_role_destroy", func(t *testing.T) { testAccExternalInvitationRoleGuard(t, fixture) })
 
 	t.Run("workspace_member_resource", func(t *testing.T) { testAccWorkspaceMemberResource(t, fixture) })
 
@@ -201,15 +204,28 @@ resource "twenty_role" "denied" {
 				t.Setenv("TWENTY_PASSWORD", restricted.Password)
 				testAccMemberPermissionDenied(t, fixture)
 			})
-			t.Run("roles_only_create_update_and_application_guard", func(t *testing.T) {
+			t.Run("roles_only_create_update_and_deletion_visibility", func(t *testing.T) {
 				t.Setenv("TWENTY_EMAIL", restricted.Email)
 				t.Setenv("TWENTY_PASSWORD", restricted.Password)
-				resource.Test(t, resource.TestCase{ProtoV6ProviderFactories: acceptanceFactories(), Steps: []resource.TestStep{
+				var scopedID string
+				resource.Test(t, resource.TestCase{ProtoV6ProviderFactories: acceptanceFactories(), CheckDestroy: func(_ *terraform.State) error {
+					role, err := readManagedRole(t.Context(), fixture.Operator.API, scopedID)
+					if err != nil || role != nil {
+						return fmt.Errorf("safe deletion with complete visibility did not remove the custom role")
+					}
+					return nil
+				}, Steps: []resource.TestStep{
 					{Config: `provider "twenty" { allow_insecure_http = true }
 resource "twenty_role" "scoped" {
  label = "ROLES-only created role"
  permission_flags = ["ROLES"]
-}`},
+}`, Check: func(s *terraform.State) error {
+						scopedID = s.RootModule().Resources["twenty_role.scoped"].Primary.ID
+						if !validRoleUUID(scopedID) {
+							return fmt.Errorf("ROLES-only creation did not retain native role identity")
+						}
+						return nil
+					}},
 					{Config: `provider "twenty" { allow_insecure_http = true }
 resource "twenty_role" "scoped" {
  label = "ROLES-only updated role"
@@ -228,9 +244,27 @@ resource "twenty_role" "scoped" {
 resource "twenty_role" "scoped" {
  label = "ROLES-only updated role"
  permission_flags = []
+}`, Destroy: true, ExpectError: regexp.MustCompile("twenty denied permission for this Metadata operation")},
+					{PreConfig: func() {
+						retained, err := readManagedRole(t.Context(), fixture.Operator.API, scopedID)
+						if err != nil || retained == nil || retained.Label != "ROLES-only updated role" {
+							t.Fatal("denied invitation visibility must leave the updated custom role intact")
+						}
+						if _, err := client.UpsertPermissionFlags(t.Context(), fixture.Operator.API, client.UpsertPermissionFlagsInput{RoleId: roleID, PermissionFlagKeys: []string{"ROLES", "APPLICATIONS", "WORKSPACE_MEMBERS"}}); err != nil {
+							t.Fatal("grant invitation reference visibility for safe deletion")
+						}
+					}, Config: `provider "twenty" { allow_insecure_http = true }
+resource "twenty_role" "scoped" {
+ label = "ROLES-only updated role"
+ permission_flags = []
 }`, Destroy: true},
 				}})
 			})
+			// The deletion test temporarily granted invitation visibility. Restore
+			// ROLES alone before checking the independent membership boundary.
+			if _, err := client.UpsertPermissionFlags(t.Context(), fixture.Operator.API, client.UpsertPermissionFlagsInput{RoleId: roleID, PermissionFlagKeys: []string{"ROLES"}}); err != nil {
+				t.Fatal("restore ROLES-only permission boundary")
+			}
 			if _, err := client.SendInvitations(t.Context(), rolesOnly.Client(), []string{"not-invited@example.test"}, nullable.NewNullableWithValue(roleID)); err == nil {
 				t.Fatal("ROLES unexpectedly granted WORKSPACE_MEMBERS")
 			}

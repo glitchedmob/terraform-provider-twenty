@@ -25,6 +25,8 @@ provider "twenty" {
   password = var.twenty_password
 }
 
+# Role deletion needs ROLES, APPLICATIONS, and WORKSPACE_MEMBERS on the caller.
+# External invitation references, including expired rows, block role deletion.
 # Provision the verified operator and independent recovery admin outside Terraform.
 # Omit both emails here. New emails receive invitations, not passwords.
 variable "declared_members" {

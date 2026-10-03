@@ -32,6 +32,7 @@ type roleMock struct {
 	roles     []map[string]any
 	members   []map[string]any
 	apps      []map[string]any
+	invites   []map[string]any
 	own       map[string]any
 	defaultID string
 	calls     []string
@@ -48,7 +49,7 @@ func newRoleMock() *roleMock {
 	own := map[string]any{"id": safetyMember, "userId": safetyUser, "userWorkspaceId": safetyUser, "roles": []any{map[string]any{"id": roleTestOther}}}
 	recovery := map[string]any{"id": safetyRecovery, "userId": safetyRecovery, "userWorkspaceId": safetyRecovery, "roles": []any{map[string]any{"id": roleTestOther}}}
 	admin["workspaceMembers"] = []any{own, recovery}
-	return &roleMock{roles: []map[string]any{role, admin}, members: []map[string]any{own, recovery}, own: own, apps: []map[string]any{}, defaultID: roleTestOther, inputs: map[string]json.RawMessage{}, fail: map[string]error{}}
+	return &roleMock{roles: []map[string]any{role, admin}, members: []map[string]any{own, recovery}, own: own, apps: []map[string]any{}, invites: []map[string]any{}, defaultID: roleTestOther, inputs: map[string]json.RawMessage{}, fail: map[string]error{}}
 }
 func (m *roleMock) MakeRequest(_ context.Context, req *graphql.Request, resp *graphql.Response) error {
 	m.calls = append(m.calls, req.OpName)
@@ -69,6 +70,8 @@ func (m *roleMock) MakeRequest(_ context.Context, req *graphql.Request, resp *gr
 		data["currentWorkspace"] = map[string]any{"id": safetyWorkspace, "defaultRole": map[string]any{"id": m.defaultID}}
 	case "FindManyApplications":
 		data["findManyApplications"] = m.apps
+	case "FindWorkspaceInvitations":
+		data["findWorkspaceInvitations"] = m.invites
 	case "CreateOneRole":
 		var input map[string]any
 		_ = json.Unmarshal(variables["input"], &input)
