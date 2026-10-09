@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	github.com/Khan/genqlient v0.8.1
 	github.com/cpuguy83/dockercfg v0.3.2
-	github.com/docker/cli v29.6.0+incompatible
+	github.com/docker/cli v29.8.2+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-go v0.31.0
