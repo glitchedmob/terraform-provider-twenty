@@ -1,0 +1,189 @@
+fragment ObjectMetadata on Object {
+  id
+  applicationId
+  universalIdentifier
+  nameSingular
+  namePlural
+  labelSingular
+  labelPlural
+  description
+  icon
+  isActive
+  isSystem
+  isRemote
+  isLabelSyncedWithName
+  writability
+  labelIdentifierFieldMetadataId
+}
+
+fragment FieldMetadata on Field {
+  id
+  applicationId
+  universalIdentifier
+  objectMetadataId
+  name
+  label
+  type
+  description
+  icon
+  isActive
+  isSystem
+  isLabelSyncedWithName
+  isNullable
+  writability
+}
+
+# @genqlient(for: "CursorPaging.after", omitempty: true)
+# @genqlient(for: "CursorPaging.before", omitempty: true)
+# @genqlient(for: "CursorPaging.first", omitempty: true)
+# @genqlient(for: "CursorPaging.last", omitempty: true)
+query ListMetadataObjects(
+  $paging: CursorPaging!
+) {
+  objects(paging: $paging) {
+    edges {
+      # @genqlient(flatten: true)
+      node {
+        ...ObjectMetadata
+      }
+    }
+    pageInfo { hasNextPage endCursor }
+  }
+}
+
+# @genqlient(for: "CursorPaging.after", omitempty: true)
+# @genqlient(for: "CursorPaging.before", omitempty: true)
+# @genqlient(for: "CursorPaging.first", omitempty: true)
+# @genqlient(for: "CursorPaging.last", omitempty: true)
+# @genqlient(for: "FieldFilter.and", omitempty: true)
+# @genqlient(for: "FieldFilter.id", omitempty: true)
+# @genqlient(for: "FieldFilter.isActive", omitempty: true)
+# @genqlient(for: "FieldFilter.isSystem", omitempty: true)
+# @genqlient(for: "FieldFilter.isUIEditable", omitempty: true)
+# @genqlient(for: "FieldFilter.isUIReadOnly", omitempty: true)
+# @genqlient(for: "FieldFilter.objectMetadataId", omitempty: true)
+# @genqlient(for: "FieldFilter.or", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.eq", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.gt", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.gte", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.iLike", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.in", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.is", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.isNot", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.like", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.lt", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.lte", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.neq", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.notILike", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.notIn", omitempty: true)
+# @genqlient(for: "UUIDFilterComparison.notLike", omitempty: true)
+query ListMetadataFields(
+  $filter: FieldFilter!
+  $paging: CursorPaging!
+) {
+  fields(filter: $filter, paging: $paging) {
+    edges {
+      # @genqlient(flatten: true)
+      node {
+        ...FieldMetadata
+      }
+    }
+    pageInfo { hasNextPage endCursor }
+  }
+}
+
+# Mutation responses are identifiers only. Always re-read metadata after writes.
+# @genqlient(for: "CreateObjectInput.color", omitempty: true)
+# @genqlient(for: "CreateObjectInput.description", omitempty: true)
+# @genqlient(for: "CreateObjectInput.icon", omitempty: true)
+# @genqlient(for: "CreateObjectInput.isLabelSyncedWithName", omitempty: true)
+# @genqlient(for: "CreateObjectInput.isRemote", omitempty: true)
+# @genqlient(for: "CreateObjectInput.primaryKeyColumnType", omitempty: true)
+# @genqlient(for: "CreateObjectInput.primaryKeyFieldMetadataSettings", omitempty: true)
+# @genqlient(for: "CreateObjectInput.shortcut", omitempty: true)
+# @genqlient(for: "CreateObjectInput.skipNameField", omitempty: true)
+mutation CreateMetadataObject(
+  $input: CreateOneObjectInput!
+) {
+  createOneObject(input: $input) { id }
+}
+
+# @genqlient(for: "UpdateObjectPayload.color", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.description", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.icon", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.imageIdentifierFieldMetadataId", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.isActive", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.isLabelSyncedWithName", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.isSearchable", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.labelIdentifierFieldMetadataId", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.labelPlural", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.labelSingular", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.namePlural", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.nameSingular", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.openRecordIn", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.readability", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.sharingReach", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.shortcut", omitempty: true)
+# @genqlient(for: "UpdateObjectPayload.translations", omitempty: true)
+mutation UpdateMetadataObject(
+  $input: UpdateOneObjectInput!
+) {
+  updateOneObject(input: $input) { id }
+}
+
+mutation DeleteMetadataObject($input: DeleteOneObjectInput!) {
+  deleteOneObject(input: $input) { id }
+}
+
+# @genqlient(for: "CreateFieldInput.defaultValue", omitempty: true)
+# @genqlient(for: "CreateFieldInput.description", omitempty: true)
+# @genqlient(for: "CreateFieldInput.icon", omitempty: true)
+# @genqlient(for: "CreateFieldInput.isActive", omitempty: true)
+# @genqlient(for: "CreateFieldInput.isAuditLogged", omitempty: true)
+# @genqlient(for: "CreateFieldInput.isLabelSyncedWithName", omitempty: true)
+# @genqlient(for: "CreateFieldInput.isNullable", omitempty: true)
+# @genqlient(for: "CreateFieldInput.isRemoteCreation", omitempty: true)
+# @genqlient(for: "CreateFieldInput.isSearchable", omitempty: true)
+# @genqlient(for: "CreateFieldInput.isSystem", omitempty: true)
+# @genqlient(for: "CreateFieldInput.isUIEditable", omitempty: true)
+# @genqlient(for: "CreateFieldInput.isUIReadOnly", omitempty: true)
+# @genqlient(for: "CreateFieldInput.isUnique", omitempty: true)
+# @genqlient(for: "CreateFieldInput.morphRelationsCreationPayload", omitempty: true)
+# @genqlient(for: "CreateFieldInput.options", omitempty: true)
+# @genqlient(for: "CreateFieldInput.relationCreationPayload", omitempty: true)
+# @genqlient(for: "CreateFieldInput.settings", omitempty: true)
+mutation CreateMetadataField(
+  $input: CreateOneFieldMetadataInput!
+) {
+  createOneField(input: $input) { id }
+}
+
+# @genqlient(for: "UpdateFieldInput.defaultValue", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.description", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.icon", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.isActive", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.isAuditLogged", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.isLabelSyncedWithName", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.isNullable", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.isSearchable", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.isSystem", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.isUIEditable", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.isUIReadOnly", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.isUnique", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.label", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.morphRelationsUpdatePayload", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.name", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.objectMetadataId", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.options", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.settings", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.translations", omitempty: true)
+# @genqlient(for: "UpdateFieldInput.universalIdentifier", omitempty: true)
+mutation UpdateMetadataField(
+  $input: UpdateOneFieldMetadataInput!
+) {
+  updateOneField(input: $input) { id }
+}
+
+mutation DeleteMetadataField($input: DeleteOneFieldInput!) {
+  deleteOneField(input: $input) { id }
+}

@@ -6,6 +6,8 @@ package: client
 optional: generic
 optional_generic_type: github.com/oapi-codegen/nullable.Nullable
 bindings:
+  ConnectionCursor:
+    type: string
   UUID:
     type: string
   DateTime:

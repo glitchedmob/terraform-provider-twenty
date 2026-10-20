@@ -43,6 +43,225 @@ func (v *AvailableWorkspaceIdentityWorkspaceUrls) GetCustomUrl() nullable.Nullab
 // GetSubdomainUrl returns AvailableWorkspaceIdentityWorkspaceUrls.SubdomainUrl, and is useful for accessing the field via an interface.
 func (v *AvailableWorkspaceIdentityWorkspaceUrls) GetSubdomainUrl() string { return v.SubdomainUrl }
 
+type BooleanFieldComparison struct {
+	Is    nullable.Nullable[bool] `json:"is"`
+	IsNot nullable.Nullable[bool] `json:"isNot"`
+}
+
+// GetIs returns BooleanFieldComparison.Is, and is useful for accessing the field via an interface.
+func (v *BooleanFieldComparison) GetIs() nullable.Nullable[bool] { return v.Is }
+
+// GetIsNot returns BooleanFieldComparison.IsNot, and is useful for accessing the field via an interface.
+func (v *BooleanFieldComparison) GetIsNot() nullable.Nullable[bool] { return v.IsNot }
+
+type CreateFieldInput struct {
+	DefaultValue                  nullable.Nullable[json.RawMessage] `json:"defaultValue,omitempty"`
+	Description                   nullable.Nullable[string]          `json:"description,omitempty"`
+	Icon                          nullable.Nullable[string]          `json:"icon,omitempty"`
+	IsActive                      nullable.Nullable[bool]            `json:"isActive,omitempty"`
+	IsAuditLogged                 nullable.Nullable[bool]            `json:"isAuditLogged,omitempty"`
+	IsLabelSyncedWithName         nullable.Nullable[bool]            `json:"isLabelSyncedWithName,omitempty"`
+	IsNullable                    nullable.Nullable[bool]            `json:"isNullable,omitempty"`
+	IsRemoteCreation              nullable.Nullable[bool]            `json:"isRemoteCreation,omitempty"`
+	IsSearchable                  nullable.Nullable[bool]            `json:"isSearchable,omitempty"`
+	IsSystem                      nullable.Nullable[bool]            `json:"isSystem,omitempty"`
+	IsUIEditable                  nullable.Nullable[bool]            `json:"isUIEditable,omitempty"`
+	IsUIReadOnly                  nullable.Nullable[bool]            `json:"isUIReadOnly,omitempty"`
+	IsUnique                      nullable.Nullable[bool]            `json:"isUnique,omitempty"`
+	Label                         string                             `json:"label"`
+	MorphRelationsCreationPayload []json.RawMessage                  `json:"morphRelationsCreationPayload,omitempty"`
+	Name                          string                             `json:"name"`
+	ObjectMetadataId              string                             `json:"objectMetadataId"`
+	Options                       nullable.Nullable[json.RawMessage] `json:"options,omitempty"`
+	RelationCreationPayload       nullable.Nullable[json.RawMessage] `json:"relationCreationPayload,omitempty"`
+	Settings                      nullable.Nullable[json.RawMessage] `json:"settings,omitempty"`
+	Type                          FieldMetadataType                  `json:"type"`
+}
+
+// GetDefaultValue returns CreateFieldInput.DefaultValue, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetDefaultValue() nullable.Nullable[json.RawMessage] {
+	return v.DefaultValue
+}
+
+// GetDescription returns CreateFieldInput.Description, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetDescription() nullable.Nullable[string] { return v.Description }
+
+// GetIcon returns CreateFieldInput.Icon, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetIcon() nullable.Nullable[string] { return v.Icon }
+
+// GetIsActive returns CreateFieldInput.IsActive, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetIsActive() nullable.Nullable[bool] { return v.IsActive }
+
+// GetIsAuditLogged returns CreateFieldInput.IsAuditLogged, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetIsAuditLogged() nullable.Nullable[bool] { return v.IsAuditLogged }
+
+// GetIsLabelSyncedWithName returns CreateFieldInput.IsLabelSyncedWithName, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetIsLabelSyncedWithName() nullable.Nullable[bool] {
+	return v.IsLabelSyncedWithName
+}
+
+// GetIsNullable returns CreateFieldInput.IsNullable, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetIsNullable() nullable.Nullable[bool] { return v.IsNullable }
+
+// GetIsRemoteCreation returns CreateFieldInput.IsRemoteCreation, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetIsRemoteCreation() nullable.Nullable[bool] { return v.IsRemoteCreation }
+
+// GetIsSearchable returns CreateFieldInput.IsSearchable, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetIsSearchable() nullable.Nullable[bool] { return v.IsSearchable }
+
+// GetIsSystem returns CreateFieldInput.IsSystem, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetIsSystem() nullable.Nullable[bool] { return v.IsSystem }
+
+// GetIsUIEditable returns CreateFieldInput.IsUIEditable, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetIsUIEditable() nullable.Nullable[bool] { return v.IsUIEditable }
+
+// GetIsUIReadOnly returns CreateFieldInput.IsUIReadOnly, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetIsUIReadOnly() nullable.Nullable[bool] { return v.IsUIReadOnly }
+
+// GetIsUnique returns CreateFieldInput.IsUnique, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetIsUnique() nullable.Nullable[bool] { return v.IsUnique }
+
+// GetLabel returns CreateFieldInput.Label, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetLabel() string { return v.Label }
+
+// GetMorphRelationsCreationPayload returns CreateFieldInput.MorphRelationsCreationPayload, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetMorphRelationsCreationPayload() []json.RawMessage {
+	return v.MorphRelationsCreationPayload
+}
+
+// GetName returns CreateFieldInput.Name, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetName() string { return v.Name }
+
+// GetObjectMetadataId returns CreateFieldInput.ObjectMetadataId, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetObjectMetadataId() string { return v.ObjectMetadataId }
+
+// GetOptions returns CreateFieldInput.Options, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetOptions() nullable.Nullable[json.RawMessage] { return v.Options }
+
+// GetRelationCreationPayload returns CreateFieldInput.RelationCreationPayload, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetRelationCreationPayload() nullable.Nullable[json.RawMessage] {
+	return v.RelationCreationPayload
+}
+
+// GetSettings returns CreateFieldInput.Settings, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetSettings() nullable.Nullable[json.RawMessage] { return v.Settings }
+
+// GetType returns CreateFieldInput.Type, and is useful for accessing the field via an interface.
+func (v *CreateFieldInput) GetType() FieldMetadataType { return v.Type }
+
+// CreateMetadataFieldCreateOneField includes the requested fields of the GraphQL type Field.
+type CreateMetadataFieldCreateOneField struct {
+	Id string `json:"id"`
+}
+
+// GetId returns CreateMetadataFieldCreateOneField.Id, and is useful for accessing the field via an interface.
+func (v *CreateMetadataFieldCreateOneField) GetId() string { return v.Id }
+
+// CreateMetadataFieldResponse is returned by CreateMetadataField on success.
+type CreateMetadataFieldResponse struct {
+	CreateOneField CreateMetadataFieldCreateOneField `json:"createOneField"`
+}
+
+// GetCreateOneField returns CreateMetadataFieldResponse.CreateOneField, and is useful for accessing the field via an interface.
+func (v *CreateMetadataFieldResponse) GetCreateOneField() CreateMetadataFieldCreateOneField {
+	return v.CreateOneField
+}
+
+// CreateMetadataObjectCreateOneObject includes the requested fields of the GraphQL type Object.
+type CreateMetadataObjectCreateOneObject struct {
+	Id string `json:"id"`
+}
+
+// GetId returns CreateMetadataObjectCreateOneObject.Id, and is useful for accessing the field via an interface.
+func (v *CreateMetadataObjectCreateOneObject) GetId() string { return v.Id }
+
+// CreateMetadataObjectResponse is returned by CreateMetadataObject on success.
+type CreateMetadataObjectResponse struct {
+	CreateOneObject CreateMetadataObjectCreateOneObject `json:"createOneObject"`
+}
+
+// GetCreateOneObject returns CreateMetadataObjectResponse.CreateOneObject, and is useful for accessing the field via an interface.
+func (v *CreateMetadataObjectResponse) GetCreateOneObject() CreateMetadataObjectCreateOneObject {
+	return v.CreateOneObject
+}
+
+type CreateObjectInput struct {
+	Color                           nullable.Nullable[string]          `json:"color,omitempty"`
+	Description                     nullable.Nullable[string]          `json:"description,omitempty"`
+	Icon                            nullable.Nullable[string]          `json:"icon,omitempty"`
+	IsLabelSyncedWithName           nullable.Nullable[bool]            `json:"isLabelSyncedWithName,omitempty"`
+	IsRemote                        nullable.Nullable[bool]            `json:"isRemote,omitempty"`
+	LabelPlural                     string                             `json:"labelPlural"`
+	LabelSingular                   string                             `json:"labelSingular"`
+	NamePlural                      string                             `json:"namePlural"`
+	NameSingular                    string                             `json:"nameSingular"`
+	PrimaryKeyColumnType            nullable.Nullable[string]          `json:"primaryKeyColumnType,omitempty"`
+	PrimaryKeyFieldMetadataSettings nullable.Nullable[json.RawMessage] `json:"primaryKeyFieldMetadataSettings,omitempty"`
+	Shortcut                        nullable.Nullable[string]          `json:"shortcut,omitempty"`
+	SkipNameField                   nullable.Nullable[bool]            `json:"skipNameField,omitempty"`
+}
+
+// GetColor returns CreateObjectInput.Color, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetColor() nullable.Nullable[string] { return v.Color }
+
+// GetDescription returns CreateObjectInput.Description, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetDescription() nullable.Nullable[string] { return v.Description }
+
+// GetIcon returns CreateObjectInput.Icon, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetIcon() nullable.Nullable[string] { return v.Icon }
+
+// GetIsLabelSyncedWithName returns CreateObjectInput.IsLabelSyncedWithName, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetIsLabelSyncedWithName() nullable.Nullable[bool] {
+	return v.IsLabelSyncedWithName
+}
+
+// GetIsRemote returns CreateObjectInput.IsRemote, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetIsRemote() nullable.Nullable[bool] { return v.IsRemote }
+
+// GetLabelPlural returns CreateObjectInput.LabelPlural, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetLabelPlural() string { return v.LabelPlural }
+
+// GetLabelSingular returns CreateObjectInput.LabelSingular, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetLabelSingular() string { return v.LabelSingular }
+
+// GetNamePlural returns CreateObjectInput.NamePlural, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetNamePlural() string { return v.NamePlural }
+
+// GetNameSingular returns CreateObjectInput.NameSingular, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetNameSingular() string { return v.NameSingular }
+
+// GetPrimaryKeyColumnType returns CreateObjectInput.PrimaryKeyColumnType, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetPrimaryKeyColumnType() nullable.Nullable[string] {
+	return v.PrimaryKeyColumnType
+}
+
+// GetPrimaryKeyFieldMetadataSettings returns CreateObjectInput.PrimaryKeyFieldMetadataSettings, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetPrimaryKeyFieldMetadataSettings() nullable.Nullable[json.RawMessage] {
+	return v.PrimaryKeyFieldMetadataSettings
+}
+
+// GetShortcut returns CreateObjectInput.Shortcut, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetShortcut() nullable.Nullable[string] { return v.Shortcut }
+
+// GetSkipNameField returns CreateObjectInput.SkipNameField, and is useful for accessing the field via an interface.
+func (v *CreateObjectInput) GetSkipNameField() nullable.Nullable[bool] { return v.SkipNameField }
+
+type CreateOneFieldMetadataInput struct {
+	// The record to create
+	Field CreateFieldInput `json:"field"`
+}
+
+// GetField returns CreateOneFieldMetadataInput.Field, and is useful for accessing the field via an interface.
+func (v *CreateOneFieldMetadataInput) GetField() CreateFieldInput { return v.Field }
+
+type CreateOneObjectInput struct {
+	// The object to create
+	Object CreateObjectInput `json:"object"`
+}
+
+// GetObject returns CreateOneObjectInput.Object, and is useful for accessing the field via an interface.
+func (v *CreateOneObjectInput) GetObject() CreateObjectInput { return v.Object }
+
 // CreateOneRoleResponse is returned by CreateOneRole on success.
 type CreateOneRoleResponse struct {
 	CreateOneRole RoleProperties `json:"createOneRole"`
@@ -238,9 +457,10 @@ func (v *CurrentUserResponse) GetCurrentUser() CurrentUserCurrentUser { return v
 
 // CurrentWorkspaceCurrentWorkspace includes the requested fields of the GraphQL type Workspace.
 type CurrentWorkspaceCurrentWorkspace struct {
-	WorkspaceIdentity `json:"-"`
-	CreatedAt         time.Time `json:"createdAt"`
-	UpdatedAt         time.Time `json:"updatedAt"`
+	WorkspaceIdentity            `json:"-"`
+	CreatedAt                    time.Time `json:"createdAt"`
+	UpdatedAt                    time.Time `json:"updatedAt"`
+	WorkspaceCustomApplicationId string    `json:"workspaceCustomApplicationId"`
 }
 
 // GetCreatedAt returns CurrentWorkspaceCurrentWorkspace.CreatedAt, and is useful for accessing the field via an interface.
@@ -248,6 +468,11 @@ func (v *CurrentWorkspaceCurrentWorkspace) GetCreatedAt() time.Time { return v.C
 
 // GetUpdatedAt returns CurrentWorkspaceCurrentWorkspace.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *CurrentWorkspaceCurrentWorkspace) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+// GetWorkspaceCustomApplicationId returns CurrentWorkspaceCurrentWorkspace.WorkspaceCustomApplicationId, and is useful for accessing the field via an interface.
+func (v *CurrentWorkspaceCurrentWorkspace) GetWorkspaceCustomApplicationId() string {
+	return v.WorkspaceCustomApplicationId
+}
 
 // GetId returns CurrentWorkspaceCurrentWorkspace.Id, and is useful for accessing the field via an interface.
 func (v *CurrentWorkspaceCurrentWorkspace) GetId() string { return v.WorkspaceIdentity.Id }
@@ -317,6 +542,8 @@ type __premarshalCurrentWorkspaceCurrentWorkspace struct {
 
 	UpdatedAt time.Time `json:"updatedAt"`
 
+	WorkspaceCustomApplicationId string `json:"workspaceCustomApplicationId"`
+
 	Id string `json:"id"`
 
 	DisplayName nullable.Nullable[string] `json:"displayName"`
@@ -347,6 +574,7 @@ func (v *CurrentWorkspaceCurrentWorkspace) __premarshalJSON() (*__premarshalCurr
 
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
+	retval.WorkspaceCustomApplicationId = v.WorkspaceCustomApplicationId
 	retval.Id = v.WorkspaceIdentity.Id
 	retval.DisplayName = v.WorkspaceIdentity.DisplayName
 	retval.ActivationStatus = v.WorkspaceIdentity.ActivationStatus
@@ -367,6 +595,81 @@ type CurrentWorkspaceResponse struct {
 func (v *CurrentWorkspaceResponse) GetCurrentWorkspace() CurrentWorkspaceCurrentWorkspace {
 	return v.CurrentWorkspace
 }
+
+type CursorPaging struct {
+	// Paginate after opaque cursor
+	After nullable.Nullable[string] `json:"after,omitempty"`
+	// Paginate before opaque cursor
+	Before nullable.Nullable[string] `json:"before,omitempty"`
+	// Paginate first
+	First nullable.Nullable[int] `json:"first,omitempty"`
+	// Paginate last
+	Last nullable.Nullable[int] `json:"last,omitempty"`
+}
+
+// GetAfter returns CursorPaging.After, and is useful for accessing the field via an interface.
+func (v *CursorPaging) GetAfter() nullable.Nullable[string] { return v.After }
+
+// GetBefore returns CursorPaging.Before, and is useful for accessing the field via an interface.
+func (v *CursorPaging) GetBefore() nullable.Nullable[string] { return v.Before }
+
+// GetFirst returns CursorPaging.First, and is useful for accessing the field via an interface.
+func (v *CursorPaging) GetFirst() nullable.Nullable[int] { return v.First }
+
+// GetLast returns CursorPaging.Last, and is useful for accessing the field via an interface.
+func (v *CursorPaging) GetLast() nullable.Nullable[int] { return v.Last }
+
+// DeleteMetadataFieldDeleteOneField includes the requested fields of the GraphQL type Field.
+type DeleteMetadataFieldDeleteOneField struct {
+	Id string `json:"id"`
+}
+
+// GetId returns DeleteMetadataFieldDeleteOneField.Id, and is useful for accessing the field via an interface.
+func (v *DeleteMetadataFieldDeleteOneField) GetId() string { return v.Id }
+
+// DeleteMetadataFieldResponse is returned by DeleteMetadataField on success.
+type DeleteMetadataFieldResponse struct {
+	DeleteOneField DeleteMetadataFieldDeleteOneField `json:"deleteOneField"`
+}
+
+// GetDeleteOneField returns DeleteMetadataFieldResponse.DeleteOneField, and is useful for accessing the field via an interface.
+func (v *DeleteMetadataFieldResponse) GetDeleteOneField() DeleteMetadataFieldDeleteOneField {
+	return v.DeleteOneField
+}
+
+// DeleteMetadataObjectDeleteOneObject includes the requested fields of the GraphQL type Object.
+type DeleteMetadataObjectDeleteOneObject struct {
+	Id string `json:"id"`
+}
+
+// GetId returns DeleteMetadataObjectDeleteOneObject.Id, and is useful for accessing the field via an interface.
+func (v *DeleteMetadataObjectDeleteOneObject) GetId() string { return v.Id }
+
+// DeleteMetadataObjectResponse is returned by DeleteMetadataObject on success.
+type DeleteMetadataObjectResponse struct {
+	DeleteOneObject DeleteMetadataObjectDeleteOneObject `json:"deleteOneObject"`
+}
+
+// GetDeleteOneObject returns DeleteMetadataObjectResponse.DeleteOneObject, and is useful for accessing the field via an interface.
+func (v *DeleteMetadataObjectResponse) GetDeleteOneObject() DeleteMetadataObjectDeleteOneObject {
+	return v.DeleteOneObject
+}
+
+type DeleteOneFieldInput struct {
+	// The id of the field to delete.
+	Id string `json:"id"`
+}
+
+// GetId returns DeleteOneFieldInput.Id, and is useful for accessing the field via an interface.
+func (v *DeleteOneFieldInput) GetId() string { return v.Id }
+
+type DeleteOneObjectInput struct {
+	// The id of the record to delete.
+	Id string `json:"id"`
+}
+
+// GetId returns DeleteOneObjectInput.Id, and is useful for accessing the field via an interface.
+func (v *DeleteOneObjectInput) GetId() string { return v.Id }
 
 // DeleteOneRoleResponse is returned by DeleteOneRole on success.
 type DeleteOneRoleResponse struct {
@@ -414,6 +717,168 @@ type DeleteWorkspaceInvitationResponse struct {
 // GetDeleteWorkspaceInvitation returns DeleteWorkspaceInvitationResponse.DeleteWorkspaceInvitation, and is useful for accessing the field via an interface.
 func (v *DeleteWorkspaceInvitationResponse) GetDeleteWorkspaceInvitation() string {
 	return v.DeleteWorkspaceInvitation
+}
+
+type FieldFilter struct {
+	And              []FieldFilter                             `json:"and,omitempty"`
+	Id               nullable.Nullable[UUIDFilterComparison]   `json:"id,omitempty"`
+	IsActive         nullable.Nullable[BooleanFieldComparison] `json:"isActive,omitempty"`
+	IsSystem         nullable.Nullable[BooleanFieldComparison] `json:"isSystem,omitempty"`
+	IsUIEditable     nullable.Nullable[BooleanFieldComparison] `json:"isUIEditable,omitempty"`
+	IsUIReadOnly     nullable.Nullable[BooleanFieldComparison] `json:"isUIReadOnly,omitempty"`
+	ObjectMetadataId nullable.Nullable[UUIDFilterComparison]   `json:"objectMetadataId,omitempty"`
+	Or               []FieldFilter                             `json:"or,omitempty"`
+}
+
+// GetAnd returns FieldFilter.And, and is useful for accessing the field via an interface.
+func (v *FieldFilter) GetAnd() []FieldFilter { return v.And }
+
+// GetId returns FieldFilter.Id, and is useful for accessing the field via an interface.
+func (v *FieldFilter) GetId() nullable.Nullable[UUIDFilterComparison] { return v.Id }
+
+// GetIsActive returns FieldFilter.IsActive, and is useful for accessing the field via an interface.
+func (v *FieldFilter) GetIsActive() nullable.Nullable[BooleanFieldComparison] { return v.IsActive }
+
+// GetIsSystem returns FieldFilter.IsSystem, and is useful for accessing the field via an interface.
+func (v *FieldFilter) GetIsSystem() nullable.Nullable[BooleanFieldComparison] { return v.IsSystem }
+
+// GetIsUIEditable returns FieldFilter.IsUIEditable, and is useful for accessing the field via an interface.
+func (v *FieldFilter) GetIsUIEditable() nullable.Nullable[BooleanFieldComparison] {
+	return v.IsUIEditable
+}
+
+// GetIsUIReadOnly returns FieldFilter.IsUIReadOnly, and is useful for accessing the field via an interface.
+func (v *FieldFilter) GetIsUIReadOnly() nullable.Nullable[BooleanFieldComparison] {
+	return v.IsUIReadOnly
+}
+
+// GetObjectMetadataId returns FieldFilter.ObjectMetadataId, and is useful for accessing the field via an interface.
+func (v *FieldFilter) GetObjectMetadataId() nullable.Nullable[UUIDFilterComparison] {
+	return v.ObjectMetadataId
+}
+
+// GetOr returns FieldFilter.Or, and is useful for accessing the field via an interface.
+func (v *FieldFilter) GetOr() []FieldFilter { return v.Or }
+
+// FieldMetadata includes the GraphQL fields of Field requested by the fragment FieldMetadata.
+type FieldMetadata struct {
+	Id                    string                                 `json:"id"`
+	ApplicationId         string                                 `json:"applicationId"`
+	UniversalIdentifier   string                                 `json:"universalIdentifier"`
+	ObjectMetadataId      string                                 `json:"objectMetadataId"`
+	Name                  string                                 `json:"name"`
+	Label                 string                                 `json:"label"`
+	Type                  FieldMetadataType                      `json:"type"`
+	Description           nullable.Nullable[string]              `json:"description"`
+	Icon                  nullable.Nullable[string]              `json:"icon"`
+	IsActive              nullable.Nullable[bool]                `json:"isActive"`
+	IsSystem              nullable.Nullable[bool]                `json:"isSystem"`
+	IsLabelSyncedWithName nullable.Nullable[bool]                `json:"isLabelSyncedWithName"`
+	IsNullable            nullable.Nullable[bool]                `json:"isNullable"`
+	Writability           nullable.Nullable[MetadataWritability] `json:"writability"`
+}
+
+// GetId returns FieldMetadata.Id, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetId() string { return v.Id }
+
+// GetApplicationId returns FieldMetadata.ApplicationId, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetApplicationId() string { return v.ApplicationId }
+
+// GetUniversalIdentifier returns FieldMetadata.UniversalIdentifier, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetUniversalIdentifier() string { return v.UniversalIdentifier }
+
+// GetObjectMetadataId returns FieldMetadata.ObjectMetadataId, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetObjectMetadataId() string { return v.ObjectMetadataId }
+
+// GetName returns FieldMetadata.Name, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetName() string { return v.Name }
+
+// GetLabel returns FieldMetadata.Label, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetLabel() string { return v.Label }
+
+// GetType returns FieldMetadata.Type, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetType() FieldMetadataType { return v.Type }
+
+// GetDescription returns FieldMetadata.Description, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetDescription() nullable.Nullable[string] { return v.Description }
+
+// GetIcon returns FieldMetadata.Icon, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetIcon() nullable.Nullable[string] { return v.Icon }
+
+// GetIsActive returns FieldMetadata.IsActive, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetIsActive() nullable.Nullable[bool] { return v.IsActive }
+
+// GetIsSystem returns FieldMetadata.IsSystem, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetIsSystem() nullable.Nullable[bool] { return v.IsSystem }
+
+// GetIsLabelSyncedWithName returns FieldMetadata.IsLabelSyncedWithName, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetIsLabelSyncedWithName() nullable.Nullable[bool] {
+	return v.IsLabelSyncedWithName
+}
+
+// GetIsNullable returns FieldMetadata.IsNullable, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetIsNullable() nullable.Nullable[bool] { return v.IsNullable }
+
+// GetWritability returns FieldMetadata.Writability, and is useful for accessing the field via an interface.
+func (v *FieldMetadata) GetWritability() nullable.Nullable[MetadataWritability] { return v.Writability }
+
+// Type of the field
+type FieldMetadataType string
+
+const (
+	FieldMetadataTypeActor         FieldMetadataType = "ACTOR"
+	FieldMetadataTypeAddress       FieldMetadataType = "ADDRESS"
+	FieldMetadataTypeArray         FieldMetadataType = "ARRAY"
+	FieldMetadataTypeBoolean       FieldMetadataType = "BOOLEAN"
+	FieldMetadataTypeCurrency      FieldMetadataType = "CURRENCY"
+	FieldMetadataTypeDate          FieldMetadataType = "DATE"
+	FieldMetadataTypeDateTime      FieldMetadataType = "DATE_TIME"
+	FieldMetadataTypeEmails        FieldMetadataType = "EMAILS"
+	FieldMetadataTypeFiles         FieldMetadataType = "FILES"
+	FieldMetadataTypeFullName      FieldMetadataType = "FULL_NAME"
+	FieldMetadataTypeLinks         FieldMetadataType = "LINKS"
+	FieldMetadataTypeMorphRelation FieldMetadataType = "MORPH_RELATION"
+	FieldMetadataTypeMultiSelect   FieldMetadataType = "MULTI_SELECT"
+	FieldMetadataTypeNumber        FieldMetadataType = "NUMBER"
+	FieldMetadataTypeNumeric       FieldMetadataType = "NUMERIC"
+	FieldMetadataTypePhones        FieldMetadataType = "PHONES"
+	FieldMetadataTypePosition      FieldMetadataType = "POSITION"
+	FieldMetadataTypeRating        FieldMetadataType = "RATING"
+	FieldMetadataTypeRawJson       FieldMetadataType = "RAW_JSON"
+	FieldMetadataTypeRelation      FieldMetadataType = "RELATION"
+	FieldMetadataTypeRichText      FieldMetadataType = "RICH_TEXT"
+	FieldMetadataTypeSelect        FieldMetadataType = "SELECT"
+	FieldMetadataTypeText          FieldMetadataType = "TEXT"
+	FieldMetadataTypeTsVector      FieldMetadataType = "TS_VECTOR"
+	FieldMetadataTypeUuid          FieldMetadataType = "UUID"
+)
+
+var AllFieldMetadataType = []FieldMetadataType{
+	FieldMetadataTypeActor,
+	FieldMetadataTypeAddress,
+	FieldMetadataTypeArray,
+	FieldMetadataTypeBoolean,
+	FieldMetadataTypeCurrency,
+	FieldMetadataTypeDate,
+	FieldMetadataTypeDateTime,
+	FieldMetadataTypeEmails,
+	FieldMetadataTypeFiles,
+	FieldMetadataTypeFullName,
+	FieldMetadataTypeLinks,
+	FieldMetadataTypeMorphRelation,
+	FieldMetadataTypeMultiSelect,
+	FieldMetadataTypeNumber,
+	FieldMetadataTypeNumeric,
+	FieldMetadataTypePhones,
+	FieldMetadataTypePosition,
+	FieldMetadataTypeRating,
+	FieldMetadataTypeRawJson,
+	FieldMetadataTypeRelation,
+	FieldMetadataTypeRichText,
+	FieldMetadataTypeSelect,
+	FieldMetadataTypeText,
+	FieldMetadataTypeTsVector,
+	FieldMetadataTypeUuid,
 }
 
 // FieldPermissionDetails includes the GraphQL fields of FieldPermission requested by the fragment FieldPermissionDetails.
@@ -1118,6 +1583,120 @@ func (v *Invitation) GetExpiresAt() time.Time { return v.ExpiresAt }
 // GetRoleId returns Invitation.RoleId, and is useful for accessing the field via an interface.
 func (v *Invitation) GetRoleId() nullable.Nullable[string] { return v.RoleId }
 
+// ListMetadataFieldsFieldsFieldConnection includes the requested fields of the GraphQL type FieldConnection.
+type ListMetadataFieldsFieldsFieldConnection struct {
+	// Array of edges.
+	Edges []ListMetadataFieldsFieldsFieldConnectionEdgesFieldEdge `json:"edges"`
+	// Paging information
+	PageInfo ListMetadataFieldsFieldsFieldConnectionPageInfo `json:"pageInfo"`
+}
+
+// GetEdges returns ListMetadataFieldsFieldsFieldConnection.Edges, and is useful for accessing the field via an interface.
+func (v *ListMetadataFieldsFieldsFieldConnection) GetEdges() []ListMetadataFieldsFieldsFieldConnectionEdgesFieldEdge {
+	return v.Edges
+}
+
+// GetPageInfo returns ListMetadataFieldsFieldsFieldConnection.PageInfo, and is useful for accessing the field via an interface.
+func (v *ListMetadataFieldsFieldsFieldConnection) GetPageInfo() ListMetadataFieldsFieldsFieldConnectionPageInfo {
+	return v.PageInfo
+}
+
+// ListMetadataFieldsFieldsFieldConnectionEdgesFieldEdge includes the requested fields of the GraphQL type FieldEdge.
+type ListMetadataFieldsFieldsFieldConnectionEdgesFieldEdge struct {
+	// The node containing the Field
+	Node FieldMetadata `json:"node"`
+}
+
+// GetNode returns ListMetadataFieldsFieldsFieldConnectionEdgesFieldEdge.Node, and is useful for accessing the field via an interface.
+func (v *ListMetadataFieldsFieldsFieldConnectionEdgesFieldEdge) GetNode() FieldMetadata {
+	return v.Node
+}
+
+// ListMetadataFieldsFieldsFieldConnectionPageInfo includes the requested fields of the GraphQL type PageInfo.
+type ListMetadataFieldsFieldsFieldConnectionPageInfo struct {
+	// true if paging forward and there are more records.
+	HasNextPage nullable.Nullable[bool] `json:"hasNextPage"`
+	// The cursor of the last returned record.
+	EndCursor nullable.Nullable[string] `json:"endCursor"`
+}
+
+// GetHasNextPage returns ListMetadataFieldsFieldsFieldConnectionPageInfo.HasNextPage, and is useful for accessing the field via an interface.
+func (v *ListMetadataFieldsFieldsFieldConnectionPageInfo) GetHasNextPage() nullable.Nullable[bool] {
+	return v.HasNextPage
+}
+
+// GetEndCursor returns ListMetadataFieldsFieldsFieldConnectionPageInfo.EndCursor, and is useful for accessing the field via an interface.
+func (v *ListMetadataFieldsFieldsFieldConnectionPageInfo) GetEndCursor() nullable.Nullable[string] {
+	return v.EndCursor
+}
+
+// ListMetadataFieldsResponse is returned by ListMetadataFields on success.
+type ListMetadataFieldsResponse struct {
+	Fields ListMetadataFieldsFieldsFieldConnection `json:"fields"`
+}
+
+// GetFields returns ListMetadataFieldsResponse.Fields, and is useful for accessing the field via an interface.
+func (v *ListMetadataFieldsResponse) GetFields() ListMetadataFieldsFieldsFieldConnection {
+	return v.Fields
+}
+
+// ListMetadataObjectsObjectsObjectConnection includes the requested fields of the GraphQL type ObjectConnection.
+type ListMetadataObjectsObjectsObjectConnection struct {
+	// Array of edges.
+	Edges []ListMetadataObjectsObjectsObjectConnectionEdgesObjectEdge `json:"edges"`
+	// Paging information
+	PageInfo ListMetadataObjectsObjectsObjectConnectionPageInfo `json:"pageInfo"`
+}
+
+// GetEdges returns ListMetadataObjectsObjectsObjectConnection.Edges, and is useful for accessing the field via an interface.
+func (v *ListMetadataObjectsObjectsObjectConnection) GetEdges() []ListMetadataObjectsObjectsObjectConnectionEdgesObjectEdge {
+	return v.Edges
+}
+
+// GetPageInfo returns ListMetadataObjectsObjectsObjectConnection.PageInfo, and is useful for accessing the field via an interface.
+func (v *ListMetadataObjectsObjectsObjectConnection) GetPageInfo() ListMetadataObjectsObjectsObjectConnectionPageInfo {
+	return v.PageInfo
+}
+
+// ListMetadataObjectsObjectsObjectConnectionEdgesObjectEdge includes the requested fields of the GraphQL type ObjectEdge.
+type ListMetadataObjectsObjectsObjectConnectionEdgesObjectEdge struct {
+	// The node containing the Object
+	Node ObjectMetadata `json:"node"`
+}
+
+// GetNode returns ListMetadataObjectsObjectsObjectConnectionEdgesObjectEdge.Node, and is useful for accessing the field via an interface.
+func (v *ListMetadataObjectsObjectsObjectConnectionEdgesObjectEdge) GetNode() ObjectMetadata {
+	return v.Node
+}
+
+// ListMetadataObjectsObjectsObjectConnectionPageInfo includes the requested fields of the GraphQL type PageInfo.
+type ListMetadataObjectsObjectsObjectConnectionPageInfo struct {
+	// true if paging forward and there are more records.
+	HasNextPage nullable.Nullable[bool] `json:"hasNextPage"`
+	// The cursor of the last returned record.
+	EndCursor nullable.Nullable[string] `json:"endCursor"`
+}
+
+// GetHasNextPage returns ListMetadataObjectsObjectsObjectConnectionPageInfo.HasNextPage, and is useful for accessing the field via an interface.
+func (v *ListMetadataObjectsObjectsObjectConnectionPageInfo) GetHasNextPage() nullable.Nullable[bool] {
+	return v.HasNextPage
+}
+
+// GetEndCursor returns ListMetadataObjectsObjectsObjectConnectionPageInfo.EndCursor, and is useful for accessing the field via an interface.
+func (v *ListMetadataObjectsObjectsObjectConnectionPageInfo) GetEndCursor() nullable.Nullable[string] {
+	return v.EndCursor
+}
+
+// ListMetadataObjectsResponse is returned by ListMetadataObjects on success.
+type ListMetadataObjectsResponse struct {
+	Objects ListMetadataObjectsObjectsObjectConnection `json:"objects"`
+}
+
+// GetObjects returns ListMetadataObjectsResponse.Objects, and is useful for accessing the field via an interface.
+func (v *ListMetadataObjectsResponse) GetObjects() ListMetadataObjectsObjectsObjectConnection {
+	return v.Objects
+}
+
 // MemberIdentity includes the GraphQL fields of WorkspaceMember requested by the fragment MemberIdentity.
 type MemberIdentity struct {
 	Id              string                     `json:"id"`
@@ -1157,6 +1736,133 @@ func (v *MemberIdentityNameFullName) GetFirstName() string { return v.FirstName 
 
 // GetLastName returns MemberIdentityNameFullName.LastName, and is useful for accessing the field via an interface.
 func (v *MemberIdentityNameFullName) GetLastName() string { return v.LastName }
+
+type MetadataReadability string
+
+const (
+	MetadataReadabilityApplication MetadataReadability = "APPLICATION"
+	MetadataReadabilityInherited   MetadataReadability = "INHERITED"
+	MetadataReadabilityOpen        MetadataReadability = "OPEN"
+	MetadataReadabilityPrivate     MetadataReadability = "PRIVATE"
+	MetadataReadabilitySystem      MetadataReadability = "SYSTEM"
+)
+
+var AllMetadataReadability = []MetadataReadability{
+	MetadataReadabilityApplication,
+	MetadataReadabilityInherited,
+	MetadataReadabilityOpen,
+	MetadataReadabilityPrivate,
+	MetadataReadabilitySystem,
+}
+
+type MetadataTranslationOverrideInput struct {
+	Locale   string                    `json:"locale"`
+	Property string                    `json:"property"`
+	Value    nullable.Nullable[string] `json:"value"`
+}
+
+// GetLocale returns MetadataTranslationOverrideInput.Locale, and is useful for accessing the field via an interface.
+func (v *MetadataTranslationOverrideInput) GetLocale() string { return v.Locale }
+
+// GetProperty returns MetadataTranslationOverrideInput.Property, and is useful for accessing the field via an interface.
+func (v *MetadataTranslationOverrideInput) GetProperty() string { return v.Property }
+
+// GetValue returns MetadataTranslationOverrideInput.Value, and is useful for accessing the field via an interface.
+func (v *MetadataTranslationOverrideInput) GetValue() nullable.Nullable[string] { return v.Value }
+
+type MetadataWritability string
+
+const (
+	MetadataWritabilityApplication MetadataWritability = "APPLICATION"
+	MetadataWritabilityOpen        MetadataWritability = "OPEN"
+	MetadataWritabilitySystem      MetadataWritability = "SYSTEM"
+)
+
+var AllMetadataWritability = []MetadataWritability{
+	MetadataWritabilityApplication,
+	MetadataWritabilityOpen,
+	MetadataWritabilitySystem,
+}
+
+// ObjectMetadata includes the GraphQL fields of Object requested by the fragment ObjectMetadata.
+type ObjectMetadata struct {
+	Id                             string                    `json:"id"`
+	ApplicationId                  string                    `json:"applicationId"`
+	UniversalIdentifier            string                    `json:"universalIdentifier"`
+	NameSingular                   string                    `json:"nameSingular"`
+	NamePlural                     string                    `json:"namePlural"`
+	LabelSingular                  string                    `json:"labelSingular"`
+	LabelPlural                    string                    `json:"labelPlural"`
+	Description                    nullable.Nullable[string] `json:"description"`
+	Icon                           nullable.Nullable[string] `json:"icon"`
+	IsActive                       bool                      `json:"isActive"`
+	IsSystem                       bool                      `json:"isSystem"`
+	IsRemote                       bool                      `json:"isRemote"`
+	IsLabelSyncedWithName          bool                      `json:"isLabelSyncedWithName"`
+	Writability                    MetadataWritability       `json:"writability"`
+	LabelIdentifierFieldMetadataId nullable.Nullable[string] `json:"labelIdentifierFieldMetadataId"`
+}
+
+// GetId returns ObjectMetadata.Id, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetId() string { return v.Id }
+
+// GetApplicationId returns ObjectMetadata.ApplicationId, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetApplicationId() string { return v.ApplicationId }
+
+// GetUniversalIdentifier returns ObjectMetadata.UniversalIdentifier, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetUniversalIdentifier() string { return v.UniversalIdentifier }
+
+// GetNameSingular returns ObjectMetadata.NameSingular, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetNameSingular() string { return v.NameSingular }
+
+// GetNamePlural returns ObjectMetadata.NamePlural, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetNamePlural() string { return v.NamePlural }
+
+// GetLabelSingular returns ObjectMetadata.LabelSingular, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetLabelSingular() string { return v.LabelSingular }
+
+// GetLabelPlural returns ObjectMetadata.LabelPlural, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetLabelPlural() string { return v.LabelPlural }
+
+// GetDescription returns ObjectMetadata.Description, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetDescription() nullable.Nullable[string] { return v.Description }
+
+// GetIcon returns ObjectMetadata.Icon, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetIcon() nullable.Nullable[string] { return v.Icon }
+
+// GetIsActive returns ObjectMetadata.IsActive, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetIsActive() bool { return v.IsActive }
+
+// GetIsSystem returns ObjectMetadata.IsSystem, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetIsSystem() bool { return v.IsSystem }
+
+// GetIsRemote returns ObjectMetadata.IsRemote, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetIsRemote() bool { return v.IsRemote }
+
+// GetIsLabelSyncedWithName returns ObjectMetadata.IsLabelSyncedWithName, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetIsLabelSyncedWithName() bool { return v.IsLabelSyncedWithName }
+
+// GetWritability returns ObjectMetadata.Writability, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetWritability() MetadataWritability { return v.Writability }
+
+// GetLabelIdentifierFieldMetadataId returns ObjectMetadata.LabelIdentifierFieldMetadataId, and is useful for accessing the field via an interface.
+func (v *ObjectMetadata) GetLabelIdentifierFieldMetadataId() nullable.Nullable[string] {
+	return v.LabelIdentifierFieldMetadataId
+}
+
+type ObjectOpenRecordIn string
+
+const (
+	ObjectOpenRecordInRecordPage ObjectOpenRecordIn = "RECORD_PAGE"
+	ObjectOpenRecordInSidePanel  ObjectOpenRecordIn = "SIDE_PANEL"
+	ObjectOpenRecordInUserChoice ObjectOpenRecordIn = "USER_CHOICE"
+)
+
+var AllObjectOpenRecordIn = []ObjectOpenRecordIn{
+	ObjectOpenRecordInRecordPage,
+	ObjectOpenRecordInSidePanel,
+	ObjectOpenRecordInUserChoice,
+}
 
 // ObjectPermissionDetails includes the GraphQL fields of ObjectPermission requested by the fragment ObjectPermissionDetails.
 type ObjectPermissionDetails struct {
@@ -1466,6 +2172,18 @@ func (v *ObjectPermissionInput) GetCanUpdateObjectRecords() nullable.Nullable[bo
 
 // GetObjectMetadataId returns ObjectPermissionInput.ObjectMetadataId, and is useful for accessing the field via an interface.
 func (v *ObjectPermissionInput) GetObjectMetadataId() string { return v.ObjectMetadataId }
+
+type ObjectSharingReach string
+
+const (
+	ObjectSharingReachRoleAccess ObjectSharingReach = "ROLE_ACCESS"
+	ObjectSharingReachWorkspace  ObjectSharingReach = "WORKSPACE"
+)
+
+var AllObjectSharingReach = []ObjectSharingReach{
+	ObjectSharingReachRoleAccess,
+	ObjectSharingReachWorkspace,
+}
 
 // Onboarding status
 type OnboardingStatus string
@@ -2338,6 +3056,304 @@ func (v *TokenPair) GetAccessOrWorkspaceAgnosticToken() Token {
 // GetRefreshToken returns TokenPair.RefreshToken, and is useful for accessing the field via an interface.
 func (v *TokenPair) GetRefreshToken() Token { return v.RefreshToken }
 
+type UUIDFilterComparison struct {
+	Eq       nullable.Nullable[string] `json:"eq,omitempty"`
+	Gt       nullable.Nullable[string] `json:"gt,omitempty"`
+	Gte      nullable.Nullable[string] `json:"gte,omitempty"`
+	ILike    nullable.Nullable[string] `json:"iLike,omitempty"`
+	In       []string                  `json:"in,omitempty"`
+	Is       nullable.Nullable[bool]   `json:"is,omitempty"`
+	IsNot    nullable.Nullable[bool]   `json:"isNot,omitempty"`
+	Like     nullable.Nullable[string] `json:"like,omitempty"`
+	Lt       nullable.Nullable[string] `json:"lt,omitempty"`
+	Lte      nullable.Nullable[string] `json:"lte,omitempty"`
+	Neq      nullable.Nullable[string] `json:"neq,omitempty"`
+	NotILike nullable.Nullable[string] `json:"notILike,omitempty"`
+	NotIn    []string                  `json:"notIn,omitempty"`
+	NotLike  nullable.Nullable[string] `json:"notLike,omitempty"`
+}
+
+// GetEq returns UUIDFilterComparison.Eq, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetEq() nullable.Nullable[string] { return v.Eq }
+
+// GetGt returns UUIDFilterComparison.Gt, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetGt() nullable.Nullable[string] { return v.Gt }
+
+// GetGte returns UUIDFilterComparison.Gte, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetGte() nullable.Nullable[string] { return v.Gte }
+
+// GetILike returns UUIDFilterComparison.ILike, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetILike() nullable.Nullable[string] { return v.ILike }
+
+// GetIn returns UUIDFilterComparison.In, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetIn() []string { return v.In }
+
+// GetIs returns UUIDFilterComparison.Is, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetIs() nullable.Nullable[bool] { return v.Is }
+
+// GetIsNot returns UUIDFilterComparison.IsNot, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetIsNot() nullable.Nullable[bool] { return v.IsNot }
+
+// GetLike returns UUIDFilterComparison.Like, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetLike() nullable.Nullable[string] { return v.Like }
+
+// GetLt returns UUIDFilterComparison.Lt, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetLt() nullable.Nullable[string] { return v.Lt }
+
+// GetLte returns UUIDFilterComparison.Lte, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetLte() nullable.Nullable[string] { return v.Lte }
+
+// GetNeq returns UUIDFilterComparison.Neq, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetNeq() nullable.Nullable[string] { return v.Neq }
+
+// GetNotILike returns UUIDFilterComparison.NotILike, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetNotILike() nullable.Nullable[string] { return v.NotILike }
+
+// GetNotIn returns UUIDFilterComparison.NotIn, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetNotIn() []string { return v.NotIn }
+
+// GetNotLike returns UUIDFilterComparison.NotLike, and is useful for accessing the field via an interface.
+func (v *UUIDFilterComparison) GetNotLike() nullable.Nullable[string] { return v.NotLike }
+
+type UpdateFieldInput struct {
+	DefaultValue                nullable.Nullable[json.RawMessage] `json:"defaultValue,omitempty"`
+	Description                 nullable.Nullable[string]          `json:"description,omitempty"`
+	Icon                        nullable.Nullable[string]          `json:"icon,omitempty"`
+	IsActive                    nullable.Nullable[bool]            `json:"isActive,omitempty"`
+	IsAuditLogged               nullable.Nullable[bool]            `json:"isAuditLogged,omitempty"`
+	IsLabelSyncedWithName       nullable.Nullable[bool]            `json:"isLabelSyncedWithName,omitempty"`
+	IsNullable                  nullable.Nullable[bool]            `json:"isNullable,omitempty"`
+	IsSearchable                nullable.Nullable[bool]            `json:"isSearchable,omitempty"`
+	IsSystem                    nullable.Nullable[bool]            `json:"isSystem,omitempty"`
+	IsUIEditable                nullable.Nullable[bool]            `json:"isUIEditable,omitempty"`
+	IsUIReadOnly                nullable.Nullable[bool]            `json:"isUIReadOnly,omitempty"`
+	IsUnique                    nullable.Nullable[bool]            `json:"isUnique,omitempty"`
+	Label                       nullable.Nullable[string]          `json:"label,omitempty"`
+	MorphRelationsUpdatePayload []json.RawMessage                  `json:"morphRelationsUpdatePayload,omitempty"`
+	Name                        nullable.Nullable[string]          `json:"name,omitempty"`
+	ObjectMetadataId            nullable.Nullable[string]          `json:"objectMetadataId,omitempty"`
+	Options                     nullable.Nullable[json.RawMessage] `json:"options,omitempty"`
+	Settings                    nullable.Nullable[json.RawMessage] `json:"settings,omitempty"`
+	Translations                []MetadataTranslationOverrideInput `json:"translations,omitempty"`
+	UniversalIdentifier         nullable.Nullable[string]          `json:"universalIdentifier,omitempty"`
+}
+
+// GetDefaultValue returns UpdateFieldInput.DefaultValue, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetDefaultValue() nullable.Nullable[json.RawMessage] {
+	return v.DefaultValue
+}
+
+// GetDescription returns UpdateFieldInput.Description, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetDescription() nullable.Nullable[string] { return v.Description }
+
+// GetIcon returns UpdateFieldInput.Icon, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetIcon() nullable.Nullable[string] { return v.Icon }
+
+// GetIsActive returns UpdateFieldInput.IsActive, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetIsActive() nullable.Nullable[bool] { return v.IsActive }
+
+// GetIsAuditLogged returns UpdateFieldInput.IsAuditLogged, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetIsAuditLogged() nullable.Nullable[bool] { return v.IsAuditLogged }
+
+// GetIsLabelSyncedWithName returns UpdateFieldInput.IsLabelSyncedWithName, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetIsLabelSyncedWithName() nullable.Nullable[bool] {
+	return v.IsLabelSyncedWithName
+}
+
+// GetIsNullable returns UpdateFieldInput.IsNullable, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetIsNullable() nullable.Nullable[bool] { return v.IsNullable }
+
+// GetIsSearchable returns UpdateFieldInput.IsSearchable, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetIsSearchable() nullable.Nullable[bool] { return v.IsSearchable }
+
+// GetIsSystem returns UpdateFieldInput.IsSystem, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetIsSystem() nullable.Nullable[bool] { return v.IsSystem }
+
+// GetIsUIEditable returns UpdateFieldInput.IsUIEditable, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetIsUIEditable() nullable.Nullable[bool] { return v.IsUIEditable }
+
+// GetIsUIReadOnly returns UpdateFieldInput.IsUIReadOnly, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetIsUIReadOnly() nullable.Nullable[bool] { return v.IsUIReadOnly }
+
+// GetIsUnique returns UpdateFieldInput.IsUnique, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetIsUnique() nullable.Nullable[bool] { return v.IsUnique }
+
+// GetLabel returns UpdateFieldInput.Label, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetLabel() nullable.Nullable[string] { return v.Label }
+
+// GetMorphRelationsUpdatePayload returns UpdateFieldInput.MorphRelationsUpdatePayload, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetMorphRelationsUpdatePayload() []json.RawMessage {
+	return v.MorphRelationsUpdatePayload
+}
+
+// GetName returns UpdateFieldInput.Name, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetName() nullable.Nullable[string] { return v.Name }
+
+// GetObjectMetadataId returns UpdateFieldInput.ObjectMetadataId, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetObjectMetadataId() nullable.Nullable[string] { return v.ObjectMetadataId }
+
+// GetOptions returns UpdateFieldInput.Options, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetOptions() nullable.Nullable[json.RawMessage] { return v.Options }
+
+// GetSettings returns UpdateFieldInput.Settings, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetSettings() nullable.Nullable[json.RawMessage] { return v.Settings }
+
+// GetTranslations returns UpdateFieldInput.Translations, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetTranslations() []MetadataTranslationOverrideInput {
+	return v.Translations
+}
+
+// GetUniversalIdentifier returns UpdateFieldInput.UniversalIdentifier, and is useful for accessing the field via an interface.
+func (v *UpdateFieldInput) GetUniversalIdentifier() nullable.Nullable[string] {
+	return v.UniversalIdentifier
+}
+
+// UpdateMetadataFieldResponse is returned by UpdateMetadataField on success.
+type UpdateMetadataFieldResponse struct {
+	UpdateOneField UpdateMetadataFieldUpdateOneField `json:"updateOneField"`
+}
+
+// GetUpdateOneField returns UpdateMetadataFieldResponse.UpdateOneField, and is useful for accessing the field via an interface.
+func (v *UpdateMetadataFieldResponse) GetUpdateOneField() UpdateMetadataFieldUpdateOneField {
+	return v.UpdateOneField
+}
+
+// UpdateMetadataFieldUpdateOneField includes the requested fields of the GraphQL type Field.
+type UpdateMetadataFieldUpdateOneField struct {
+	Id string `json:"id"`
+}
+
+// GetId returns UpdateMetadataFieldUpdateOneField.Id, and is useful for accessing the field via an interface.
+func (v *UpdateMetadataFieldUpdateOneField) GetId() string { return v.Id }
+
+// UpdateMetadataObjectResponse is returned by UpdateMetadataObject on success.
+type UpdateMetadataObjectResponse struct {
+	UpdateOneObject UpdateMetadataObjectUpdateOneObject `json:"updateOneObject"`
+}
+
+// GetUpdateOneObject returns UpdateMetadataObjectResponse.UpdateOneObject, and is useful for accessing the field via an interface.
+func (v *UpdateMetadataObjectResponse) GetUpdateOneObject() UpdateMetadataObjectUpdateOneObject {
+	return v.UpdateOneObject
+}
+
+// UpdateMetadataObjectUpdateOneObject includes the requested fields of the GraphQL type Object.
+type UpdateMetadataObjectUpdateOneObject struct {
+	Id string `json:"id"`
+}
+
+// GetId returns UpdateMetadataObjectUpdateOneObject.Id, and is useful for accessing the field via an interface.
+func (v *UpdateMetadataObjectUpdateOneObject) GetId() string { return v.Id }
+
+type UpdateObjectPayload struct {
+	Color                          nullable.Nullable[string]              `json:"color,omitempty"`
+	Description                    nullable.Nullable[string]              `json:"description,omitempty"`
+	Icon                           nullable.Nullable[string]              `json:"icon,omitempty"`
+	ImageIdentifierFieldMetadataId nullable.Nullable[string]              `json:"imageIdentifierFieldMetadataId,omitempty"`
+	IsActive                       nullable.Nullable[bool]                `json:"isActive,omitempty"`
+	IsLabelSyncedWithName          nullable.Nullable[bool]                `json:"isLabelSyncedWithName,omitempty"`
+	IsSearchable                   nullable.Nullable[bool]                `json:"isSearchable,omitempty"`
+	LabelIdentifierFieldMetadataId nullable.Nullable[string]              `json:"labelIdentifierFieldMetadataId,omitempty"`
+	LabelPlural                    nullable.Nullable[string]              `json:"labelPlural,omitempty"`
+	LabelSingular                  nullable.Nullable[string]              `json:"labelSingular,omitempty"`
+	NamePlural                     nullable.Nullable[string]              `json:"namePlural,omitempty"`
+	NameSingular                   nullable.Nullable[string]              `json:"nameSingular,omitempty"`
+	OpenRecordIn                   nullable.Nullable[ObjectOpenRecordIn]  `json:"openRecordIn,omitempty"`
+	Readability                    nullable.Nullable[MetadataReadability] `json:"readability,omitempty"`
+	SharingReach                   nullable.Nullable[ObjectSharingReach]  `json:"sharingReach,omitempty"`
+	Shortcut                       nullable.Nullable[string]              `json:"shortcut,omitempty"`
+	Translations                   []MetadataTranslationOverrideInput     `json:"translations,omitempty"`
+}
+
+// GetColor returns UpdateObjectPayload.Color, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetColor() nullable.Nullable[string] { return v.Color }
+
+// GetDescription returns UpdateObjectPayload.Description, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetDescription() nullable.Nullable[string] { return v.Description }
+
+// GetIcon returns UpdateObjectPayload.Icon, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetIcon() nullable.Nullable[string] { return v.Icon }
+
+// GetImageIdentifierFieldMetadataId returns UpdateObjectPayload.ImageIdentifierFieldMetadataId, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetImageIdentifierFieldMetadataId() nullable.Nullable[string] {
+	return v.ImageIdentifierFieldMetadataId
+}
+
+// GetIsActive returns UpdateObjectPayload.IsActive, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetIsActive() nullable.Nullable[bool] { return v.IsActive }
+
+// GetIsLabelSyncedWithName returns UpdateObjectPayload.IsLabelSyncedWithName, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetIsLabelSyncedWithName() nullable.Nullable[bool] {
+	return v.IsLabelSyncedWithName
+}
+
+// GetIsSearchable returns UpdateObjectPayload.IsSearchable, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetIsSearchable() nullable.Nullable[bool] { return v.IsSearchable }
+
+// GetLabelIdentifierFieldMetadataId returns UpdateObjectPayload.LabelIdentifierFieldMetadataId, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetLabelIdentifierFieldMetadataId() nullable.Nullable[string] {
+	return v.LabelIdentifierFieldMetadataId
+}
+
+// GetLabelPlural returns UpdateObjectPayload.LabelPlural, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetLabelPlural() nullable.Nullable[string] { return v.LabelPlural }
+
+// GetLabelSingular returns UpdateObjectPayload.LabelSingular, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetLabelSingular() nullable.Nullable[string] { return v.LabelSingular }
+
+// GetNamePlural returns UpdateObjectPayload.NamePlural, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetNamePlural() nullable.Nullable[string] { return v.NamePlural }
+
+// GetNameSingular returns UpdateObjectPayload.NameSingular, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetNameSingular() nullable.Nullable[string] { return v.NameSingular }
+
+// GetOpenRecordIn returns UpdateObjectPayload.OpenRecordIn, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetOpenRecordIn() nullable.Nullable[ObjectOpenRecordIn] {
+	return v.OpenRecordIn
+}
+
+// GetReadability returns UpdateObjectPayload.Readability, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetReadability() nullable.Nullable[MetadataReadability] {
+	return v.Readability
+}
+
+// GetSharingReach returns UpdateObjectPayload.SharingReach, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetSharingReach() nullable.Nullable[ObjectSharingReach] {
+	return v.SharingReach
+}
+
+// GetShortcut returns UpdateObjectPayload.Shortcut, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetShortcut() nullable.Nullable[string] { return v.Shortcut }
+
+// GetTranslations returns UpdateObjectPayload.Translations, and is useful for accessing the field via an interface.
+func (v *UpdateObjectPayload) GetTranslations() []MetadataTranslationOverrideInput {
+	return v.Translations
+}
+
+type UpdateOneFieldMetadataInput struct {
+	// The id of the record to update
+	Id string `json:"id"`
+	// The record to update
+	Update UpdateFieldInput `json:"update"`
+}
+
+// GetId returns UpdateOneFieldMetadataInput.Id, and is useful for accessing the field via an interface.
+func (v *UpdateOneFieldMetadataInput) GetId() string { return v.Id }
+
+// GetUpdate returns UpdateOneFieldMetadataInput.Update, and is useful for accessing the field via an interface.
+func (v *UpdateOneFieldMetadataInput) GetUpdate() UpdateFieldInput { return v.Update }
+
+type UpdateOneObjectInput struct {
+	// The id of the object to update
+	Id     string              `json:"id"`
+	Update UpdateObjectPayload `json:"update"`
+}
+
+// GetId returns UpdateOneObjectInput.Id, and is useful for accessing the field via an interface.
+func (v *UpdateOneObjectInput) GetId() string { return v.Id }
+
+// GetUpdate returns UpdateOneObjectInput.Update, and is useful for accessing the field via an interface.
+func (v *UpdateOneObjectInput) GetUpdate() UpdateObjectPayload { return v.Update }
+
 // UpdateOneRoleResponse is returned by UpdateOneRole on success.
 type UpdateOneRoleResponse struct {
 	UpdateOneRole RoleProperties `json:"updateOneRole"`
@@ -2632,6 +3648,22 @@ func (v *WorkspaceIdentityWorkspaceUrls) GetCustomUrl() nullable.Nullable[string
 // GetSubdomainUrl returns WorkspaceIdentityWorkspaceUrls.SubdomainUrl, and is useful for accessing the field via an interface.
 func (v *WorkspaceIdentityWorkspaceUrls) GetSubdomainUrl() string { return v.SubdomainUrl }
 
+// __CreateMetadataFieldInput is used internally by genqlient
+type __CreateMetadataFieldInput struct {
+	Input CreateOneFieldMetadataInput `json:"input"`
+}
+
+// GetInput returns __CreateMetadataFieldInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreateMetadataFieldInput) GetInput() CreateOneFieldMetadataInput { return v.Input }
+
+// __CreateMetadataObjectInput is used internally by genqlient
+type __CreateMetadataObjectInput struct {
+	Input CreateOneObjectInput `json:"input"`
+}
+
+// GetInput returns __CreateMetadataObjectInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreateMetadataObjectInput) GetInput() CreateOneObjectInput { return v.Input }
+
 // __CreateOneRoleInput is used internally by genqlient
 type __CreateOneRoleInput struct {
 	Input CreateRoleInput `json:"input"`
@@ -2639,6 +3671,22 @@ type __CreateOneRoleInput struct {
 
 // GetInput returns __CreateOneRoleInput.Input, and is useful for accessing the field via an interface.
 func (v *__CreateOneRoleInput) GetInput() CreateRoleInput { return v.Input }
+
+// __DeleteMetadataFieldInput is used internally by genqlient
+type __DeleteMetadataFieldInput struct {
+	Input DeleteOneFieldInput `json:"input"`
+}
+
+// GetInput returns __DeleteMetadataFieldInput.Input, and is useful for accessing the field via an interface.
+func (v *__DeleteMetadataFieldInput) GetInput() DeleteOneFieldInput { return v.Input }
+
+// __DeleteMetadataObjectInput is used internally by genqlient
+type __DeleteMetadataObjectInput struct {
+	Input DeleteOneObjectInput `json:"input"`
+}
+
+// GetInput returns __DeleteMetadataObjectInput.Input, and is useful for accessing the field via an interface.
+func (v *__DeleteMetadataObjectInput) GetInput() DeleteOneObjectInput { return v.Input }
 
 // __DeleteOneRoleInput is used internally by genqlient
 type __DeleteOneRoleInput struct {
@@ -2726,6 +3774,26 @@ type __GetPublicWorkspaceDataByIdInput struct {
 // GetId returns __GetPublicWorkspaceDataByIdInput.Id, and is useful for accessing the field via an interface.
 func (v *__GetPublicWorkspaceDataByIdInput) GetId() string { return v.Id }
 
+// __ListMetadataFieldsInput is used internally by genqlient
+type __ListMetadataFieldsInput struct {
+	Filter FieldFilter  `json:"filter"`
+	Paging CursorPaging `json:"paging"`
+}
+
+// GetFilter returns __ListMetadataFieldsInput.Filter, and is useful for accessing the field via an interface.
+func (v *__ListMetadataFieldsInput) GetFilter() FieldFilter { return v.Filter }
+
+// GetPaging returns __ListMetadataFieldsInput.Paging, and is useful for accessing the field via an interface.
+func (v *__ListMetadataFieldsInput) GetPaging() CursorPaging { return v.Paging }
+
+// __ListMetadataObjectsInput is used internally by genqlient
+type __ListMetadataObjectsInput struct {
+	Paging CursorPaging `json:"paging"`
+}
+
+// GetPaging returns __ListMetadataObjectsInput.Paging, and is useful for accessing the field via an interface.
+func (v *__ListMetadataObjectsInput) GetPaging() CursorPaging { return v.Paging }
+
 // __RenewTokenInput is used internally by genqlient
 type __RenewTokenInput struct {
 	AppToken string `json:"appToken"`
@@ -2745,6 +3813,22 @@ func (v *__SendInvitationsInput) GetEmails() []string { return v.Emails }
 
 // GetRoleId returns __SendInvitationsInput.RoleId, and is useful for accessing the field via an interface.
 func (v *__SendInvitationsInput) GetRoleId() nullable.Nullable[string] { return v.RoleId }
+
+// __UpdateMetadataFieldInput is used internally by genqlient
+type __UpdateMetadataFieldInput struct {
+	Input UpdateOneFieldMetadataInput `json:"input"`
+}
+
+// GetInput returns __UpdateMetadataFieldInput.Input, and is useful for accessing the field via an interface.
+func (v *__UpdateMetadataFieldInput) GetInput() UpdateOneFieldMetadataInput { return v.Input }
+
+// __UpdateMetadataObjectInput is used internally by genqlient
+type __UpdateMetadataObjectInput struct {
+	Input UpdateOneObjectInput `json:"input"`
+}
+
+// GetInput returns __UpdateMetadataObjectInput.Input, and is useful for accessing the field via an interface.
+func (v *__UpdateMetadataObjectInput) GetInput() UpdateOneObjectInput { return v.Input }
 
 // __UpdateOneRoleInput is used internally by genqlient
 type __UpdateOneRoleInput struct {
@@ -2789,6 +3873,75 @@ type __UpsertPermissionFlagsInput struct {
 
 // GetInput returns __UpsertPermissionFlagsInput.Input, and is useful for accessing the field via an interface.
 func (v *__UpsertPermissionFlagsInput) GetInput() UpsertPermissionFlagsInput { return v.Input }
+
+// The mutation executed by CreateMetadataField.
+const CreateMetadataField_Operation = `
+mutation CreateMetadataField ($input: CreateOneFieldMetadataInput!) {
+	createOneField(input: $input) {
+		id
+	}
+}
+`
+
+func CreateMetadataField(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	input CreateOneFieldMetadataInput,
+) (data_ *CreateMetadataFieldResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "CreateMetadataField",
+		Query:  CreateMetadataField_Operation,
+		Variables: &__CreateMetadataFieldInput{
+			Input: input,
+		},
+	}
+
+	data_ = &CreateMetadataFieldResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by CreateMetadataObject.
+const CreateMetadataObject_Operation = `
+mutation CreateMetadataObject ($input: CreateOneObjectInput!) {
+	createOneObject(input: $input) {
+		id
+	}
+}
+`
+
+// Mutation responses are identifiers only. Always re-read metadata after writes.
+func CreateMetadataObject(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	input CreateOneObjectInput,
+) (data_ *CreateMetadataObjectResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "CreateMetadataObject",
+		Query:  CreateMetadataObject_Operation,
+		Variables: &__CreateMetadataObjectInput{
+			Input: input,
+		},
+	}
+
+	data_ = &CreateMetadataObjectResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
 
 // The mutation executed by CreateOneRole.
 const CreateOneRole_Operation = `
@@ -3030,6 +4183,7 @@ query CurrentWorkspace {
 		... WorkspaceIdentity
 		createdAt
 		updatedAt
+		workspaceCustomApplicationId
 	}
 }
 fragment WorkspaceIdentity on Workspace {
@@ -3078,6 +4232,74 @@ func CurrentWorkspace(
 	}
 
 	data_ = &CurrentWorkspaceResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by DeleteMetadataField.
+const DeleteMetadataField_Operation = `
+mutation DeleteMetadataField ($input: DeleteOneFieldInput!) {
+	deleteOneField(input: $input) {
+		id
+	}
+}
+`
+
+func DeleteMetadataField(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	input DeleteOneFieldInput,
+) (data_ *DeleteMetadataFieldResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "DeleteMetadataField",
+		Query:  DeleteMetadataField_Operation,
+		Variables: &__DeleteMetadataFieldInput{
+			Input: input,
+		},
+	}
+
+	data_ = &DeleteMetadataFieldResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by DeleteMetadataObject.
+const DeleteMetadataObject_Operation = `
+mutation DeleteMetadataObject ($input: DeleteOneObjectInput!) {
+	deleteOneObject(input: $input) {
+		id
+	}
+}
+`
+
+func DeleteMetadataObject(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	input DeleteOneObjectInput,
+) (data_ *DeleteMetadataObjectResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "DeleteMetadataObject",
+		Query:  DeleteMetadataObject_Operation,
+		Variables: &__DeleteMetadataObjectInput{
+			Input: input,
+		},
+	}
+
+	data_ = &DeleteMetadataObjectResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -3584,6 +4806,125 @@ func GetRoles(
 	return data_, err_
 }
 
+// The query executed by ListMetadataFields.
+const ListMetadataFields_Operation = `
+query ListMetadataFields ($filter: FieldFilter!, $paging: CursorPaging!) {
+	fields(filter: $filter, paging: $paging) {
+		edges {
+			node {
+				... FieldMetadata
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+fragment FieldMetadata on Field {
+	id
+	applicationId
+	universalIdentifier
+	objectMetadataId
+	name
+	label
+	type
+	description
+	icon
+	isActive
+	isSystem
+	isLabelSyncedWithName
+	isNullable
+	writability
+}
+`
+
+func ListMetadataFields(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	filter FieldFilter,
+	paging CursorPaging,
+) (data_ *ListMetadataFieldsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListMetadataFields",
+		Query:  ListMetadataFields_Operation,
+		Variables: &__ListMetadataFieldsInput{
+			Filter: filter,
+			Paging: paging,
+		},
+	}
+
+	data_ = &ListMetadataFieldsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListMetadataObjects.
+const ListMetadataObjects_Operation = `
+query ListMetadataObjects ($paging: CursorPaging!) {
+	objects(paging: $paging) {
+		edges {
+			node {
+				... ObjectMetadata
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+fragment ObjectMetadata on Object {
+	id
+	applicationId
+	universalIdentifier
+	nameSingular
+	namePlural
+	labelSingular
+	labelPlural
+	description
+	icon
+	isActive
+	isSystem
+	isRemote
+	isLabelSyncedWithName
+	writability
+	labelIdentifierFieldMetadataId
+}
+`
+
+func ListMetadataObjects(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	paging CursorPaging,
+) (data_ *ListMetadataObjectsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListMetadataObjects",
+		Query:  ListMetadataObjects_Operation,
+		Variables: &__ListMetadataObjectsInput{
+			Paging: paging,
+		},
+	}
+
+	data_ = &ListMetadataObjectsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The mutation executed by RenewToken.
 const RenewToken_Operation = `
 mutation RenewToken ($appToken: String!) {
@@ -3668,6 +5009,74 @@ func SendInvitations(
 	}
 
 	data_ = &SendInvitationsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by UpdateMetadataField.
+const UpdateMetadataField_Operation = `
+mutation UpdateMetadataField ($input: UpdateOneFieldMetadataInput!) {
+	updateOneField(input: $input) {
+		id
+	}
+}
+`
+
+func UpdateMetadataField(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	input UpdateOneFieldMetadataInput,
+) (data_ *UpdateMetadataFieldResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "UpdateMetadataField",
+		Query:  UpdateMetadataField_Operation,
+		Variables: &__UpdateMetadataFieldInput{
+			Input: input,
+		},
+	}
+
+	data_ = &UpdateMetadataFieldResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by UpdateMetadataObject.
+const UpdateMetadataObject_Operation = `
+mutation UpdateMetadataObject ($input: UpdateOneObjectInput!) {
+	updateOneObject(input: $input) {
+		id
+	}
+}
+`
+
+func UpdateMetadataObject(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	input UpdateOneObjectInput,
+) (data_ *UpdateMetadataObjectResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "UpdateMetadataObject",
+		Query:  UpdateMetadataObject_Operation,
+		Variables: &__UpdateMetadataObjectInput{
+			Input: input,
+		},
+	}
+
+	data_ = &UpdateMetadataObjectResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
