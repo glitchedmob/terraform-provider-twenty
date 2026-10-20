@@ -127,17 +127,8 @@ func (c memberQueryClient) MakeRequest(ctx context.Context, req *graphql.Request
 	return nil
 }
 func validateInvitations(raw json.RawMessage) error {
-	invitations, err := wireList(raw)
-	if err != nil {
-		return err
-	}
-	for _, invite := range invitations {
-		var email string
-		var expires *time.Time
-		if !workspaceWireUUID(invite["id"]) || json.Unmarshal(invite["email"], &email) != nil || client.ValidateEmail(email) != nil || email == "" || strings.TrimSpace(email) != email ||
-			json.Unmarshal(invite["expiresAt"], &expires) != nil || expires == nil || expires.IsZero() || len(invite["roleId"]) == 0 || (string(invite["roleId"]) != "null" && !workspaceWireUUID(invite["roleId"])) {
-			return errInvalidMemberResponse
-		}
+	if validateInvitationList(raw) != nil {
+		return errInvalidMemberResponse
 	}
 	return nil
 }
