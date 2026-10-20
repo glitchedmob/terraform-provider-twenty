@@ -34,13 +34,7 @@ func TestMemberReplacementRequiresImportAcrossRefreshAndMutation(t *testing.T) {
 	for _, kind := range []string{"invitation", "accepted member", "accepted to invitation"} {
 		for _, action := range []string{"read then update and delete", "update then read and delete", "delete then read and update"} {
 			t.Run(kind+"/"+action, func(t *testing.T) {
-				mock := newMemberMock()
-				mock.invite(memberEmail, roleTestID)
-				if kind != "invitation" {
-					mock.accept()
-				}
-				r := mockMemberResource(mock)
-				state := memberImport(t, r, memberEmail)
+				mock, r, state := newImportedMember(t, kind != "invitation")
 				original := getMemberState(t, state)
 				switch kind {
 				case "invitation":
@@ -93,21 +87,13 @@ func TestMemberReplacementRequiresImportAcrossRefreshAndMutation(t *testing.T) {
 					t.Fatal("refresh reconfirmed external ownership")
 				}
 				state = read.State
-				plan := getMemberState(t, state)
-				plan.RoleID = types.StringValue(roleTestOther)
-				updated := resource.UpdateResponse{State: state}
-				r.Update(t.Context(), resource.UpdateRequest{State: state, Plan: memberPlan(t, plan)}, &updated)
-				deleted := resource.DeleteResponse{State: state}
-				r.Delete(t.Context(), resource.DeleteRequest{State: state}, &deleted)
-				if !updated.Diagnostics.HasError() || !deleted.Diagnostics.HasError() {
-					t.Fatal("unconfirmed replacement allowed update/destroy")
-				}
+				assertMemberWritesBlocked(t, r, mock, state)
 				assertNoMemberWrites(t, mock)
 				state = memberImport(t, r, memberEmail)
 				if !getMemberState(t, state).OwnershipConfirmed.ValueBool() {
 					t.Fatal("explicit import did not confirm inspected replacement")
 				}
-				deleted = resource.DeleteResponse{State: state}
+				deleted := resource.DeleteResponse{State: state}
 				r.Delete(t.Context(), resource.DeleteRequest{State: state}, &deleted)
 				if deleted.Diagnostics.HasError() {
 					t.Fatal(deleted.Diagnostics)
@@ -118,10 +104,7 @@ func TestMemberReplacementRequiresImportAcrossRefreshAndMutation(t *testing.T) {
 }
 
 func TestMemberOriginalAcceptanceKeepsConfirmedOwnership(t *testing.T) {
-	mock := newMemberMock()
-	mock.invite(memberEmail, roleTestID)
-	r := mockMemberResource(mock)
-	state := memberImport(t, r, memberEmail)
+	mock, r, state := newImportedMember(t, false)
 	id := getMemberState(t, state).ID
 	mock.accept()
 	read := resource.ReadResponse{State: state}
@@ -141,11 +124,7 @@ func TestMemberOriginalAcceptanceKeepsConfirmedOwnership(t *testing.T) {
 }
 
 func TestMemberReplacementDuringUpdateReconciliationDropsOwnership(t *testing.T) {
-	mock := newMemberMock()
-	mock.invite(memberEmail, roleTestID)
-	mock.accept()
-	r := mockMemberResource(mock)
-	state := memberImport(t, r, memberEmail)
+	mock, r, state := newImportedMember(t, true)
 	mock.after = func(op string, _ map[string]any) {
 		if op == "UpdateWorkspaceMemberRole" {
 			mock.members[2]["id"] = roleTestFlag
