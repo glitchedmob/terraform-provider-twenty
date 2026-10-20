@@ -1,18 +1,20 @@
 # Terraform provider for Twenty
 
-Manage Twenty roles and workspace memberships with Terraform. Requires **Twenty v2.46.0 or later**.
+Manage Twenty custom objects, fields, roles, and workspace memberships with Terraform. Requires **Twenty v2.46.0 or later**.
 
 The provider is not yet published to the Terraform Registry. See [setup and authentication](docs/guides/authentication.md) to use a local build.
 
 ## Documentation
 
 - [Provider configuration](docs/index.md)
+- Custom objects: [manage](docs/resources/object.md) or [look up](docs/data-sources/object.md)
+- Fields: [manage custom fields](docs/resources/field.md) or [look up existing fields](docs/data-sources/field.md)
 - Roles: [manage custom roles](docs/resources/role.md) or [look up existing roles](docs/data-sources/role.md)
 - [Manage workspace memberships](docs/resources/workspace_member.md)
 - [Read the current workspace](docs/data-sources/workspace.md)
 - [Bulk membership and recovery](docs/guides/membership.md)
 
-The provider uses Twenty's Metadata API. It does not manage workspaces, global users/passwords, object/field permissions, or CRM records.
+The provider uses Twenty's Metadata API. It does not manage workspace settings, global users/passwords, object/field permissions, or individual CRM records. Deleting objects or fields removes their stored data, so deletion is protected by default.
 
 ## Development
 

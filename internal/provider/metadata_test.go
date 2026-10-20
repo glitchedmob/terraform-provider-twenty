@@ -127,6 +127,14 @@ func (m *metadataMock) MakeRequest(ctx context.Context, req *graphql.Request, re
 		for k, v := range vars.Input.Object {
 			object[k] = v
 		}
+		// Twenty capitalizes object labels during creation. Model its ASCII
+		// behavior so lowercase fixture inputs cannot hide a failed read-back.
+		for _, key := range []string{"labelSingular", "labelPlural"} {
+			label := object[key].(string)
+			if len(label) > 0 && label[0] >= 'a' && label[0] <= 'z' {
+				object[key] = strings.ToUpper(label[:1]) + label[1:]
+			}
+		}
 		m.objects = append(m.objects, object)
 		data["createOneObject"] = map[string]any{"id": object["id"]}
 	case "CreateMetadataField":
