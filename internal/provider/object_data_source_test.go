@@ -148,6 +148,7 @@ func TestObjectDataSourceRead(t *testing.T) {
 		}
 	}
 	mock := newMetadataMock()
+	mock.objects[1]["description"], mock.objects[1]["icon"] = nil, nil
 	resp := objectDataSourceRead(t, &objectDataSource{client: mock}, types.StringNull(), types.StringValue("subscription"))
 	var model objectDataSourceModel
 	if d := resp.State.Get(t.Context(), &model); d.HasError() {

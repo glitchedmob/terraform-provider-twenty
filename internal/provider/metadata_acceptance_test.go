@@ -4,6 +4,7 @@ package provider
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/glitchedmob/terraform-provider-twenty/internal/acceptance"
@@ -14,11 +15,12 @@ import (
 	"github.com/oapi-codegen/nullable"
 )
 
-// Uses only the existing disposable stack. No CRM records are created. All
-// deletion protection opt-outs below apply only to these disposable fixtures.
+// Uses only the disposable stack. No CRM records are created. Protection
+// opt-outs apply only to these fixtures. Separate scalar resources avoid the
+// legacy Terraform state adapter's unsupported for_each instance keys.
 func testAccMetadata(t *testing.T, fixture *acceptance.Fixture) {
-	const objectAddress = "twenty_object.test"
-	const textAddress = `twenty_field.test["TEXT"]`
+	const objectAddress, textAddress = "twenty_object.test", "twenty_field.text"
+	kinds := []string{"TEXT", "NUMBER", "BOOLEAN", "DATE", "DATE_TIME"}
 	var objectID, companyID, companyNameID, companyFieldID string
 	fieldIDs := map[string]string{}
 	objects, err := readMetadataObjects(t.Context(), fixture.Operator.API)
@@ -48,8 +50,8 @@ func testAccMetadata(t *testing.T, fixture *acceptance.Fixture) {
 	capture := func(s *terraform.State) error {
 		objectID = s.RootModule().Resources[objectAddress].Primary.ID
 		companyFieldID = s.RootModule().Resources["twenty_field.company_extra"].Primary.ID
-		for _, kind := range []string{"TEXT", "NUMBER", "BOOLEAN", "DATE", "DATE_TIME"} {
-			fieldIDs[kind] = s.RootModule().Resources[`twenty_field.test["`+kind+`"]`].Primary.ID
+		for _, kind := range kinds {
+			fieldIDs[kind] = s.RootModule().Resources["twenty_field."+strings.ToLower(kind)].Primary.ID
 			if !metadataUUID(fieldIDs[kind]) {
 				return fmt.Errorf("field did not persist its native UUID")
 			}
@@ -64,6 +66,20 @@ func testAccMetadata(t *testing.T, fixture *acceptance.Fixture) {
 		if updated {
 			objectLabel, fieldPrefix, description, icon = "Plan", "Updated", "null", "null"
 		}
+		var fields strings.Builder
+		for _, kind := range kinds {
+			fmt.Fprintf(&fields, `
+resource "twenty_field" %q {
+ object_id = twenty_object.test.id
+ name = %q
+ label = %q
+ type = %q
+ description = %s
+ icon = %s
+ deletion_protection = false
+}
+`, strings.ToLower(kind), "sample"+strings.ToLower(strings.ReplaceAll(kind, "_", "")), fieldPrefix+" "+kind, kind, description, icon)
+		}
 		return fmt.Sprintf(`
 provider "twenty" { allow_insecure_http = true }
 resource "twenty_object" "test" {
@@ -75,19 +91,10 @@ resource "twenty_object" "test" {
  icon = %s
  deletion_protection = false
 }
-resource "twenty_field" "test" {
- for_each = toset(["TEXT", "NUMBER", "BOOLEAN", "DATE", "DATE_TIME"])
- object_id = twenty_object.test.id
- name = "sample${replace(lower(each.key), "_", "") }"
- label = "Sample ${each.key}"
- type = each.key
- description = %s
- icon = %s
- deletion_protection = false
-}
+%s
 data "twenty_object" "by_name" {
  name_singular = twenty_object.test.name_singular
- depends_on = [twenty_field.test]
+ depends_on = [twenty_object.test]
 }
 data "twenty_object" "by_id" { object_id = twenty_object.test.id }
 data "twenty_object" "company" { name_singular = "company" }
@@ -98,17 +105,17 @@ resource "twenty_field" "company_extra" {
  type = "TEXT"
  deletion_protection = false
 }
-data "twenty_field" "by_id" { field_id = twenty_field.test["TEXT"].id }
+data "twenty_field" "by_id" { field_id = twenty_field.text.id }
 data "twenty_field" "by_name" {
  object_id = twenty_object.test.id
- name = twenty_field.test["TEXT"].name
- depends_on = [twenty_field.test]
+ name = twenty_field.text.name
+ depends_on = [twenty_field.text]
 }
 data "twenty_field" "standard_name" {
  object_id = data.twenty_object.company.id
  name = "name"
 }
-`, objectLabel, objectLabel+"s", description, icon, description, icon, fieldPrefix+" tier")
+`, objectLabel, objectLabel+"s", description, icon, fields.String(), fieldPrefix+" tier")
 	}
 	initial, updated := config(false), config(true)
 	noChanges := resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()}}
@@ -146,11 +153,13 @@ data "twenty_field" "standard_name" {
 				resource.TestCheckResourceAttrPair("data.twenty_field.by_name", "id", textAddress, "id"),
 				resource.TestCheckResourceAttrPair("data.twenty_field.by_id", "id", textAddress, "id"),
 				resource.TestCheckResourceAttr("data.twenty_object.company", "id", companyID),
-				resource.TestCheckResourceAttr("data.twenty_field.standard_name", "id", companyNameID))},
+				resource.TestCheckResourceAttr("data.twenty_field.standard_name", "id", companyNameID),
+				resource.TestCheckResourceAttr("twenty_field.company_extra", "description", ""),
+				resource.TestCheckResourceAttr("twenty_field.company_extra", "icon", ""))},
 			{ResourceName: objectAddress, ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"deletion_protection"}},
 			{ResourceName: textAddress, ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"deletion_protection"}},
 			{Config: updated, ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(objectAddress, plancheck.ResourceActionUpdate), plancheck.ExpectResourceAction(textAddress, plancheck.ResourceActionUpdate)}}, Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr(objectAddress, "label_singular", "Plan"), resource.TestCheckNoResourceAttr(objectAddress, "description"), resource.TestCheckNoResourceAttr(textAddress, "description"),
+				resource.TestCheckResourceAttr(objectAddress, "label_singular", "Plan"), resource.TestCheckResourceAttr(objectAddress, "description", ""), resource.TestCheckResourceAttr(textAddress, "description", ""),
 				func(s *terraform.State) error {
 					if s.RootModule().Resources[objectAddress].Primary.ID != objectID || s.RootModule().Resources[textAddress].Primary.ID != fieldIDs["TEXT"] {
 						return fmt.Errorf("label update replaced metadata")
@@ -170,7 +179,7 @@ data "twenty_field" "standard_name" {
 				if err != nil {
 					t.Fatal("out-of-band disposable field deletion failed")
 				}
-			}, Config: updated, ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(`twenty_field.test["NUMBER"]`, plancheck.ResourceActionCreate)}}, Check: capture},
+			}, Config: updated, ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction("twenty_field.number", plancheck.ResourceActionCreate)}}, Check: capture},
 			{Config: updated, ConfigPlanChecks: noChanges},
 		},
 	})

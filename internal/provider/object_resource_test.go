@@ -22,7 +22,7 @@ func mockObjectResource(m *metadataMock) *objectResource {
 	return &objectResource{client: m, identity: workspaceTestIdentity(), mutationLock: &sync.Mutex{}}
 }
 func objectResourceTestModel() objectResourceModel {
-	return objectResourceModel{ID: types.StringValue(metadataTestObjectID), NameSingular: types.StringValue("subscription"), NamePlural: types.StringValue("subscriptions"), LabelSingular: types.StringValue("Subscription"), LabelPlural: types.StringValue("Subscriptions"), Description: types.StringNull(), Icon: types.StringNull(), DeletionProtection: types.BoolValue(true)}
+	return objectResourceModel{ID: types.StringValue(metadataTestObjectID), NameSingular: types.StringValue("subscription"), NamePlural: types.StringValue("subscriptions"), LabelSingular: types.StringValue("Subscription"), LabelPlural: types.StringValue("Subscriptions"), Description: types.StringValue(""), Icon: types.StringValue(""), DeletionProtection: types.BoolValue(true)}
 }
 func objectResourceState(t *testing.T, model objectResourceModel) tfsdk.State {
 	t.Helper()
@@ -154,28 +154,28 @@ func TestObjectResourceCRUD(t *testing.T) {
 	if read.Diagnostics.HasError() || !read.State.Raw.Equal(created.State.Raw) {
 		t.Fatal("read round trip", read.Diagnostics)
 	}
-	// No-op updates must preserve independent labels and nullable/empty strings.
+	// No-op updates must preserve independent labels and empty-string defaults.
 	update := resource.UpdateResponse{State: read.State}
 	r.Update(t.Context(), resource.UpdateRequest{State: read.State, Plan: objectResourcePlan(t, model)}, &update)
 	if update.Diagnostics.HasError() || !update.State.Raw.Equal(read.State.Raw) {
 		t.Fatal("no-op update", update.Diagnostics)
 	}
 	model.LabelSingular, model.LabelPlural = types.StringValue("Charge"), types.StringValue("Charges")
-	model.Description, model.Icon, model.DeletionProtection = types.StringNull(), types.StringNull(), types.BoolValue(false)
+	model.Description, model.Icon, model.DeletionProtection = types.StringValue(""), types.StringValue(""), types.BoolValue(false)
 	updated := resource.UpdateResponse{State: update.State}
 	r.Update(t.Context(), resource.UpdateRequest{State: update.State, Plan: objectResourcePlan(t, model)}, &updated)
 	if updated.Diagnostics.HasError() {
 		t.Fatal(updated.Diagnostics)
 	}
 	got := objectStateModel(t, updated.State)
-	if !got.Description.IsNull() || !got.Icon.IsNull() || got.LabelSingular.ValueString() != "Charge" || got.NameSingular.ValueString() != "invoice" {
-		t.Fatal("nullable clear/independent labels failed")
+	if got.Description.IsNull() || got.Icon.IsNull() || got.Description.ValueString() != "" || got.Icon.ValueString() != "" || got.LabelSingular.ValueString() != "Charge" || got.NameSingular.ValueString() != "invoice" {
+		t.Fatal("empty-string clear/independent labels failed")
 	}
 	var updateWire struct {
 		Input struct{ Update map[string]any }
 	}
 	_ = json.Unmarshal(mock.inputs["UpdateOneObject"], &updateWire)
-	if len(updateWire.Input.Update) != 5 || updateWire.Input.Update["description"] != nil || updateWire.Input.Update["icon"] != nil || updateWire.Input.Update["isLabelSyncedWithName"] != false {
+	if len(updateWire.Input.Update) != 5 || updateWire.Input.Update["description"] != "" || updateWire.Input.Update["icon"] != "" || updateWire.Input.Update["isLabelSyncedWithName"] != false {
 		t.Fatalf("unexpected update: %s", mock.inputs["UpdateOneObject"])
 	}
 	deleted := resource.DeleteResponse{State: updated.State}

@@ -9,9 +9,31 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+func TestMetadataEmptyStringDefaults(t *testing.T) {
+	for name, instance := range map[string]resource.Resource{"object": NewObjectResource(), "field": NewFieldResource()} {
+		t.Run(name, func(t *testing.T) {
+			var response resource.SchemaResponse
+			instance.Schema(t.Context(), resource.SchemaRequest{}, &response)
+			for _, key := range []string{"description", "icon"} {
+				attribute := response.Schema.Attributes[key].(schema.StringAttribute)
+				if !attribute.Optional || !attribute.Computed || attribute.Default == nil {
+					t.Fatalf("%s must default to the server's empty-string representation", key)
+				}
+				var value defaults.StringResponse
+				attribute.Default.DefaultString(t.Context(), defaults.StringRequest{}, &value)
+				if value.Diagnostics.HasError() || !value.PlanValue.Equal(types.StringValue("")) {
+					t.Fatalf("unexpected %s default", key)
+				}
+			}
+		})
+	}
+}
 
 func TestFieldFailedUpdateCannotDisableDeletionProtection(t *testing.T) {
 	mock := newMetadataMock()

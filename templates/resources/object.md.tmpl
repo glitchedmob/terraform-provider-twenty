@@ -13,7 +13,7 @@ Manages a workspace-custom object through Metadata GraphQL. Reads and mutations 
 
 {{ tffile "examples/resources/twenty_object/resource.tf" }}
 
-Names are unique across singular and plural names. Changing either name replaces the object. Labels are independent and can be updated. Start labels with an uppercase letter when the first character has case, because Twenty capitalizes them during creation. Use canonical strings with single spaces and no surrounding whitespace. Omitted or null description and icon values clear those fields; empty strings stay empty.
+Names are unique across singular and plural names. Changing either name replaces the object. Labels are independent and can be updated. Start labels with an uppercase letter when the first character has case, because Twenty capitalizes them during creation. Use canonical strings with single spaces and no surrounding whitespace. Description and icon default to empty strings, matching Twenty's read responses. Omission or null clears them.
 
 Twenty creates the object's default name and system fields, default view, and navigation entry. Generated default fields belong to Twenty, not separate Terraform field resources. This resource does not manage unrelated object settings or CRM records.
 

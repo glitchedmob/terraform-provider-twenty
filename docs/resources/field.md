@@ -34,7 +34,7 @@ Changing `object_id`, `name`, or `type` requires replacement. There are no type 
 
 `deletion_protection` defaults to true, including after import. Apply `deletion_protection = false` before destroying or replacing the resource. Deletion permanently removes the field and its CRM data. The provider hard-deletes directly, without deactivation first, because deactivation itself removes view fields and filters.
 
-Labels, descriptions, and icons must use single spaces without surrounding whitespace. Omission or null clears description/icon; an empty string stays empty. Labels do not rename the field.
+Labels, descriptions, and icons must use single spaces without surrounding whitespace. Description and icon default to empty strings, matching Twenty's read responses. Omission or null clears them. Labels do not rename the field.
 
 ## Import
 
@@ -62,8 +62,8 @@ The mutation lock covers one provider configuration only. It does not coordinate
 ### Optional
 
 - `deletion_protection` (Boolean) Defaults to true. Apply false before destroying or replacing the field. Deletion permanently removes CRM data and does not deactivate the field first.
-- `description` (String) Description. Omission or null clears it; empty stays empty. Use single spaces without surrounding whitespace.
-- `icon` (String) Icon identifier. Omission or null clears it; empty stays empty. Use single spaces without surrounding whitespace.
+- `description` (String) Description. Defaults to an empty string. Omission or null clears it. Use single spaces without surrounding whitespace.
+- `icon` (String) Icon identifier. Defaults to an empty string. Omission or null clears it. Use single spaces without surrounding whitespace.
 
 ### Read-Only
 

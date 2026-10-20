@@ -28,7 +28,7 @@ func fieldResourceState(t *testing.T, model fieldResourceModel) tfsdk.State {
 	return state
 }
 func fieldResourceTestModel() fieldResourceModel {
-	return fieldResourceModel{ID: types.StringValue(metadataTestFieldID), ObjectID: types.StringValue(metadataTestObjectID), Name: types.StringValue("tier"), Type: types.StringValue("TEXT"), Label: types.StringValue("Tier"), Description: types.StringNull(), Icon: types.StringNull(), DeletionProtection: types.BoolValue(true)}
+	return fieldResourceModel{ID: types.StringValue(metadataTestFieldID), ObjectID: types.StringValue(metadataTestObjectID), Name: types.StringValue("tier"), Type: types.StringValue("TEXT"), Label: types.StringValue("Tier"), Description: types.StringValue(""), Icon: types.StringValue(""), DeletionProtection: types.BoolValue(true)}
 }
 func mockFieldResource(mock *metadataMock) *fieldResource {
 	return &fieldResource{client: mock, identity: workspaceTestIdentity(), mutationLock: &sync.Mutex{}}
@@ -179,8 +179,8 @@ func TestFieldResourceCRUD(t *testing.T) {
 			}
 			plan := state
 			plan.Label = types.StringValue("Customer tier")
-			plan.Description = types.StringNull()
-			plan.Icon = types.StringNull()
+			plan.Description = types.StringValue("")
+			plan.Icon = types.StringValue("")
 			plan.DeletionProtection = types.BoolValue(false)
 			before := fieldResourceState(t, state)
 			update := resource.UpdateResponse{State: before}
@@ -192,14 +192,14 @@ func TestFieldResourceCRUD(t *testing.T) {
 			if d := update.State.Get(t.Context(), &updated); d.HasError() {
 				t.Fatal(d)
 			}
-			if !updated.Description.IsNull() || !updated.Icon.IsNull() || updated.DeletionProtection.ValueBool() {
-				t.Fatal("nullable clears/protection not applied")
+			if updated.Description.IsNull() || updated.Icon.IsNull() || updated.Description.ValueString() != "" || updated.Icon.ValueString() != "" || updated.DeletionProtection.ValueBool() {
+				t.Fatal("empty-string clears/protection not applied")
 			}
 			var updateInput struct {
 				Input struct{ Update map[string]any }
 			}
 			_ = json.Unmarshal(mock.inputs["UpdateOneField"], &updateInput)
-			if len(updateInput.Input.Update) != 4 || updateInput.Input.Update["description"] != nil || updateInput.Input.Update["icon"] != nil {
+			if len(updateInput.Input.Update) != 4 || updateInput.Input.Update["description"] != "" || updateInput.Input.Update["icon"] != "" {
 				t.Fatal("update must only manage label, strings, label sync", updateInput)
 			}
 			read := resource.ReadResponse{State: update.State}

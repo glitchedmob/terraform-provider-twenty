@@ -127,7 +127,7 @@ func TestFieldDataSourceRead(t *testing.T) {
 			if d := resp.State.Get(t.Context(), &got); d.HasError() {
 				t.Fatal(d)
 			}
-			if got.ID.ValueString() != metadataTestFieldID || got.ObjectID.ValueString() != metadataTestObjectID || got.Name.ValueString() != "tier" || got.Type.ValueString() != "TEXT" || got.IsSystem.ValueBool() || !got.IsActive.ValueBool() || got.ApplicationID.ValueString() != metadataTestCustomApp || !got.Description.IsNull() || !got.Icon.IsNull() {
+			if got.ID.ValueString() != metadataTestFieldID || got.ObjectID.ValueString() != metadataTestObjectID || got.Name.ValueString() != "tier" || got.Type.ValueString() != "TEXT" || got.IsSystem.ValueBool() || !got.IsActive.ValueBool() || got.ApplicationID.ValueString() != metadataTestCustomApp || got.Description.IsNull() || got.Icon.IsNull() || got.Description.ValueString() != "" || got.Icon.ValueString() != "" {
 				t.Fatal("incorrect field state", got)
 			}
 			if !got.FieldID.Equal(model.FieldID) {

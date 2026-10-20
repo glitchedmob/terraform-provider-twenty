@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/oapi-codegen/nullable"
@@ -58,8 +59,8 @@ func (r *fieldResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 			"name":                schema.StringAttribute{Required: true, MarkdownDescription: "ASCII lowerCamel field name, at most 63 characters. The default name field is protected. Create rejects existing names instead of adopting them. Changing it requires replacement.", PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}},
 			"type":                schema.StringAttribute{Required: true, MarkdownDescription: "One of TEXT, NUMBER, BOOLEAN, DATE, or DATE_TIME. Changing it requires replacement, not a data migration.", PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}},
 			"label":               schema.StringAttribute{Required: true, MarkdownDescription: "Nonblank display label. Use single spaces without surrounding whitespace."},
-			"description":         schema.StringAttribute{Optional: true, MarkdownDescription: "Description. Omission or null clears it; empty stays empty. Use single spaces without surrounding whitespace."},
-			"icon":                schema.StringAttribute{Optional: true, MarkdownDescription: "Icon identifier. Omission or null clears it; empty stays empty. Use single spaces without surrounding whitespace."},
+			"description":         schema.StringAttribute{Optional: true, Computed: true, Default: stringdefault.StaticString(""), MarkdownDescription: "Description. Defaults to an empty string. Omission or null clears it. Use single spaces without surrounding whitespace."},
+			"icon":                schema.StringAttribute{Optional: true, Computed: true, Default: stringdefault.StaticString(""), MarkdownDescription: "Icon identifier. Defaults to an empty string. Omission or null clears it. Use single spaces without surrounding whitespace."},
 			"deletion_protection": schema.BoolAttribute{Optional: true, Computed: true, Default: booldefault.StaticBool(true), MarkdownDescription: "Defaults to true. Apply false before destroying or replacing the field. Deletion permanently removes CRM data and does not deactivate the field first."},
 		}}
 }
@@ -180,7 +181,7 @@ func (m fieldResourceModel) matchesIdentity(field *client.FieldMetadata) bool {
 	return field != nil && strings.EqualFold(m.ObjectID.ValueString(), field.ObjectMetadataId) && m.Name.ValueString() == field.Name && m.Type.ValueString() == string(field.Type)
 }
 func (m fieldResourceModel) matchesWrite(field *client.FieldMetadata) bool {
-	return m.matchesIdentity(field) && m.Label.ValueString() == field.Label && m.Description.Equal(roleNullableString(field.Description)) && m.Icon.Equal(roleNullableString(field.Icon)) && !field.IsLabelSyncedWithName.GetOrEmpty()
+	return m.matchesIdentity(field) && m.Label.ValueString() == field.Label && m.Description.ValueString() == field.Description.GetOrEmpty() && m.Icon.ValueString() == field.Icon.GetOrEmpty() && !field.IsLabelSyncedWithName.GetOrEmpty()
 }
 func (m *fieldResourceModel) fromAPI(field *client.FieldMetadata) {
 	m.ID = types.StringValue(strings.ToLower(field.Id))
@@ -189,7 +190,7 @@ func (m *fieldResourceModel) fromAPI(field *client.FieldMetadata) {
 		m.ObjectID = types.StringValue(strings.ToLower(field.ObjectMetadataId))
 	}
 	m.Name, m.Type, m.Label = types.StringValue(field.Name), types.StringValue(string(field.Type)), types.StringValue(field.Label)
-	m.Description, m.Icon = roleNullableString(field.Description), roleNullableString(field.Icon)
+	m.Description, m.Icon = types.StringValue(field.Description.GetOrEmpty()), types.StringValue(field.Icon.GetOrEmpty())
 	if m.DeletionProtection.IsNull() || m.DeletionProtection.IsUnknown() {
 		m.DeletionProtection = types.BoolValue(true)
 	}

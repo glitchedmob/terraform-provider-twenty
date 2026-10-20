@@ -25,7 +25,7 @@ resource "twenty_object" "subscription" {
 }
 ```
 
-Names are unique across singular and plural names. Changing either name replaces the object. Labels are independent and can be updated. Start labels with an uppercase letter when the first character has case, because Twenty capitalizes them during creation. Use canonical strings with single spaces and no surrounding whitespace. Omitted or null description and icon values clear those fields; empty strings stay empty.
+Names are unique across singular and plural names. Changing either name replaces the object. Labels are independent and can be updated. Start labels with an uppercase letter when the first character has case, because Twenty capitalizes them during creation. Use canonical strings with single spaces and no surrounding whitespace. Description and icon default to empty strings, matching Twenty's read responses. Omission or null clears them.
 
 Twenty creates the object's default name and system fields, default view, and navigation entry. Generated default fields belong to Twenty, not separate Terraform field resources. This resource does not manage unrelated object settings or CRM records.
 
@@ -63,8 +63,8 @@ Update and delete errors retain state. Restore access and refresh before retryin
 ### Optional
 
 - `deletion_protection` (Boolean) Defaults to true, including on import. Apply false before destroying. Deletion permanently drops the table and all fields and records without deactivating it first.
-- `description` (String) Description. Omission or null clears it; empty stays empty. Use single spaces with no surrounding whitespace.
-- `icon` (String) Icon identifier. Omission or null clears it; empty stays empty. Use single spaces with no surrounding whitespace.
+- `description` (String) Description. Defaults to an empty string. Omission or null clears it. Use single spaces with no surrounding whitespace.
+- `icon` (String) Icon identifier. Defaults to an empty string. Omission or null clears it. Use single spaces with no surrounding whitespace.
 
 ### Read-Only
 

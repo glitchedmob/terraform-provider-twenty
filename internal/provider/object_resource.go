@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/oapi-codegen/nullable"
@@ -59,8 +60,8 @@ func (r *objectResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 			"name_plural":         schema.StringAttribute{Required: true, MarkdownDescription: "Unique ASCII lowerCamelCase plural name, at most 63 characters. Must differ from the singular name. Changing it replaces the object.", PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}},
 			"label_singular":      schema.StringAttribute{Required: true, MarkdownDescription: "Nonblank singular display label, independent of the name. Start with an uppercase letter when the first character has case. Use single spaces with no surrounding whitespace."},
 			"label_plural":        schema.StringAttribute{Required: true, MarkdownDescription: "Nonblank plural display label, independent of the name. Start with an uppercase letter when the first character has case. Use single spaces with no surrounding whitespace."},
-			"description":         schema.StringAttribute{Optional: true, MarkdownDescription: "Description. Omission or null clears it; empty stays empty. Use single spaces with no surrounding whitespace."},
-			"icon":                schema.StringAttribute{Optional: true, MarkdownDescription: "Icon identifier. Omission or null clears it; empty stays empty. Use single spaces with no surrounding whitespace."},
+			"description":         schema.StringAttribute{Optional: true, Computed: true, Default: stringdefault.StaticString(""), MarkdownDescription: "Description. Defaults to an empty string. Omission or null clears it. Use single spaces with no surrounding whitespace."},
+			"icon":                schema.StringAttribute{Optional: true, Computed: true, Default: stringdefault.StaticString(""), MarkdownDescription: "Icon identifier. Defaults to an empty string. Omission or null clears it. Use single spaces with no surrounding whitespace."},
 			"deletion_protection": schema.BoolAttribute{Optional: true, Computed: true, Default: booldefault.StaticBool(true), MarkdownDescription: "Defaults to true, including on import. Apply false before destroying. Deletion permanently drops the table and all fields and records without deactivating it first."},
 		},
 	}
@@ -137,7 +138,7 @@ func (m *objectResourceModel) fromAPI(object *client.ObjectMetadata) {
 	m.ID = types.StringValue(strings.ToLower(object.Id))
 	m.NameSingular, m.NamePlural = types.StringValue(object.NameSingular), types.StringValue(object.NamePlural)
 	m.LabelSingular, m.LabelPlural = types.StringValue(object.LabelSingular), types.StringValue(object.LabelPlural)
-	m.Description, m.Icon = roleNullableString(object.Description), roleNullableString(object.Icon)
+	m.Description, m.Icon = types.StringValue(object.Description.GetOrEmpty()), types.StringValue(object.Icon.GetOrEmpty())
 	if m.DeletionProtection.IsNull() {
 		m.DeletionProtection = types.BoolValue(true)
 	}
@@ -146,7 +147,7 @@ func (m objectResourceModel) verify(object *client.ObjectMetadata, customApp str
 	if err := guardMetadataObject(object, customApp); err != nil {
 		return err
 	}
-	if !strings.EqualFold(m.ID.ValueString(), object.Id) || m.NameSingular.ValueString() != object.NameSingular || m.NamePlural.ValueString() != object.NamePlural || m.LabelSingular.ValueString() != object.LabelSingular || m.LabelPlural.ValueString() != object.LabelPlural || !m.Description.Equal(roleNullableString(object.Description)) || !m.Icon.Equal(roleNullableString(object.Icon)) || object.IsLabelSyncedWithName {
+	if !strings.EqualFold(m.ID.ValueString(), object.Id) || m.NameSingular.ValueString() != object.NameSingular || m.NamePlural.ValueString() != object.NamePlural || m.LabelSingular.ValueString() != object.LabelSingular || m.LabelPlural.ValueString() != object.LabelPlural || m.Description.ValueString() != object.Description.GetOrEmpty() || m.Icon.ValueString() != object.Icon.GetOrEmpty() || object.IsLabelSyncedWithName {
 		return errInvalidMetadataResponse
 	}
 	return nil

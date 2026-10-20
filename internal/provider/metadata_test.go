@@ -25,11 +25,11 @@ const (
 )
 
 func metadataObjectFixture(id, name string) map[string]any {
-	return map[string]any{"id": id, "applicationId": metadataTestCustomApp, "universalIdentifier": id, "nameSingular": name, "namePlural": name + "s", "labelSingular": "Subscription", "labelPlural": "Subscriptions", "description": nil, "icon": nil, "isActive": true, "isSystem": false, "isRemote": false, "isLabelSyncedWithName": false, "writability": "OPEN", "labelIdentifierFieldMetadataId": nil}
+	return map[string]any{"id": id, "applicationId": metadataTestCustomApp, "universalIdentifier": id, "nameSingular": name, "namePlural": name + "s", "labelSingular": "Subscription", "labelPlural": "Subscriptions", "description": "", "icon": "", "isActive": true, "isSystem": false, "isRemote": false, "isLabelSyncedWithName": false, "writability": "OPEN", "labelIdentifierFieldMetadataId": nil}
 }
 
 func metadataFieldFixture(id, objectID, name string) map[string]any {
-	return map[string]any{"id": id, "applicationId": metadataTestCustomApp, "universalIdentifier": id, "objectMetadataId": objectID, "name": name, "label": "Tier", "type": "TEXT", "description": nil, "icon": nil, "isActive": true, "isSystem": false, "isLabelSyncedWithName": false, "isNullable": true, "writability": "OPEN"}
+	return map[string]any{"id": id, "applicationId": metadataTestCustomApp, "universalIdentifier": id, "objectMetadataId": objectID, "name": name, "label": "Tier", "type": "TEXT", "description": "", "icon": "", "isActive": true, "isSystem": false, "isLabelSyncedWithName": false, "isNullable": true, "writability": "OPEN"}
 }
 
 // Concrete Metadata wire fixture shared by object/field lifecycle and lookup
