@@ -4,9 +4,10 @@ package provider
 
 import (
 	"encoding/json"
-	"strings"
+	"errors"
 	"testing"
 
+	"github.com/glitchedmob/terraform-provider-twenty/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -29,11 +30,13 @@ func TestRoleResponseRequiredBooleans(t *testing.T) {
 				case "wrong type":
 					role[field] = "false"
 				}
-				body := map[string]any{"data": map[string]any{"getRoles": []any{role}}}
-				d := roleTestDataSource(t, body)
-				response := roleTestRead(t, d, types.StringValue(roleTestID), types.StringNull())
-				if !response.Diagnostics.HasError() || !response.State.Raw.IsNull() {
-					t.Errorf("%s %s must not become false in state", invalid, field)
+				raw, err := json.Marshal(map[string]any{"getRoles": []any{role}})
+				if err != nil {
+					t.Fatal(err)
+				}
+				_, err = client.GetRoles(t.Context(), roleQueryClient{rawRoleClient{raw: string(raw)}})
+				if !errors.Is(err, errInvalidRoleResponse) {
+					t.Errorf("%s %s: got %v, want errInvalidRoleResponse", invalid, field, err)
 				}
 			}
 		})
@@ -76,13 +79,13 @@ func TestRoleResponseMalformedValues(t *testing.T) {
 			t.Parallel()
 			role := roleTestFixture(roleTestID, "Admin")
 			change(role)
-			d := roleTestDataSource(t, map[string]any{"data": map[string]any{"getRoles": []any{role}}})
-			response := roleTestRead(t, d, types.StringValue(roleTestID), types.StringNull())
-			if !response.Diagnostics.HasError() || !response.State.Raw.IsNull() {
-				t.Fatal("invalid server value must not enter state")
+			raw, err := json.Marshal(map[string]any{"getRoles": []any{role}})
+			if err != nil {
+				t.Fatal(err)
 			}
-			if strings.Contains(response.Diagnostics[0].Detail(), "private-") {
-				t.Fatal("diagnostic leaked malformed server values")
+			_, err = client.GetRoles(t.Context(), roleQueryClient{rawRoleClient{raw: string(raw)}})
+			if !errors.Is(err, errInvalidRoleResponse) {
+				t.Fatalf("got %v, want errInvalidRoleResponse", err)
 			}
 		})
 	}

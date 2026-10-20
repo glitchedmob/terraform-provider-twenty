@@ -500,6 +500,59 @@ func TestRoleSafetyWireValidation(t *testing.T) {
 	}
 }
 
+func TestRoleSafetyApplicationsWireValidation(t *testing.T) {
+	t.Parallel()
+	for name, raw := range map[string]string{
+		"absent list":             `{}`,
+		"null list":               `{"findManyApplications":null}`,
+		"wrong list type":         `{"findManyApplications":{}}`,
+		"null application":        `{"findManyApplications":[null]}`,
+		"missing ID":              `{"findManyApplications":[{"defaultRoleId":null}]}`,
+		"null ID":                 `{"findManyApplications":[{"id":null,"defaultRoleId":null}]}`,
+		"invalid ID":              `{"findManyApplications":[{"id":"not-a-uuid","defaultRoleId":null}]}`,
+		"wrong ID type":           `{"findManyApplications":[{"id":42,"defaultRoleId":null}]}`,
+		"case-only duplicate IDs": fmt.Sprintf(`{"findManyApplications":[{"id":%q,"defaultRoleId":null},{"id":%q,"defaultRoleId":null}]}`, standardAdminRole, strings.ToUpper(standardAdminRole)),
+		"missing default role":    fmt.Sprintf(`{"findManyApplications":[{"id":%q}]}`, safetyWorkspace),
+		"invalid default role":    fmt.Sprintf(`{"findManyApplications":[{"id":%q,"defaultRoleId":"not-a-uuid"}]}`, safetyWorkspace),
+		"wrong default role type": fmt.Sprintf(`{"findManyApplications":[{"id":%q,"defaultRoleId":false}]}`, safetyWorkspace),
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			_, err := client.FindManyApplications(t.Context(), roleSafetyClient{rawRoleClient{raw: raw}})
+			if !errors.Is(err, errInvalidRoleResponse) {
+				t.Fatalf("got %v, want errInvalidRoleResponse", err)
+			}
+		})
+	}
+	for name, raw := range map[string]string{
+		"empty list":        `{"findManyApplications":[]}`,
+		"null default role": fmt.Sprintf(`{"findManyApplications":[{"id":%q,"defaultRoleId":null}]}`, safetyWorkspace),
+		"UUID default role": fmt.Sprintf(`{"findManyApplications":[{"id":%q,"defaultRoleId":%q}]}`, safetyWorkspace, roleTestID),
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			response, err := client.FindManyApplications(t.Context(), roleSafetyClient{rawRoleClient{raw: raw}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			switch name {
+			case "empty list":
+				if len(response.FindManyApplications) != 0 {
+					t.Fatal("empty application list must remain empty")
+				}
+			case "null default role":
+				if len(response.FindManyApplications) != 1 || !response.FindManyApplications[0].DefaultRoleId.IsNull() {
+					t.Fatal("null default role must remain null")
+				}
+			case "UUID default role":
+				if len(response.FindManyApplications) != 1 || response.FindManyApplications[0].DefaultRoleId.GetOrEmpty() != roleTestID {
+					t.Fatal("default role UUID must be preserved")
+				}
+			}
+		})
+	}
+}
+
 type rawRoleClient struct{ raw string }
 
 func (c rawRoleClient) MakeRequest(_ context.Context, _ *graphql.Request, resp *graphql.Response) error {
