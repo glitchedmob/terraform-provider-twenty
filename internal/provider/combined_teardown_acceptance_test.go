@@ -31,7 +31,7 @@ import (
 // one destroy, without cache maintenance, reassignment, or retries. A local
 // binary/dev override lets us count mutations and check final state explicitly.
 func testAccCombinedTeardown(t *testing.T, fixture *acceptance.Fixture) {
-	admins := combinedTeardownAdminIdentities(t, fixture)
+	admins := protectedAdminIdentities(t, fixture)
 	endpoint, err := url.Parse(fixture.Stack.Endpoint)
 	if err != nil {
 		t.Fatal("parse disposable endpoint")
@@ -121,27 +121,27 @@ resource "twenty_workspace_member" "declared" {
 	if err != nil || access.status != "absent" || snapshot.role(roleID) != nil {
 		t.Fatal("one destroy must remove the custom role, accepted member, and invitation from the server")
 	}
-	if !reflect.DeepEqual(combinedTeardownAdminIdentities(t, fixture), admins) {
+	if !reflect.DeepEqual(protectedAdminIdentities(t, fixture), admins) {
 		t.Fatal("combined teardown changed protected administrator identities or permissions")
 	}
 	t.Log("verified minimum-version combined teardown: one destroy removed both resources from state/server, one deletion request each, no maintenance or retry, both administrators preserved")
 }
 
-func combinedTeardownAdminIdentities(t *testing.T, fixture *acceptance.Fixture) []client.Identity {
+func protectedAdminIdentities(t *testing.T, fixture *acceptance.Fixture) []client.Identity {
 	t.Helper()
 	var admins []client.Identity
 	for _, admin := range []*acceptance.Account{fixture.Operator, fixture.Recovery} {
 		fresh, err := client.NewSession(t.Context(), fixture.Stack.Endpoint, admin.Email, admin.Password, true)
 		if err != nil || fresh.Identity().WorkspaceMemberID != admin.MemberID || fresh.Identity().UserID != admin.UserID {
-			t.Fatal("combined teardown changed a protected administrator's identity/login")
+			t.Fatal("protected administrator identity or login changed")
 		}
 		identity, err := client.CurrentUser(t.Context(), fresh.Client())
 		if err != nil {
-			t.Fatal("read protected administrator after combined teardown")
+			t.Fatal("read protected administrator assignment")
 		}
 		member, err := identity.CurrentUser.WorkspaceMember.Get()
-		if err != nil || len(member.Roles) != 1 || member.Roles[0].Id != fixture.AdminRole.Id || fresh.Identity().WorkspaceID != fixture.WorkspaceID {
-			t.Fatal("combined teardown changed a protected administrator's role or workspace")
+		if err != nil || len(member.Roles) != 1 || member.Roles[0].Id != fixture.AdminRole.Id || member.UserId != admin.UserID || fresh.Identity().WorkspaceID != fixture.WorkspaceID {
+			t.Fatal("protected administrator role or workspace changed")
 		}
 		roles, err := fresh.GetRoles(t.Context())
 		if err != nil {
@@ -154,7 +154,7 @@ func combinedTeardownAdminIdentities(t *testing.T, fixture *acceptance.Fixture) 
 			}
 		}
 		if !found {
-			t.Fatal("combined teardown changed the unmanaged administrator role properties")
+			t.Fatal("unmanaged administrator role properties changed")
 		}
 		admins = append(admins, fresh.Identity())
 	}

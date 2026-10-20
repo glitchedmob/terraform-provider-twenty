@@ -48,26 +48,6 @@ func NewSession(ctx context.Context, endpoint, email, password string, allowHTTP
 	if err != nil {
 		return nil, err
 	}
-	return newSession(ctx, wire, email, password)
-}
-
-// ValidateEmail accepts one bare ASCII mailbox, with optional surrounding spaces.
-// It performs no DNS lookup and never returns the supplied value in an error.
-func ValidateEmail(email string) error {
-	for _, c := range email {
-		if c < ' ' || c >= 127 {
-			return errInvalidEmail
-		}
-	}
-	mailbox := strings.TrimSpace(email)
-	address, err := mail.ParseAddress(mailbox)
-	if err != nil || address.Name != "" || address.Address != mailbox {
-		return errInvalidEmail
-	}
-	return nil
-}
-
-func newSession(ctx context.Context, wire *sessionWireClient, email, password string) (*Session, error) {
 	if strings.TrimSpace(email) == "" || strings.TrimSpace(password) == "" {
 		return nil, errCredentialsRequired
 	}
@@ -107,11 +87,24 @@ func newSession(ctx context.Context, wire *sessionWireClient, email, password st
 	return s, nil
 }
 
+// ValidateEmail accepts one bare ASCII mailbox, with optional surrounding spaces.
+// It performs no DNS lookup and never returns the supplied value in an error.
+func ValidateEmail(email string) error {
+	for _, c := range email {
+		if c < ' ' || c >= 127 {
+			return errInvalidEmail
+		}
+	}
+	mailbox := strings.TrimSpace(email)
+	address, err := mail.ParseAddress(mailbox)
+	if err != nil || address.Name != "" || address.Address != mailbox {
+		return errInvalidEmail
+	}
+	return nil
+}
+
 // Client exposes the authenticated Metadata GraphQL client for generated operations.
 func (s *Session) Client() graphql.Client { return s }
-
-// GraphQL is an alias for Client.
-func (s *Session) GraphQL() graphql.Client { return s }
 
 // Identity returns a copy of the validated identity captured during configuration.
 func (s *Session) Identity() Identity {
