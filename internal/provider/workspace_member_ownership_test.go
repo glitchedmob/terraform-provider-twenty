@@ -32,6 +32,11 @@ func TestMemberAmbiguousSendRequiresExplicitImportBeforeFurtherWrites(t *testing
 		}
 		state := refreshed.State
 		assertMemberWritesBlocked(t, r, mock, state)
+		for _, op := range []string{"DeleteWorkspaceInvitation", "DeleteUserFromWorkspace", "UpdateWorkspaceMemberRole"} {
+			if memberCallCount(mock, op) != 0 {
+				t.Fatalf("ambiguous create or refresh attempted %s", op)
+			}
+		}
 		state = memberImport(t, r, memberEmail)
 		if !getMemberState(t, state).OwnershipConfirmed.ValueBool() {
 			t.Fatal("explicit import must confirm takeover")
