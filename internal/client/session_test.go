@@ -207,7 +207,7 @@ func TestSessionLoginIdentityAndRefresh(t *testing.T) {
 	if s.Identity().RoleIDs[0] != sessionRoleID || s.Identity().PermissionFlags[0] != PermissionFlagTypeRoles {
 		t.Fatal("identity caller must not mutate the session")
 	}
-	if s.Client() != s || s.GraphQL() != s {
+	if s.Client() != s {
 		t.Fatal("generated operations must share the session")
 	}
 	for range 2 {

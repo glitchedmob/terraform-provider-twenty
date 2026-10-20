@@ -8,6 +8,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -17,6 +18,7 @@ import (
 	"github.com/glitchedmob/terraform-provider-twenty/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 const (
@@ -159,15 +161,35 @@ func TestWorkspaceDataSourceFreshRead(t *testing.T) {
 	m := newWorkspaceMock()
 	d := mockWorkspaceDataSource(m)
 	state := workspaceTestState(t, workspaceTestRead(t, d))
-	if state.ID.ValueString() != workspaceTestID || state.DisplayName.ValueString() != "Disposable workspace" || state.DefaultRoleID.ValueString() != roleTestOther || state.ActivationStatus.ValueString() != "ACTIVE" || state.Subdomain.ValueString() != "disposable" || state.SubdomainURL.ValueString() != "http://localhost:3000" || state.WorkspaceMembersCount.ValueInt64() != 2 || !state.CustomDomain.IsNull() || !state.CustomURL.IsNull() || state.CreatedAt.ValueString() != "2026-01-01T00:00:00Z" || state.UpdatedAt.ValueString() != "2026-01-02T03:04:05.123Z" {
-		t.Fatal("workspace properties must come from fresh CurrentWorkspace, not cached CurrentUser")
+	want := workspaceModel{
+		ID:                    types.StringValue(workspaceTestID),
+		DisplayName:           types.StringValue("Disposable workspace"),
+		DefaultRoleID:         types.StringValue(roleTestOther),
+		ActivationStatus:      types.StringValue("ACTIVE"),
+		Subdomain:             types.StringValue("disposable"),
+		CustomDomain:          types.StringNull(),
+		SubdomainURL:          types.StringValue("http://localhost:3000"),
+		CustomURL:             types.StringNull(),
+		WorkspaceMembersCount: types.Int64Value(2),
+		CreatedAt:             types.StringValue("2026-01-01T00:00:00Z"),
+		UpdatedAt:             types.StringValue("2026-01-02T03:04:05.123Z"),
+	}
+	if !reflect.DeepEqual(state, want) {
+		t.Fatalf("first workspace read: got %#v, want %#v", state, want)
 	}
 	m.workspace["displayName"], m.workspace["workspaceMembersCount"], m.workspace["subdomain"], m.workspace["customDomain"] = "Changed name", 3, "changed", "workspace.example.invalid"
 	m.workspace["workspaceUrls"] = map[string]any{"subdomainUrl": "https://changed.example.invalid", "customUrl": "https://workspace.example.invalid"}
 	m.workspace["defaultRole"] = roleTestFixture(roleTestID, "Changed default")
 	state = workspaceTestState(t, workspaceTestRead(t, d))
-	if state.DisplayName.ValueString() != "Changed name" || state.WorkspaceMembersCount.ValueInt64() != 3 || state.DefaultRoleID.ValueString() != roleTestID || state.Subdomain.ValueString() != "changed" || state.SubdomainURL.ValueString() != "https://changed.example.invalid" || state.CustomDomain.ValueString() != "workspace.example.invalid" || state.CustomURL.ValueString() != "https://workspace.example.invalid" {
-		t.Fatal("computed properties failed to refresh")
+	want.DisplayName = types.StringValue("Changed name")
+	want.WorkspaceMembersCount = types.Int64Value(3)
+	want.DefaultRoleID = types.StringValue(roleTestID)
+	want.Subdomain = types.StringValue("changed")
+	want.SubdomainURL = types.StringValue("https://changed.example.invalid")
+	want.CustomDomain = types.StringValue("workspace.example.invalid")
+	want.CustomURL = types.StringValue("https://workspace.example.invalid")
+	if !reflect.DeepEqual(state, want) {
+		t.Fatalf("second workspace read: got %#v, want %#v", state, want)
 	}
 	if strings.Join(m.calls, ",") != "CurrentUser,CurrentWorkspace,CurrentUser,CurrentWorkspace" {
 		t.Fatal("each read must revalidate identity and load workspace without other queries")

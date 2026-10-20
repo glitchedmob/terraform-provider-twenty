@@ -7,22 +7,14 @@ description: |-
 
 # twenty_role
 
-Reads an existing role in the authenticated workspace through Metadata GraphQL. It does not create, change, or delete roles.
-
-Specify exactly one of `role_id` or `label`. Labels are case-sensitive and include all configured whitespace. A blank label, missing role, or duplicate match is an error. Use a UUID when labels are not unique. The computed `id` is the matching role's stable UUID.
-
-The automation account needs the `ROLES` settings permission. Object-record access alone does not grant permission to list roles.
+Read an existing role without changing it. Specify exactly one of `role_id` or `label`; labels match case and whitespace exactly and must identify one role. Requires the `ROLES` settings permission.
 
 ## Example usage
 
 {{ tffile "examples/data-sources/twenty_role/data-source.tf" }}
 
-For UUID lookup, replace `label` with `role_id = "11111111-1111-4111-8111-111111111111"`, using an existing role UUID from your workspace.
+To look up a UUID instead, replace `label` with `role_id`. Use the [role resource](../resources/role.md) to manage custom roles.
 
-## Permission values
-
-The six global capability booleans and explicit `permission_flags` describe the server's role configuration. Global permissions can grant access beyond the explicit flag set. This is not a full effective-permission calculation; object and field restrictions are not exported.
-
-Nullable descriptions and icons stay null. A null permission flag list stays null rather than becoming an empty set. Missing required role values or inconsistent flag ownership cause an error instead of silently reporting a denied permission as false.
+Returned flags and global grants describe the role, not its complete effective permissions. Object/field rules are not exported.
 
 {{ .SchemaMarkdown | trimspace }}

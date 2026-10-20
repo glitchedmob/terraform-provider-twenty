@@ -29,10 +29,7 @@ func TestMemberPostCancellationAcceptanceRequiresImport(t *testing.T) {
 				continue
 			}
 			t.Run(action+"/"+outcome, func(t *testing.T) {
-				mock := newMemberMock()
-				mock.invite(memberEmail, roleTestID)
-				r := mockMemberResource(mock)
-				state := memberImport(t, r, memberEmail)
+				mock, r, state := newImportedMember(t, false)
 				original := getMemberState(t, state)
 				replaced, waiting := false, false
 				acceptReplacement := func() {
@@ -121,20 +118,7 @@ func TestMemberPostCancellationAcceptanceRequiresImport(t *testing.T) {
 					t.Fatal("refresh adopted or lost external accepted access")
 				}
 				state = read.State
-				plan := got
-				plan.RoleID = types.StringValue(roleTestOther)
-				updated := resource.UpdateResponse{State: state}
-				r.Update(t.Context(), resource.UpdateRequest{State: state, Plan: memberPlan(t, plan)}, &updated)
-				deleted := resource.DeleteResponse{State: state}
-				r.Delete(t.Context(), resource.DeleteRequest{State: state}, &deleted)
-				if !updated.Diagnostics.HasError() || !deleted.Diagnostics.HasError() || !updated.State.Raw.Equal(state.Raw) || !deleted.State.Raw.Equal(state.Raw) {
-					t.Fatal("unconfirmed accepted access allowed update/delete or changed state")
-				}
-				for _, ds := range []diag.Diagnostics{updated.Diagnostics, deleted.Diagnostics} {
-					if len(ds) != 1 || ds[0].Detail() != errMemberOwnership.Error() {
-						t.Fatal("blocked writes must require explicit inspection/import")
-					}
-				}
+				assertMemberWritesBlocked(t, r, mock, state)
 				assertNoMemberWrites(t, mock)
 				state = memberImport(t, r, memberEmail)
 				got = getMemberState(t, state)
@@ -143,9 +127,9 @@ func TestMemberPostCancellationAcceptanceRequiresImport(t *testing.T) {
 				}
 				assertNoMemberWrites(t, mock)
 				got.RoleID = types.StringValue(roleTestOther)
-				updated = resource.UpdateResponse{State: state}
+				updated := resource.UpdateResponse{State: state}
 				r.Update(t.Context(), resource.UpdateRequest{State: state, Plan: memberPlan(t, got)}, &updated)
-				deleted = resource.DeleteResponse{State: updated.State}
+				deleted := resource.DeleteResponse{State: updated.State}
 				r.Delete(t.Context(), resource.DeleteRequest{State: updated.State}, &deleted)
 				if updated.Diagnostics.HasError() || deleted.Diagnostics.HasError() || memberCallCount(mock, "UpdateWorkspaceMemberRole") != 1 || memberCallCount(mock, "DeleteUserFromWorkspace") != 1 {
 					t.Fatal("explicit import did not authorize the declared update/removal")

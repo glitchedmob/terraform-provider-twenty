@@ -241,6 +241,30 @@ func TestRoleDataSourceReadFailures(t *testing.T) {
 	}
 }
 
+func TestRoleDataSourceMalformedValues(t *testing.T) {
+	t.Parallel()
+	for name, change := range map[string]func(map[string]any){
+		"invalid boolean": func(role map[string]any) { role["canUpdateAllSettings"] = "private-boolean" },
+		"invalid scalar":  func(role map[string]any) { role["id"] = "private-invalid-id" },
+		"invalid flags":   func(role map[string]any) { role["permissionFlags"] = "private-token" },
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			role := roleTestFixture(roleTestID, "Admin")
+			change(role)
+			d := roleTestDataSource(t, map[string]any{"data": map[string]any{"getRoles": []any{role}}})
+			response := roleTestRead(t, d, types.StringValue(roleTestID), types.StringNull())
+			if !response.Diagnostics.HasError() || !response.State.Raw.IsNull() {
+				t.Fatal("invalid server value must not enter state")
+			}
+			detail := response.Diagnostics[0].Detail()
+			if !strings.Contains(detail, errInvalidRoleResponse.Error()) || strings.Contains(detail, "private-") {
+				t.Fatal("malformed values must return a fixed, redacted diagnostic")
+			}
+		})
+	}
+}
+
 func TestRoleDataSourcePreservesSafePermissionDiagnostic(t *testing.T) {
 	t.Parallel()
 	server, calls := providerAuthFixture(t)

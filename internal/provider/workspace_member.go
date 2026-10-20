@@ -62,22 +62,6 @@ func (c memberQueryClient) MakeRequest(ctx context.Context, req *graphql.Request
 		if err == nil {
 			err = validateSafetyMembers(data["currentUser"])
 		}
-		if err == nil {
-			var user map[string]json.RawMessage
-			_ = json.Unmarshal(data["currentUser"], &user)
-			members, e := wireList(user["workspaceMembers"])
-			if e != nil {
-				err = e
-			} else {
-				for _, member := range members {
-					var email string
-					if json.Unmarshal(member["userEmail"], &email) != nil || client.ValidateEmail(email) != nil || strings.TrimSpace(email) != email || email == "" {
-						err = errInvalidMemberResponse
-						break
-					}
-				}
-			}
-		}
 	case "GetRoles":
 		err = validateRoleResponse(raw)
 		if err == nil {
@@ -127,17 +111,8 @@ func (c memberQueryClient) MakeRequest(ctx context.Context, req *graphql.Request
 	return nil
 }
 func validateInvitations(raw json.RawMessage) error {
-	invitations, err := wireList(raw)
-	if err != nil {
-		return err
-	}
-	for _, invite := range invitations {
-		var email string
-		var expires *time.Time
-		if !workspaceWireUUID(invite["id"]) || json.Unmarshal(invite["email"], &email) != nil || client.ValidateEmail(email) != nil || email == "" || strings.TrimSpace(email) != email ||
-			json.Unmarshal(invite["expiresAt"], &expires) != nil || expires == nil || expires.IsZero() || len(invite["roleId"]) == 0 || (string(invite["roleId"]) != "null" && !workspaceWireUUID(invite["roleId"])) {
-			return errInvalidMemberResponse
-		}
+	if validateInvitationList(raw) != nil {
+		return errInvalidMemberResponse
 	}
 	return nil
 }
@@ -160,9 +135,13 @@ func readMemberSnapshot(ctx context.Context, api graphql.Client, identity client
 	}
 	emails, users, memberships := map[string]bool{}, map[string]bool{}, map[string]bool{}
 	for _, member := range safety.user.WorkspaceMembers {
-		email := strings.ToLower(member.UserEmail)
+		email := member.UserEmail
+		if email == "" || client.ValidateEmail(email) != nil || strings.TrimSpace(email) != email {
+			return nil, errInvalidMemberResponse
+		}
+		email = strings.ToLower(email)
 		userWorkspace := member.UserWorkspaceId.GetOrEmpty()
-		if email == "" || emails[email] || users[member.UserId] || memberships[userWorkspace] || !validMemberUUID(member.Id) || !validMemberUUID(member.UserId) || !validMemberUUID(userWorkspace) {
+		if emails[email] || users[member.UserId] || memberships[userWorkspace] || !validMemberUUID(member.Id) || !validMemberUUID(member.UserId) || !validMemberUUID(userWorkspace) {
 			return nil, errInvalidMemberResponse
 		}
 		emails[email], users[member.UserId], memberships[userWorkspace] = true, true, true

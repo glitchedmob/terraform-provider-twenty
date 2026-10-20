@@ -24,7 +24,10 @@ func reservedRoleLabel(label string) bool {
 	return false
 }
 
-var errUnsafeRole = errors.New("role mutation refused: the role is protected, in use, or would remove the independent full-settings recovery administrator outside the operator")
+var (
+	errUnsafeRole              = errors.New("role mutation refused: the role is protected, in use, or would remove the independent full-settings recovery administrator outside the operator")
+	errRoleInvitationReference = errors.New("role deletion refused: a stored workspace invitation explicitly references this role, including possibly expired invitations. Inspect and deliberately revoke or replace those invitations through supported Twenty administration before deleting the role. No invitation was changed")
+)
 
 // Validate wire values before genqlient turns missing non-null fields into zeros.
 // Only selected Metadata operations are allowed through this guard client.
@@ -61,21 +64,11 @@ func (c roleSafetyClient) MakeRequest(ctx context.Context, req *graphql.Request,
 		}
 	case "FindManyApplications":
 		var apps []map[string]json.RawMessage
-		if json.Unmarshal(data["findManyApplications"], &apps) != nil || apps == nil {
-			err = errInvalidRoleResponse
-		} else {
-			ids := map[string]bool{}
-			for _, app := range apps {
-				var id string
-				if json.Unmarshal(app["id"], &id) != nil || !validRoleUUID(id) || ids[strings.ToLower(id)] {
-					err = errInvalidRoleResponse
-					break
-				}
-				ids[strings.ToLower(id)] = true
-				if len(app["defaultRoleId"]) == 0 || (string(app["defaultRoleId"]) != "null" && !wireUUID(app["defaultRoleId"])) {
-					err = errInvalidRoleResponse
-					break
-				}
+		apps, err = wireList(data["findManyApplications"])
+		for _, app := range apps {
+			if len(app["defaultRoleId"]) == 0 || (string(app["defaultRoleId"]) != "null" && !wireUUID(app["defaultRoleId"])) {
+				err = errInvalidRoleResponse
+				break
 			}
 		}
 	default:
@@ -157,6 +150,7 @@ type roleSafetySnapshot struct {
 	user          client.CurrentUserCurrentUser
 	defaultRoleID string
 	applications  []client.FindManyApplicationsFindManyApplicationsApplication
+	invitations   []client.Invitation
 }
 
 func readRoleSafety(ctx context.Context, api graphql.Client, identity client.Identity) (*roleSafetySnapshot, error) {
@@ -283,6 +277,16 @@ func (s *roleSafetySnapshot) guard(id string, deleting, canUpdateAllSettings, ca
 		}
 		if s.applications == nil {
 			return errInvalidRoleResponse
+		}
+		if s.invitations == nil {
+			return errInvalidInvitationResponse
+		}
+		// Expired rows still persist explicit references. Null role IDs follow
+		// the separately protected workspace default and need no rebinding.
+		for _, invitation := range s.invitations {
+			if roleID, err := invitation.RoleId.Get(); err == nil && strings.EqualFold(roleID, id) {
+				return errRoleInvitationReference
+			}
 		}
 		for _, app := range s.applications {
 			if value, err := app.DefaultRoleId.Get(); err == nil && strings.EqualFold(value, id) {

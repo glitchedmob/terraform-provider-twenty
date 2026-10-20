@@ -17,7 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-const pinnedRoleDeletionCacheDiagnostic = "twenty v2.44 could not delete the role because its role-assignment cache references missing workspace memberships. Membership removal may already have succeeded. The role remains managed in state; inspect current membership and role state and resolve the upstream cache defect before another teardown attempt. No automatic retry or assignment repair was attempted"
+// Synthetic regression coverage remains fail-closed if this server error recurs.
+const pinnedRoleDeletionCacheDiagnostic = "twenty could not delete the role because its role-assignment cache references missing workspace memberships. Membership removal may already have succeeded. The role remains managed in state; inspect current membership and role state and resolve the upstream cache defect before another teardown attempt. No automatic retry or assignment repair was attempted"
 
 type roleDeletionErrorClient struct {
 	mock    *roleMock
