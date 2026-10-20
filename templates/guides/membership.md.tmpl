@@ -33,6 +33,8 @@ Pending role changes cancel and reissue. Expiration records `expired` and plans 
 
 Existing pending, expired, or accepted access requires [explicit import](import.md). Import reads the actual role; it does not grant the configured role until a later apply. A legacy invitation with a null role resolves the current workspace default on read.
 
+Role deletion inspects every stored invitation, not only declared emails. An explicit role reference blocks deletion even when expired or outside Terraform, so acceptance and membership reads are not stranded by a deleted role. Null roles follow the protected default. The caller needs `ROLES`, `APPLICATIONS`, and `WORKSPACE_MEMBERS`, or full-settings access, to delete a role; create and update keep their existing `ROLES` requirement. Terraform retains the role on read denial or malformed/incomplete invitation data and never cancels or rebinds invitations to unblock deletion. Deliberately revoke or replace external references through supported Twenty administration before deleting the role.
+
 ## External replacement and ownership
 
 Revoking and recreating an invitation for the same email does not transfer Terraform ownership. The same rule applies to accepted-member removal/recreation. If a known native ID changes, refresh or update reconciliation records the replacement, clears `ownership_confirmed`, and returns a fixed warning. Further update/destroy operations refuse it until explicit inspection/import. Ordinary Read acceptance, or acceptance observed before any cancellation attempt, keeps confirmation and the compound ID. An unconfirmed binding never becomes confirmed just because refresh can see access.

@@ -2,7 +2,7 @@
 
 ## Scope and safety
 
-Stages 1, 2, 3, and steps 4A/4B/4C are complete. Initial IAM work continues only in serial assigned steps. Step 4C implemented `twenty_workspace_member` invitation and accepted-member management. Implement only the assigned step, one agent at a time. Read the serial checklist and tested handoff in [DEVELOPMENT.md](DEVELOPMENT.md) before continuing. Workspace settings and object/field permission ownership are outside this authorization.
+Stages 1, 2, 3, and steps 4A/4B/4C are complete. Initial IAM work continues only under assigned authorization. The current role-invitation review fix permits parallel independent work in isolated worktrees. Step 4C implemented `twenty_workspace_member` invitation and accepted-member management. Implement only the assigned work and keep each branch's file ownership separate; the parent agent manages the PR stack. Read the serial checklist and tested handoff in [DEVELOPMENT.md](DEVELOPMENT.md) before continuing. Workspace settings and object/field permission ownership are outside this authorization.
 
 The provider uses Twenty's Metadata GraphQL endpoint, `/metadata`. Implemented types are the role/member resources and the role/workspace data sources. Workspace lookup reads only the current authenticated workspace, with no selectors or mutations. Do not add workspace resources or workspace mutation calls. Membership manages only declared normalized emails in the authenticated workspace; existing access requires explicit import. Keep global users/passwords outside resources. Do not add CRM record CRUD, Core GraphQL `/graphql` calls, or Core REST record operations.
 

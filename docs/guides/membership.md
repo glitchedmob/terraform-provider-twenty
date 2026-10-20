@@ -47,6 +47,8 @@ provider "twenty" {
   password = var.twenty_password
 }
 
+# Role deletion needs ROLES, APPLICATIONS, and WORKSPACE_MEMBERS on the caller.
+# External invitation references, including expired rows, block role deletion.
 # Provision the verified operator and independent recovery admin outside Terraform.
 # Omit both emails here. New emails receive invitations, not passwords.
 variable "declared_members" {
@@ -101,6 +103,8 @@ Create sends one invitation and returns immediately. The recipient completes the
 Pending role changes cancel and reissue. Expiration records `expired` and plans replacement. Old mail links stop working after revocation. Neither case waits for acceptance or sends mail during Read.
 
 Existing pending, expired, or accepted access requires [explicit import](import.md). Import reads the actual role; it does not grant the configured role until a later apply. A legacy invitation with a null role resolves the current workspace default on read.
+
+Role deletion inspects every stored invitation, not only declared emails. An explicit role reference blocks deletion even when expired or outside Terraform, so acceptance and membership reads are not stranded by a deleted role. Null roles follow the protected default. The caller needs `ROLES`, `APPLICATIONS`, and `WORKSPACE_MEMBERS`, or full-settings access, to delete a role; create and update keep their existing `ROLES` requirement. Terraform retains the role on read denial or malformed/incomplete invitation data and never cancels or rebinds invitations to unblock deletion. Deliberately revoke or replace external references through supported Twenty administration before deleting the role.
 
 ## External replacement and ownership
 
