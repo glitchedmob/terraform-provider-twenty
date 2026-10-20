@@ -7,90 +7,64 @@ description: |-
 
 # twenty_role
 
-Manages a custom role in the authenticated workspace. The separate [role data source](../data-sources/role.md) only looks up existing roles. This resource owns the label, description, icon, nine booleans, and the entire explicit permission flag set. It does not assign members, agents, API keys, or applications.
-
-The caller needs `ROLES` and visibility of current workspace members and roles. Deletion also needs `APPLICATIONS` to inspect application defaults and `WORKSPACE_MEMBERS` to inspect all stored invitation role references. A full-settings administrator already has these grants. Create and update need neither extra grant. Object-record grants do not provide those settings permissions. Keep the automation account's membership and roles outside Terraform and maintain an independent recovery administrator.
-
-## Server compatibility
-
-Twenty v2.46.0 is the minimum supported server version. It includes the [upstream role-cache fix](https://github.com/twentyhq/twenty/pull/27226) needed to delete an accepted member and then its custom role in one Terraform destroy. CI runs this minimum with a digest-pinned disposable image and requires successful teardown without cache maintenance, reassignment, or retries. Older releases are unsupported.
-
-If removal or role deletion fails, inspect both server and Terraform state before another attempt. Membership removal may already have succeeded. The provider retains failed role deletions in state and never runs server maintenance or blindly retries mutations.
+Manages a custom role's definition and complete explicit permission flag set, not assignments or object/field permissions. Use the [role data source](../data-sources/role.md) for existing definitions owned elsewhere. See [operation permissions](../guides/authentication.md#permissions) for caller requirements.
 
 ## Example usage
 
 ```terraform
-# The caller needs ROLES; deletion also needs APPLICATIONS and WORKSPACE_MEMBERS.
-# Stored invitation references, including expired rows, block role deletion.
 resource "twenty_role" "triage" {
-  label       = "Support triage"
-  description = "Read records and manage workspace invitations"
-  icon        = "IconUser"
+  label                       = "Support triage"
+  description                 = "Read records and manage workspace invitations"
+  can_read_all_object_records = true
 
-  can_be_assigned_to_users    = true
-  can_be_assigned_to_agents   = false
-  can_be_assigned_to_api_keys = false
-
-  can_update_all_settings            = false
-  can_access_all_tools               = false
-  can_read_all_object_records        = true
-  can_update_all_object_records      = false
-  can_soft_delete_all_object_records = false
-  can_destroy_all_object_records     = false
-
-  # Terraform owns the entire explicit set. [] clears all explicit flags.
+  # Terraform owns the complete explicit set; [] clears only explicit flags.
   permission_flags = ["WORKSPACE_MEMBERS"]
 }
 ```
 
-## Permissions and defaults
+## Permissions
 
-The six global grants default to false. User assignability defaults to true; agent and API-key assignability default to false. The provider sends all nine booleans explicitly. This differs from Twenty's create defaults, which enable all three assignability booleans.
+`permission_flags` is required and replaces the whole explicit set, including flags added elsewhere. `[]` clears only explicit flags; global grants can authorize more. Global object update and delete grants require `can_read_all_object_records = true`. Supported flags are case-sensitive:
 
-Set `permission_flags` explicitly, including `[]` for no flags. Upsert replaces the entire set, so Terraform removes flags added outside its configuration. Clearing sends a non-null empty list. A true global grant can authorize more than the explicit flag set.
+```text
+AI, AI_SETTINGS, API_KEYS_AND_WEBHOOKS, APPLICATIONS, BILLING,
+CODE_INTERPRETER_TOOL, CONNECTED_ACCOUNTS, CREATE_CALENDAR_EVENT_TOOL,
+DATA_MODEL, DOWNLOAD_FILE, EXPORT_CSV, HTTP_REQUEST_TOOL, IMPERSONATE,
+IMPORT_CSV, LAYOUTS, MARKETPLACE_APPS, PROFILE_INFORMATION, ROLES,
+SECURITY, SEND_EMAIL_TOOL, SSO_BYPASS, UPLOAD_FILE, VIEWS, WORKFLOWS,
+WORKSPACE, WORKSPACE_MEMBERS
+```
 
-Global object update, soft-delete, and permanent-delete grants require `can_read_all_object_records = true`. When false, all three global write/delete grants must also be false. The pinned server rejects inconsistent combinations; it does not silently cascade them to false. Object and field permission rows are outside this resource's ownership. See the [permissions guide](../guides/permissions.md) for the exact flag vocabulary.
+## Protection and deletion
 
-Omitted or null descriptions and icons clear those fields. Empty strings stay empty. Twenty normalizes whitespace during creation, so use single spaces with no leading or trailing whitespace. The provider rejects noncanonical input rather than applying a different string from the plan.
+Built-in, non-editable, workspace-default, and operator roles are protected. Admin, Member, and Guest labels are reserved case-insensitively. Reducing settings access or user assignability must leave an assigned, user-assignable full-settings administrator other than the operator; explicit flags alone do not qualify. Keep usable recovery credentials outside Terraform.
+
+Deletion refuses member, agent, or visible API-key assignments, application defaults, and all stored explicit invitation references, including expired invitations and those outside Terraform. Expired keys count too. Deliberately remove or replace references first, using membership resources where applicable or supported Twenty administration. The provider never rebinds assignments or cancels invitations to unblock role deletion.
 
 ## Import
 
-Import uses a native role UUID, not a label or a workspace/role composite.
+Import the native role UUID. Create never adopts a matching label.
 
 ```shell
 # Replace the placeholder with the existing custom role's native UUID.
 terraform import twenty_role.triage 11111111-1111-4111-8111-111111111111
 ```
 
-Obtain the ID through an authenticated Metadata `getRoles` query or the role data source. Create never adopts a matching label. Import existing custom roles explicitly, then match their current values in configuration before applying. Omitted booleans apply provider defaults; omitted description/icon values clear them. See [import guidance](../guides/import.md).
+Match configuration to the imported values before applying. Omitted description/icon values clear those fields; omitted booleans take provider defaults. See the schema below for defaults and string constraints.
 
-## Mutation guards
+## Failures and concurrency
 
-Before each create, update, or delete operation, the provider reads current identity, members, role assignments, and the workspace default role. Before deletion it also reads application defaults and the complete stored invitation list. Missing `APPLICATIONS` or `WORKSPACE_MEMBERS` blocks deletion; neither blocks creation or update. It rejects mutations of the operator's current roles, the workspace default, non-editable roles, and the pinned standard Admin role. Admin, Member, and Guest labels are also reserved case-insensitively, including custom roles with those labels.
+Mutations can partially succeed. The provider retains the role ID on failure; inspect the server and Terraform state, restore access, and refresh before retrying. It does not blindly retry or roll back by deleting the role. See [membership recovery](../guides/membership.md#recover-uncertain-access) when teardown fails.
 
-Downscoping settings access or user assignability must leave an assigned full-settings administrator outside the operator. Explicit settings flags alone do not count as the independent full-settings administrator. This guard does not prove that another administrator can still log in; keep recovery credentials usable outside Terraform.
-
-Twenty can silently rebind assignments during role deletion. The provider therefore refuses deletion when members, agents, API keys returned by the server, or application defaults reference the role. Expired keys still count. The pinned server excludes revoked keys from both role assignment lists and deletion rebinding; those inactive keys cannot be enumerated for this guard. Remove assignments deliberately outside this resource before deleting, through declared membership resources where applicable. The minimum supported server refreshes role caches after accepted-member removal. See the [membership guide](../guides/membership.md) for teardown and partial-failure handling. Missing or inconsistent safety data fails closed.
-
-Stored invitations with an explicit reference to the role also block deletion, even when expired or outside Terraform. Null invitation roles follow the protected workspace default. This prevents deletion from stranding invitation metadata or breaking acceptance and membership reads. The provider never cancels or rebinds invitations during role deletion. Inspect and deliberately revoke or replace those invitations through supported Twenty administration first. Failed, incomplete, malformed, or duplicate-ID invitation reads retain role state and refuse deletion. A role already absent from a complete validated role read needs no invitation changes.
-
-A shared provider-configuration lock covers these reads and mutations. It prevents races between role and membership resources in one configured provider, not concurrent changes from another provider configuration, Terraform run, or administrator. Pause other IAM writers during applies.
-
-## Drift and recovery
-
-A validated role list that lacks the ID removes the resource from state. Authentication failures, permission denial, server errors, duplicate IDs, unavailable flag lists, and malformed responses retain state and return an error.
-
-Creation sends a newly generated native UUID before any mutation. If creation succeeds but flag replacement or the final read fails, state retains that ID. When possible, it also records the recovered server values. Restore access and refresh before another apply. An ambiguous create response also retains the requested ID; inspect the server and import that UUID if state recovery is needed. Do not create by label again.
-
-Role properties and flags use separate mutations without a server transaction. Updates can partially succeed. The provider never blindly retries mutations or rolls back by deleting a possibly assigned role. It preserves the existing ID and reads actual values when possible.
+The shared lock covers only one provider configuration, not other aliases, runs, or administrators. Pause other IAM writers during applies.
 
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Required
 
-- `label` (String) Nonblank custom role label. Admin, Member, and Guest are reserved, case-insensitively. Use single spaces without leading or trailing whitespace; Twenty normalizes strings during creation. Create never adopts an existing label.
-- `permission_flags` (Set of String) Complete owned set of explicit v2.44.0 permission flag keys. Updates replace the whole set; [] clears it. Null, null elements, and unsupported keys are rejected. Global booleans can grant additional access.
+- `label` (String) Nonblank custom role label. Admin, Member, and Guest are reserved case-insensitively. Use single spaces with no surrounding whitespace. Create never adopts a matching label.
+- `permission_flags` (Set of String) Complete explicit flag set. Updates replace it; [] clears only explicit flags. Null, null elements, and unsupported keys are invalid. Global grants can authorize more. See the supported flags above.
 
 ### Optional
 
@@ -99,14 +73,14 @@ Role properties and flags use separate mutations without a server transaction. U
 - `can_be_assigned_to_api_keys` (Boolean) Whether API keys can receive the role. Defaults to false.
 - `can_be_assigned_to_users` (Boolean) Whether workspace users can receive the role. Defaults to true.
 - `can_destroy_all_object_records` (Boolean) Grants permanent-delete access to all object records. Defaults to false.
-- `can_read_all_object_records` (Boolean) Grants read access to all object records. Defaults to false. Must be true for any global object write/delete grant; this resource never reads CRM records.
+- `can_read_all_object_records` (Boolean) Grants read access to all object records. Required for global object write/delete grants. Defaults to false. This resource does not read CRM records.
 - `can_soft_delete_all_object_records` (Boolean) Grants soft-delete access to all object records. Defaults to false.
 - `can_update_all_object_records` (Boolean) Grants update access to all object records. Defaults to false.
-- `can_update_all_settings` (Boolean) Grants all settings permissions. Defaults to false. Explicit flags do not limit a true global grant.
-- `description` (String) Nullable description. Omission or null clears it; an empty string stays empty. Use normalized single-space whitespace.
-- `icon` (String) Nullable icon identifier. Omission or null clears it; an empty string stays empty. Use normalized single-space whitespace.
+- `can_update_all_settings` (Boolean) Grants all settings permissions, regardless of explicit flags. Defaults to false.
+- `description` (String) Description. Omission or null clears it; empty stays empty. Use single spaces with no surrounding whitespace.
+- `icon` (String) Icon identifier. Omission or null clears it; empty stays empty. Use single spaces with no surrounding whitespace.
 
 ### Read-Only
 
-- `id` (String) Native role UUID. Import uses this ID, not the label.
-- `is_editable` (Boolean) Whether Twenty permits editing the role. Non-editable roles cannot be mutated.
+- `id` (String) Native role UUID used for import.
+- `is_editable` (Boolean) Whether Twenty permits editing. Non-editable roles cannot be changed.
