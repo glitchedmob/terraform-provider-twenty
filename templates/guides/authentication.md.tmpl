@@ -39,6 +39,8 @@ Explicit attributes override environment fallbacks. An empty explicit password f
 
 The provider starts a new password session on each configuration, exchanges the login token for a workspace session, and checks the authenticated member and active workspace. Access and rotating refresh tokens remain in memory. They are not Terraform attributes, outputs, state values, or saved session files.
 
+Twenty's password-login operation can consume an invitation and join an existing user to the target workspace. In v2.46.0, joining can happen before an unverified-email error is returned. Provision and verify the automation account's membership before using the provider; do not use a pending invitation as bootstrap configuration. Post-login identity checks cannot undo a membership created by the server during login.
+
 Requests and token renewal have bounded timeouts and honor cancellation. Renewal runs serially within a provider instance and replaces both tokens. If a session cannot be renewed, reconfigure the provider rather than supplying a token minted with server signing secrets.
 
 Use HTTPS. Local HTTP requires `allow_insecure_http = true` and a `localhost` or literal loopback endpoint. This is only for disposable local testing. Redirects are rejected before credentials can be forwarded to another URL.
@@ -47,7 +49,7 @@ Use HTTPS. Local HTTP requires `allow_insecure_http = true` and a `localhost` or
 
 Password-disabled or SSO-only accounts, interactive MFA, CAPTCHA, and unverified email cannot complete unattended password login. The provider returns redacted errors rather than weakening server settings. Resolve account eligibility outside Terraform under your normal security policy.
 
-API keys and userless client-credentials tokens do not support all implemented membership operations in Twenty v2.44.0. The provider exposes password-session authentication only.
+API keys and userless client-credentials tokens do not support all implemented membership operations in Twenty v2.46.0. The provider exposes password-session authentication only.
 
 ## Local acceptance tests
 

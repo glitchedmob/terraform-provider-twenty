@@ -1,14 +1,14 @@
 # Terraform provider for Twenty
 
-Unreleased Terraform provider tested against Twenty v2.44.0. It authenticates an existing automation account with an in-memory password session, reads the current workspace and existing roles, and manages custom roles and declared email memberships.
+Unreleased Terraform provider with Twenty v2.46.0 as the minimum supported server version. It authenticates an existing automation account with an in-memory password session, reads the current workspace and existing roles, and manages custom roles and declared email memberships.
 
 All operations use Metadata GraphQL at `/metadata`, not Core GraphQL or CRM record APIs. Create sends invitations without waiting for login; accepted membership updates manage role assignments. Workspace settings and global users/passwords are not managed. API keys do not cover the intended membership operations in this Twenty release.
 
-## Known teardown constraint
+## Server compatibility
 
-Combined teardown of an accepted member and its Terraform-owned custom role is not fully supported on Twenty v2.44.0. Membership removal succeeds, but a stale upstream role-assignment cache can block the following role deletion. Terraform retains the custom role in state and on the server; the removed member is absent from both. The provider reports a fixed error and does not retry or change other assignments to repair the cache.
+Twenty v2.46.0 is the minimum supported version. It is the first stable release containing the [role-cache fix](https://github.com/twentyhq/twenty/pull/27226) needed for accepted-member/custom-role teardown. CI tests this minimum using a digest-pinned disposable stack and requires one successful destroy with no manual maintenance or mutation retries. Older versions are unsupported; this is a support and test baseline, not a runtime version check.
 
-Inspect membership and retained role state before taking further action. Teardown remains constrained until the upstream cache is refreshed or the defect is fixed. No safe Metadata-only cache refresh or tested repair procedure is available in this pin. Do not assume an immediate retry or server restart will resolve it. See the [membership guide](docs/guides/membership.md).
+Failed operations can still partially succeed. Inspect actual membership and retained role state before another attempt. The provider never runs server maintenance or repairs assignments automatically. See the [membership guide](docs/guides/membership.md).
 
 ## Supported types
 
@@ -36,13 +36,13 @@ Use an HTTPS instance base URL without a `/metadata` suffix, other paths, creden
 
 Each authenticated configuration starts a new session and verifies the active workspace and member. Access and rotating refresh tokens remain in provider-process memory. Absent or raw-null configuration returns without reading credentials or making requests, so schema tools remain safe. An explicit empty provider block uses environment fallbacks and authenticates.
 
-Use a dedicated verified automation identity that supports password sign-in. Interactive MFA, CAPTCHA, SSO-only sign-in, and unverified email are unsupported; do not weaken those settings on a live instance. Keep the bootstrap identity and its own role outside Terraform-managed resources and preserve an independent recovery administrator.
+Use a dedicated verified automation identity that supports password sign-in. Interactive MFA, CAPTCHA, SSO-only sign-in, and unverified email are unsupported; do not weaken those settings on a live instance. Keep the bootstrap identity and its own role outside Terraform-managed resources and preserve an independent recovery administrator. Provision its membership before configuration: Twenty password login can consume a pending invitation, even before a later email-verification failure. See the [authentication guide](docs/guides/authentication.md).
 
 Inject credentials outside checked-in Terraform files. Sensitive schema attributes redact display output but do not keep their sources out of saved plans. Use environment secret injection or sensitive ephemeral inputs, not persisted token attributes or outputs.
 
 ## Initial IAM configuration
 
-Inject sensitive ephemeral authentication at runtime. This example uses the authenticated workspace, looks up a built-in role, creates a custom role, and manages only declared emails. Import preexisting access first. Never include the automation or recovery administrator in the member map. This configuration demonstrates creation and assignment, but accepted-member plus custom-role destroy has the v2.44 teardown constraint above.
+Inject sensitive ephemeral authentication at runtime. This example uses the authenticated workspace, looks up a built-in role, creates a custom role, and manages only declared emails. Import preexisting access first. Never include the automation or recovery administrator in the member map. Managed-role references establish the dependency needed to remove memberships before deleting their custom role.
 
 ```terraform
 variable "twenty_email" {
@@ -78,7 +78,7 @@ resource "twenty_workspace_member" "declared" {
 output "workspace_id" { value = data.twenty_workspace.current.id }
 ```
 
-Use Terraform 1.10 or later for ephemeral variables. The [complete example](examples/guides/membership/main.tf) includes provider requirements and member-map validation. Removing a declared key removes its access. Destroying accepted access can trigger Twenty's connected-account, workflow, chat-history, and global-user cascades. Review the [membership guide](docs/guides/membership.md) before applying.
+Use Terraform 1.10 or later for ephemeral variables. The [complete example](examples/guides/membership/main.tf) includes provider requirements and member-map validation. Removing a declared key removes its access. Destroying accepted access can trigger Twenty's connected-account, record-share, workflow, chat-history, and global-user cascades. Review the [membership guide](docs/guides/membership.md) before applying.
 
 ## Development
 
@@ -109,9 +109,9 @@ make validate-docs
 
 `make generate` verifies the committed Metadata SDL and license checksums, then generates selected Go operations without Terraform, Docker, credentials, or schema introspection. See [graphql/README.md](graphql/README.md) for provenance, update instructions, and optional-input contracts.
 
-`make testacc` sets `TF_ACC=1` and runs a bounded suite against its own disposable stack from `integration/compose.yml`. Both Twenty server and worker use the v2.44.0 digest recorded in [DEVELOPMENT.md](DEVELOPMENT.md). The suite supplies test-only credentials and tears down only its own containers and volumes. The target removes ambient Twenty credentials and Terraform logging settings. Never use a live deployment for acceptance tests. Failure diagnostics belong in ignored `_artifacts/` and must omit credentials, tokens, and private member data.
+`make testacc` sets `TF_ACC=1` and runs a bounded suite against its own disposable stack from `integration/compose.yml`. Both Twenty server and worker use the v2.46.0 minimum-version digest recorded in [DEVELOPMENT.md](DEVELOPMENT.md). The suite supplies test-only credentials and tears down only its own containers and volumes. The target removes ambient Twenty credentials and Terraform logging settings. Never use a live deployment for acceptance tests. Failure diagnostics belong in ignored `_artifacts/` and must omit credentials, tokens, and private member data.
 
-The real-container suite covers session renewal, current workspace lookup without settings permissions, member-count refresh after a disposable invitation is accepted, role lookup, custom role CRUD/import/drift, explicit false/default values, null and empty strings, flag replacement and clearing, missing roles, actual settings permission denial, assigned-role deletion refusal, pending invitation create/update/import/revoke, server-mail acceptance with a stable state ID, accepted role drift/removal, existing-access import, and preservation of both bootstrap administrators. An external pending-invitation regression verifies refused role destroy, retained state and readable invitation metadata, then successful role cleanup after deliberate test-invitation revocation. A real permission case proves `ROLES` alone permits create/update, while deletion needs both `APPLICATIONS` and `WORKSPACE_MEMBERS`. A separate Terraform-owned custom-role plus accepted-member regression verifies the expected classified destroy failure, retained role state/server presence, removed membership, and no automatic retry. See the exact versions and check results in [DEVELOPMENT.md](DEVELOPMENT.md).
+The real-container suite covers session renewal, current workspace lookup without settings permissions, member-count refresh after a disposable invitation is accepted, role lookup, custom role CRUD/import/drift, explicit false/default values, null and empty strings, flag replacement and clearing, missing roles, actual settings permission denial, assigned-role deletion refusal, pending invitation create/update/import/revoke, server-mail acceptance with a stable state ID, accepted role drift/removal, existing-access import, and preservation of both bootstrap administrators. An external pending-invitation regression verifies refused role destroy, retained state and readable invitation metadata, then successful role cleanup after deliberate test-invitation revocation. A real permission case proves `ROLES` alone permits create/update, while deletion needs both `APPLICATIONS` and `WORKSPACE_MEMBERS`. A separate Terraform-owned custom-role plus accepted-member regression requires one successful destroy, both resources absent from state/server, unchanged protected administrators, and no maintenance, reassignment, or mutation retry. See the exact versions and check results in [DEVELOPMENT.md](DEVELOPMENT.md).
 
 Documentation commands also remove Twenty credential environment variables. They inspect schemas without login. The release workflow remains gated by an unset `RELEASE_ENABLED` repository variable. Releases and signing secrets need separate authorization.
 

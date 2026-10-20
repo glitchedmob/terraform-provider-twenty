@@ -38,8 +38,17 @@ func testAccWorkspaceMemberResource(t *testing.T, fixture *acceptance.Fixture) {
 		}
 		roles[i] = created.CreateOneRole.Id
 	}
-	// Fixture roles are not Terraform-owned. Leave them to stack teardown;
-	// the separate combined regression tests Terraform-owned role deletion.
+	// The supported minimum refreshes role caches after accepted-member removal.
+	// Require fixture-role cleanup too; do not tolerate stale assignment failures.
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		for _, roleID := range roles {
+			if _, err := client.DeleteOneRole(ctx, fixture.Operator.API, roleID); err != nil {
+				t.Error("delete disposable membership fixture role")
+			}
+		}
+	})
 
 	empty := resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()}}
 	update := resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(address, plancheck.ResourceActionUpdate)}}

@@ -11,11 +11,11 @@ Manages access for one declared email in the provider's authenticated workspace.
 
 The caller needs both `ROLES` and `WORKSPACE_MEMBERS`, or a full-settings grant. The role must exist in this workspace and allow assignment to users. Assigning a valid built-in, non-editable, or workspace-default role is allowed; protections against changing those role definitions do not prevent assignment.
 
-## Known v2.44 teardown constraint
+## Server compatibility
 
-Destroying an accepted member and its Terraform-owned custom role is not fully supported on v2.44.0. The server removes membership but can retain its user-workspace ID in the role-assignment cache. The following role deletion then fails. The provider returns a fixed cache diagnostic, retains the role in state, and does not retry or rebind other users. The member can already be absent from both state and server while the role remains in both.
+Twenty v2.46.0 is the minimum supported server version. It includes the [upstream role-cache fix](https://github.com/twentyhq/twenty/pull/27226) needed to delete an accepted member and then its custom role in one Terraform destroy. CI runs this minimum with a digest-pinned disposable image and requires successful teardown without cache maintenance, reassignment, or retries. Older releases are unsupported.
 
-Inspect actual membership and retained role state. Combined teardown remains constrained until the upstream cache is refreshed or fixed. This pin has no verified safe Metadata-only cache refresh or tested repair procedure. Do not assume an immediate retry or server restart will resolve it.
+If removal or role deletion fails, inspect both server and Terraform state before another attempt. Membership removal may already have succeeded. The provider retains failed role deletions in state and never runs server maintenance or blindly retries mutations.
 
 ## Example usage
 
