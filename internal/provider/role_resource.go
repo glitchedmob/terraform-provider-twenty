@@ -61,17 +61,17 @@ func (r *roleResource) Metadata(_ context.Context, req resource.MetadataRequest,
 }
 func (r *roleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	attrs := map[string]schema.Attribute{
-		"id":               schema.StringAttribute{Computed: true, MarkdownDescription: "Native role UUID. Import uses this ID, not the label.", PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
-		"label":            schema.StringAttribute{Required: true, MarkdownDescription: "Nonblank custom role label. Admin, Member, and Guest are reserved, case-insensitively. Use single spaces without leading or trailing whitespace; Twenty normalizes strings during creation. Create never adopts an existing label."},
-		"description":      schema.StringAttribute{Optional: true, MarkdownDescription: "Nullable description. Omission or null clears it; an empty string stays empty. Use normalized single-space whitespace."},
-		"icon":             schema.StringAttribute{Optional: true, MarkdownDescription: "Nullable icon identifier. Omission or null clears it; an empty string stays empty. Use normalized single-space whitespace."},
-		"is_editable":      schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether Twenty permits editing the role. Non-editable roles cannot be mutated."},
-		"permission_flags": schema.SetAttribute{Required: true, ElementType: types.StringType, MarkdownDescription: "Complete owned set of explicit v2.44.0 permission flag keys. Updates replace the whole set; [] clears it. Null, null elements, and unsupported keys are rejected. Global booleans can grant additional access."},
+		"id":               schema.StringAttribute{Computed: true, MarkdownDescription: "Native role UUID used for import.", PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
+		"label":            schema.StringAttribute{Required: true, MarkdownDescription: "Nonblank custom role label. Admin, Member, and Guest are reserved case-insensitively. Use single spaces with no surrounding whitespace. Create never adopts a matching label."},
+		"description":      schema.StringAttribute{Optional: true, MarkdownDescription: "Description. Omission or null clears it; empty stays empty. Use single spaces with no surrounding whitespace."},
+		"icon":             schema.StringAttribute{Optional: true, MarkdownDescription: "Icon identifier. Omission or null clears it; empty stays empty. Use single spaces with no surrounding whitespace."},
+		"is_editable":      schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether Twenty permits editing. Non-editable roles cannot be changed."},
+		"permission_flags": schema.SetAttribute{Required: true, ElementType: types.StringType, MarkdownDescription: "Complete explicit flag set. Updates replace it; [] clears only explicit flags. Null, null elements, and unsupported keys are invalid. Global grants can authorize more. See the supported flags above."},
 	}
 	for _, field := range roleBooleanFields() {
 		attrs[field.name] = schema.BoolAttribute{Optional: true, Computed: true, Default: booldefault.StaticBool(field.defaultValue), MarkdownDescription: field.description}
 	}
-	resp.Schema = schema.Schema{MarkdownDescription: "Manages a custom Twenty role and its complete explicit permission flag set through Metadata GraphQL. Requires ROLES and visibility of current workspace members and roles. Deletion also requires APPLICATIONS to check application defaults and WORKSPACE_MEMBERS to inspect all stored invitation role references. Protects the operator's current roles, the workspace default, built-in roles, and the final full-settings administrator. Deletion refuses assigned roles and explicit invitation references, including expired invitations.", Attributes: attrs}
+	resp.Schema = schema.Schema{MarkdownDescription: "Manages a custom role definition and explicit flags, not assignments or object/field permissions. See [operation permissions](../guides/authentication.md#permissions). Protected roles cannot be changed; assignments and stored explicit invitation references block deletion.", Attributes: attrs}
 }
 
 type roleBooleanField struct {
@@ -85,9 +85,9 @@ func roleBooleanFields() []roleBooleanField {
 		{name: "can_be_assigned_to_users", defaultValue: true, description: "Whether workspace users can receive the role. Defaults to true."},
 		{name: "can_be_assigned_to_agents", description: "Whether agents can receive the role. Defaults to false."},
 		{name: "can_be_assigned_to_api_keys", description: "Whether API keys can receive the role. Defaults to false."},
-		{name: "can_update_all_settings", description: "Grants all settings permissions. Defaults to false. Explicit flags do not limit a true global grant."},
+		{name: "can_update_all_settings", description: "Grants all settings permissions, regardless of explicit flags. Defaults to false."},
 		{name: "can_access_all_tools", description: "Grants all tools permissions. Defaults to false."},
-		{name: "can_read_all_object_records", description: "Grants read access to all object records. Defaults to false. Must be true for any global object write/delete grant; this resource never reads CRM records."},
+		{name: "can_read_all_object_records", description: "Grants read access to all object records. Required for global object write/delete grants. Defaults to false. This resource does not read CRM records."},
 		{name: "can_update_all_object_records", description: "Grants update access to all object records. Defaults to false."},
 		{name: "can_soft_delete_all_object_records", description: "Grants soft-delete access to all object records. Defaults to false."},
 		{name: "can_destroy_all_object_records", description: "Grants permanent-delete access to all object records. Defaults to false."},
@@ -162,7 +162,7 @@ func (m roleResourceModel) validate(known bool) diag.Diagnostics {
 			continue
 		}
 		if !slices.Contains(client.AllPermissionFlagType, client.PermissionFlagType(value.ValueString())) {
-			d.AddError("Invalid Twenty Role Flag", "Use the exact supported v2.44.0 permission flag vocabulary documented in the permissions guide.")
+			d.AddError("Invalid Twenty Role Flag", "Use the exact supported flag names listed in the twenty_role resource documentation.")
 		}
 	}
 	return d

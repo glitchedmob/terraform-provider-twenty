@@ -1,253 +1,68 @@
-# Metadata GraphQL generation
+# GraphQL client generation
 
-The committed SDL is the complete Metadata schema for the minimum supported
-Twenty server, v2.46.0. Only the
-handwritten IAM, identity, and password-session operations in `operations/`
-generate provider client code. The schema contains other upstream operations;
-they are not selected. Use `/metadata`, never Core GraphQL `/graphql` or CRM
-record REST endpoints. Stage 3 tests password login, token exchange/renewal, identity, role reads,
-and disposable onboarding against the pinned container. Step 4A also tests role
-CRUD and flag replacement through the Terraform resource. Step 4C tests invitation and accepted-member management through `twenty_workspace_member`. Object/field upserts remain generated operations without provider resources.
+The provider uses the committed Twenty v2.46.0 Metadata schema at `/metadata`, not the Core or CRM APIs. Only operations selected in `operations/` generate provider client functions. Declarations elsewhere in the schema do not add provider features.
 
-## Provenance and license
+## Provenance
 
-- Upstream repository: [twentyhq/twenty](https://github.com/twentyhq/twenty).
-- Release: `v2.46.0`.
+- Upstream: [twentyhq/twenty](https://github.com/twentyhq/twenty), tag `v2.46.0`.
 - Source commit: `9070979232c4f37165108a2eb5a4042e0cfdc3d6`.
-- Official raw SDL source: <https://raw.githubusercontent.com/twentyhq/twenty/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-client-sdk/src/metadata/generated/schema.graphql>.
-- SDL SHA256: `f807c09348a879d96274901cf9bfbea372a2827159429cc222d68357241d36c1`.
-- Official package license: <https://raw.githubusercontent.com/twentyhq/twenty/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-client-sdk/LICENSE>.
-- License SHA256: `f2c3d261cefa7be3fe81790e777f72c83083b832e653c493db0cc960e81f2b0f`.
+- [Unmodified Metadata SDL](https://raw.githubusercontent.com/twentyhq/twenty/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-client-sdk/src/metadata/generated/schema.graphql).
+- [SDK MIT license](https://raw.githubusercontent.com/twentyhq/twenty/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-client-sdk/LICENSE), preserved in [LICENSE](LICENSE).
+- File hashes: [SHA256SUMS](SHA256SUMS).
 
-The SDL was fetched from that exact release source when raising the minimum
-server version to v2.46.0. `schema.graphql` is an unmodified copy. The SDK
-license is byte-identical to the previous pin. No introspection was used.
+The SDK [package manifest](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-client-sdk/package.json) and upstream [root license](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/LICENSE) identify the SDK as MIT-licensed. Preserve its notice when redistributing the schema and generated code. Provider code remains MPL-2.0.
 
-`LICENSE` is the upstream twenty-client-sdk MIT license, with its copyright
-notice intact. The pinned
-[package manifest](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-client-sdk/package.json)
-declares MIT. The upstream
-[root license](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/LICENSE)
-also identifies this SDK package as an MIT exception to the server's AGPL
-license. The provider's own code remains MPL-2.0. Keep this upstream notice
-with the schema and generated client when redistributing them.
-
-## Generate and check drift
+## Generate
 
 From the repository root:
 
 ```shell
-go mod download
 make generate
 go test ./internal/client/...
-git diff --exit-code
-test -z "$(git ls-files --others --exclude-standard -- internal/client/)"
+git diff --exit-code -- internal/client/
 ```
 
-`make generate` verifies `SHA256SUMS`, then runs genqlient v0.8.1 through
-the `go.mod` tool directive. It writes:
+Generation verifies the SDL/license hashes and runs the genqlient version pinned in `go.mod`. It uses committed files only and works offline once Go modules are cached. No Twenty instance, credentials, or introspection is needed.
 
-- `internal/client/metadata.gen.go`, package `client`.
-- `internal/client/testbootstrap/bootstrap.gen.go`, package `testbootstrap`.
+Do not edit `internal/client/metadata.gen.go` or `internal/client/testbootstrap/bootstrap.gen.go`. Edit the operation documents/configuration and regenerate; commit sources and output together.
 
-Both files have genqlient's generator header. Do not edit them. Edit operation
-documents or configuration, regenerate, and commit the sources and output
-together. The generated-client workflow checks tracked diffs and untracked
-client output on pull requests, pushes to main, and manual runs.
+## Update the schema
 
-Generation uses committed files only. After Go modules are cached, it can run
-offline. It needs Go and `sha256sum`, not Terraform, Docker, Twenty credentials,
-an instance, or live schema discovery. CI does not download an upstream schema.
+1. Choose an upstream release and exact source commit.
+2. Download its Metadata SDL, SDK license, and package manifest from the official URLs above, substituting the new commit.
+3. Review schema, licensing, and resolver/service changes for selected operations. Do not use live introspection.
+4. Replace `schema.graphql` and `LICENSE`, then run `sha256sum schema.graphql LICENSE > SHA256SUMS` in this directory.
+5. Update this provenance. For a server-baseline change, also update the images in `integration/compose.yml`, the acceptance workflow, and the documented minimum.
+6. Regenerate twice to check reproducibility, then run unit and disposable acceptance tests.
 
-## Update the upstream pin
+## Request and response contracts
 
-Do this deliberately, not during every generation. Choose a release and its
-exact source commit. Download the Metadata SDL, SDK license, and package
-manifest from official raw GitHub URLs at that commit into temporary files:
+UUIDs decode as strings, timestamps as `time.Time`, and JSON as `json.RawMessage`. Generated types do not validate identities, permissions, or ownership; provider code must do so.
 
-```shell
-commit=9070979232c4f37165108a2eb5a4042e0cfdc3d6
-base="https://raw.githubusercontent.com/twentyhq/twenty/$commit/packages/twenty-client-sdk"
-tmp="$(mktemp -d)"
-curl --fail --location --silent --show-error "$base/src/metadata/generated/schema.graphql" -o "$tmp/schema.graphql"
-curl --fail --location --silent --show-error "$base/LICENSE" -o "$tmp/LICENSE"
-curl --fail --location --silent --show-error "$base/package.json" -o "$tmp/package.json"
-sha256sum "$tmp/schema.graphql" "$tmp/LICENSE"
-```
-
-For the existing pin, compare those hashes with the provenance above before
-copying. For a new pin, review the license and SDL diff, then inspect the pinned
-resolvers and services for changed contracts. Do not introspect a running
-instance. Copy the reviewed SDL and license into this directory, regenerate
-`SHA256SUMS` with `cd graphql && sha256sum schema.graphql LICENSE > SHA256SUMS`,
-and update the provenance here plus the pins in `AGENTS.md` and `DEVELOPMENT.md`.
-Remove the temporary directory. Run generation twice, compare output, and run
-the repository checks before committing.
-
-## Selected operations and generated types
-
-Function names match the GraphQL operation names, not necessarily their SDL
-field capitalization. Every function takes a context and a `graphql.Client`;
-it does not construct a transport, authenticate, or validate server responses.
-
-| Document | Generated functions | Shared generated types |
-| --- | --- | --- |
-| `operations/auth.graphql` | `GetLoginTokenFromCredentials`, `GetAuthTokensFromLoginToken`, `RenewToken` | `Token`, `TokenPair` |
-| `operations/identity.graphql` | `CurrentUser`, `CurrentWorkspace`, `GetPublicWorkspaceDataByDomain`, `GetPublicWorkspaceDataById` | `WorkspaceIdentity`, `AvailableWorkspaceIdentity`, `MemberIdentity` |
-| `operations/roles.graphql` | `GetRoles`, `FindManyApplications`, `CreateOneRole`, `UpdateOneRole`, `DeleteOneRole`, `UpsertPermissionFlags`, `UpsertObjectPermissions`, `UpsertFieldPermissions` | `RoleProperties`, `RoleDetails`, `PermissionFlag`, `ObjectPermissionDetails`, `FieldPermissionDetails`, `PermissionPredicate`, `PermissionPredicateGroup` |
-| `operations/members.graphql` | `FindWorkspaceInvitations`, `SendInvitations`, `DeleteWorkspaceInvitation`, `UpdateWorkspaceMemberRole`, `DeleteUserFromWorkspace` | `Invitation` |
-
-Each function returns its generated `<Operation>Response` and an error.
-Fragments share types where possible. Some nested fields still have generated
-wrapper types with an embedded fragment. Use the embedded fragment or generated
-getters rather than copying response structs by hand.
-
-Role input types are `CreateRoleInput`, `UpdateRoleInput`,
-`UpdateRolePayload`, `UpsertPermissionFlagsInput`,
-`UpsertObjectPermissionsInput`, `ObjectPermissionInput`,
-`UpsertFieldPermissionsInput`, and `FieldPermissionInput`.
-
-Scalar bindings only cover selected types:
-
-- `UUID` uses `string`. This preserves wire identity without accepting or
-  rejecting UUID syntax here. Resource import and response validation belong
-  to later stages.
-- `DateTime` uses `time.Time`, including login, access, refresh, and invitation
-  expiry. Invalid date strings fail JSON decoding.
-- `JSON` uses `json.RawMessage` for restricted fields and row predicate values.
-  It preserves numbers and arbitrary JSON without handwritten response types.
-- Unused scalars such as `JSONObject`, `BigInt`, `Upload`, and
-  `ConnectionCursor` have no binding until a selected operation needs them.
-
-## Optional input contracts
-
-Nullable scalar and object fields use
-`github.com/oapi-codegen/nullable.Nullable[T]` v1.2.0. The map-backed type works
-with genqlient's targeted `omitempty` directives. A pointer plus `omitempty`
-cannot express both omitted and explicit null.
+Nullable scalar/object inputs use `nullable.Nullable[T]` to distinguish omission, null, and explicit values:
 
 ```go
-input := client.UpdateRoleInput{
-    Id: roleID,
-    Update: client.UpdateRolePayload{
-        // Unset fields are omitted and preserve existing values.
-        CanReadAllObjectRecords: nullable.NewNullableWithValue(false),
-        Description: nullable.NewNullNullable[string](),
-        Icon: nullable.NewNullableWithValue(""),
-    },
+input := client.UpdateRolePayload{
+    CanReadAllObjectRecords: nullable.NewNullableWithValue(false),
+    Description:            nullable.NewNullNullable[string](),
+    Icon:                   nullable.NewNullableWithValue(""),
 }
 ```
 
-Explicit `false` is sent, null is sent, and an unspecified value is omitted.
-Use `Get`, `IsNull`, and `IsSpecified` for nullable responses.
-`GetOrEmpty` would conflate denied permissions with missing data. Nullable
-lists remain slices, with nil for null and a non-nil empty slice for `[]`.
-Required list inputs must use non-nil slices. For example,
-`PermissionFlagKeys: []string{}` sends `[]` to clear flags; nil sends invalid
-`null`. There is no generated runtime input validator.
+Unspecified fields are omitted. For responses, use `Get`, `IsNull`, and `IsSpecified` where absence matters; `GetOrEmpty` loses that distinction. Required lists need non-nil slices: `[]string{}` sends `[]`, while nil sends `null`.
 
-Pinned server contracts matter even where the SDL marks an input nullable:
+Important server contracts:
 
-- Role creation defaults the six capability booleans to false and the three
-  assignability booleans to true. Null and omission use those defaults.
-- Role update is a sparse merge. Omission preserves values. Null clears
-  description/icon, but null label or permission booleans fail server
-  validation. Do not send Terraform unknowns as null.
-- Permission-flag upsert replaces the entire set of string keys. Object
-  permission upsert also replaces the object set; omitted override booleans
-  preserve existing overrides, null resets to inheritance.
-- Field permission upsert leaves unmentioned rows alone except for related
-  fields the service mirrors. A mentioned field with both values null or
-  omitted removes its restriction. Values support false restrictions, not
-  true grants.
-- Invitation role omission or null leaves the role unset. Acceptance then
-  resolves the current default role.
+- Role creation defaults all three assignability booleans to true; the provider explicitly uses narrower defaults. Sparse role updates preserve omitted values; null clears description/icon but is invalid for labels or permission booleans.
+- Permission-flag and object-permission upserts replace their sets. Field-permission upserts have different merge semantics. Object/field upserts are generated but not used by provider resources.
+- Invitation creation can succeed before mail delivery fails. Listing includes expired invitations. A null invitation role follows the current workspace default.
+- Role deletion can rebind assignments; member deletion returns the pre-deletion row. Resources check references before deletion and verify results with fresh reads rather than trusting mutation payloads.
+- `CurrentUser.currentWorkspace` is a cached summary without timestamps. Use `CurrentWorkspace` for full workspace properties.
 
-`internal/client/metadata_test.go` checks actual generated request variables
-and synthetic response decoding without network calls.
+See [generated-request tests](../internal/client/metadata_test.go) for wire-level coverage.
 
-## Resolver checks and next-stage cautions
+## Disposable bootstrap client
 
-These contracts were first checked against source at the pinned commit.
-Stage-3 container results and limitations are recorded in `DEVELOPMENT.md`.
-Paths below are relative to upstream `packages/twenty-server/`:
+`testbootstrap/operations.graphql` and `genqlient.testbootstrap.yaml` generate a separate `internal/client/testbootstrap` package used only by `internal/acceptance`. Never import it from provider configuration or resources.
 
-- `src/engine/core-modules/auth/auth.resolver.ts` and
-  `auth/token/services/renew-token.service.ts` confirm login/exchange origin
-  arguments and renewal using the refresh token as `appToken`. Both tokens
-  rotate. Login can consume an invitation and add membership.
-- `src/engine/core-modules/user/user.resolver.ts` confirms that `currentUser`
-  exposes the current workspace, own member, and the whole unpaginated member
-  list. User ID, user-workspace ID, and workspace-member ID differ. Membership
-  mutations need the workspace-member ID. Own member can be null before
-  provisioning. Available workspace IDs/names come from `availableWorkspaces`;
-  the SDL's `UserWorkspace` type has no workspace identity field.
-- `src/engine/core-modules/workspace/workspace.resolver.ts` confirms workspace
-  lookups. Our domain operation requires an explicit origin to avoid the
-  resolver's synthetic omitted-origin result.
-- `src/engine/metadata-modules/role/role.resolver.ts`, `role/role.service.ts`,
-  and the `flat-role/utils/` create/update mappers confirm role operations.
-  Create/update return scalar-only role DTOs. Re-read `GetRoles` for permissions
-  and assignments. Member-role mutations return raw role entities; re-read
-  `CurrentUser` for mapped permission flags.
-- `src/engine/metadata-modules/role-permission-flag/role-permission-flag.service.ts`,
-  `object-permission/object-permission.service.ts`, and
-  `object-permission/field-permission/field-permission.service.ts` confirm the
-  upsert behavior.
-- `src/engine/core-modules/workspace-invitation/workspace-invitation.resolver.ts`
-  and `services/workspace-invitation.service.ts` confirm invitation arguments.
-  Listing includes expired invitations. Revocation returns "success" or
-  "error", not an ID. Sending can partially succeed, and mail delivery can fail
-  after creation. Check payload errors and results before retrying.
-
-Role operations require the `ROLES` settings permission. Invitations require
-`WORKSPACE_MEMBERS`. Removal has an authenticated-self exception. The server
-can delete a workspace when its last member is removed, and role deletion can
-rebind assignments. Provider resources protect the bootstrap identity and role, independent recovery administrator, last administrator, and last member through fresh safety reads. The generated code implements none of those protections. Step 4A implements role guards in `internal/provider/role_safety.go`; step 4C implements membership guards in `internal/provider/workspace_member.go`. The added
-`FindManyApplications` selection reads `id` and `defaultRoleId` because role
-assignment relations do not expose application defaults. The pinned
-`src/engine/core-modules/application/application-install/application-install.resolver.ts`
-guards this query with `APPLICATIONS`. Only role deletion queries it, and missing
-application visibility blocks deletion rather than assuming there are no
-assignments. Role create/update need no additional application grant.
-Object/field upserts are still generated only; the role resource never calls them. Member removal returns
-the membership loaded before deletion, so `deletedAt` is not proof of removal.
-Confirm disappearance with a fresh member read.
-
-## Disposable onboarding documents
-
-`testbootstrap/operations.graphql` and `genqlient.testbootstrap.yaml` are
-separate from provider operations. They generate only into
-`internal/client/testbootstrap/`. Do not import this package from provider
-configuration or resources.
-
-The five functions are `TestSignUp`, `TestVerifyEmail`,
-`TestCreateWorkspace`, `TestActivateWorkspace`, and `TestJoinWorkspace`.
-They select `signUp`, `verifyEmailAndGetWorkspaceAgnosticToken`,
-`signUpInNewWorkspace`, `activateWorkspace`, and `signUpInWorkspace`.
-`internal/acceptance/` uses these to onboard verified automation and recovery
-identities in a disposable stack without database edits or minted credentials.
-
-The helpers capture server-issued verification and personal invitation tokens
-from the stack's mail sink. Workspace creation requires a nonblank display
-name despite SDL nullability. Activation takes `ActivateWorkspaceInput{}`;
-its legacy display-name field is ignored. Join with an explicit workspace and
-personal invitation, never implicit new-workspace signup. Invite the recovery
-administrator with an explicit admin role. The relevant source is
-`auth/services/sign-in-up.service.ts` and
-`user-workspace/user-workspace.service.ts`.
-
-Operator signup consumes an email-verification token. In the pinned server,
-consuming a personal invitation from the recovery account's mailbox verifies
-that email itself; a subsequent verification mutation correctly fails as
-already verified. The helper checks persisted verification and the explicitly
-invited admin role. Global signup after the first workspace is not used in
-single-workspace mode.
-
-`CurrentUser.currentWorkspace` returns a cached auth-workspace summary without
-`createdAt`/`updatedAt`. Selecting those fields caused a real server error during
-stage-3 bootstrap. They now belong only to the dedicated `CurrentWorkspace`
-operation. Both source and generated code include this compatibility fix.
-
-The operation documents alone do not implement bootstrap or weaken settings.
-Only disposable acceptance helpers start containers or onboard test identities.
+The helpers onboard verified automation and recovery identities using server-issued mail tokens from the disposable stack. They do not edit databases, mint credentials with signing secrets, or weaken live security settings.

@@ -51,17 +51,17 @@ func (r *workspaceMemberResource) Metadata(_ context.Context, req resource.Metad
 }
 func (r *workspaceMemberResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages access for one declared email in the provider's current workspace through Metadata GraphQL. Create sends one invitation without waiting for login. Existing access requires import. Requires ROLES and WORKSPACE_MEMBERS. Never manages the operator or global credentials. Preserve an independent recovery administrator outside Terraform and pause competing IAM writers during apply.",
+		MarkdownDescription: "Manages invitations and accepted membership for one email in the authenticated workspace.",
 		Attributes: map[string]schema.Attribute{
 			"id":                  schema.StringAttribute{Computed: true, MarkdownDescription: "Stable identity and import format: lowercase workspace UUID/email. Remains unchanged when an invitation is accepted.", PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
-			"email":               schema.StringAttribute{Required: true, MarkdownDescription: "One bare ASCII mailbox, explicitly lowercase with no surrounding spaces. Changing it replaces access. Existing members or invitations must be imported; create never adopts them.", PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}},
-			"role_id":             schema.StringAttribute{Required: true, MarkdownDescription: "Explicit lowercase UUID of a user-assignable role in this workspace. Built-in/default roles may be assigned. Accepted updates replace the member's role; pending updates revoke and reissue the invitation."},
+			"email":               schema.StringAttribute{Required: true, MarkdownDescription: "One bare ASCII email address, explicitly lowercase with no surrounding spaces. Changing it replaces access.", PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}},
+			"role_id":             schema.StringAttribute{Required: true, MarkdownDescription: "Lowercase, nonzero UUID of a user-assignable role in this workspace."},
 			"workspace_id":        schema.StringAttribute{Computed: true, MarkdownDescription: "Authenticated workspace UUID. This is not a selector.", PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
 			"member_id":           schema.StringAttribute{Computed: true, MarkdownDescription: "Workspace-member UUID after acceptance, otherwise null. Not the global user or user-workspace ID."},
 			"invitation_id":       schema.StringAttribute{Computed: true, MarkdownDescription: "Native invitation UUID while pending or expired, otherwise null. No invitation token or link is stored."},
-			"status":              schema.StringAttribute{Computed: true, MarkdownDescription: "pending, accepted, or expired on successful reads. Expired invitations plan replacement. unconfirmed or absent can remain after a failed mutation until refresh confirms the remaining access."},
+			"status":              schema.StringAttribute{Computed: true, MarkdownDescription: "pending, accepted, or expired on successful reads. Expired invitations need replacement; refresh never resends mail. unconfirmed or absent can remain after a failed mutation until refresh determines remaining access."},
 			"expires_at":          schema.StringAttribute{Computed: true, MarkdownDescription: "Invitation expiration in RFC3339 format, otherwise null. Expired invitations do not count as active desired access."},
-			"ownership_confirmed": schema.BoolAttribute{Computed: true, MarkdownDescription: "True after explicit import or a confirmed invitation send. False after an ambiguous send, native-ID replacement, or unverified access after invitation cancellation. Further writes require inspection and explicit import, even when refresh can see pending or accepted access. Prevents accidental adoption of external access."},
+			"ownership_confirmed": schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether Terraform may change this access. False after an ambiguous send, external replacement, or unverified access after cancellation. Inspect and explicitly import remaining access before further changes; refresh alone cannot confirm ownership."},
 		},
 	}
 }

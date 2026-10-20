@@ -56,23 +56,23 @@ func (p *TwentyProvider) Metadata(_ context.Context, _ provider.MetadataRequest,
 
 func (p *TwentyProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Twenty IAM and configuration through Metadata GraphQL with an in-memory password session. Intended target: Twenty v2.44.0. Use a dedicated verified automation account and keep an independent recovery administrator.",
+		MarkdownDescription: "Manage Twenty roles and workspace memberships through Metadata GraphQL. Requires Twenty v2.46.0 or later and a dedicated verified automation account.",
 		Attributes: map[string]schema.Attribute{
 			"endpoint": schema.StringAttribute{
-				MarkdownDescription: "Twenty instance HTTPS base URL, without the `/metadata` suffix, credentials, other paths, query, or fragment. May also be set with `TWENTY_ENDPOINT`. No default. Explicit values, including empty values, override the environment. Redirects are rejected.",
+				MarkdownDescription: "Instance HTTPS base URL without `/metadata`, other paths, credentials, query, or fragment. Environment fallback: `TWENTY_ENDPOINT`. No default.",
 				Optional:            true,
 			},
 			"email": schema.StringAttribute{
-				MarkdownDescription: "Dedicated verified automation account email for password-session authentication. Must be one bare ASCII mailbox address without a display name, comments, or control characters. Surrounding spaces are trimmed. May also be set with `TWENTY_EMAIL`. Explicit values, including empty values, override the environment. MFA and CAPTCHA flows are not supported.",
+				MarkdownDescription: "Verified automation account email. Use one bare ASCII mailbox address, without a display name or comments. Surrounding spaces are trimmed. Environment fallback: `TWENTY_EMAIL`.",
 				Optional:            true,
 			},
 			"password": schema.StringAttribute{
-				MarkdownDescription: "Automation account password for a new in-memory session on each provider configuration. May also be set with `TWENTY_PASSWORD`. Explicit values, including empty values, override the environment. Sensitive values can still appear in saved Terraform plans; inject credentials through the environment.",
+				MarkdownDescription: "Automation account password; whitespace is preserved. Environment fallback: `TWENTY_PASSWORD`. Inject through the environment or an ephemeral variable to avoid saving it in plans.",
 				Optional:            true,
 				Sensitive:           true,
 			},
 			"allow_insecure_http": schema.BoolAttribute{
-				MarkdownDescription: "Allow unencrypted HTTP only for deliberate local testing with localhost or a literal loopback IP address. Defaults to false. No environment fallback. HTTPS certificate verification is never disabled.",
+				MarkdownDescription: "Allow HTTP for local testing on localhost or a literal loopback IP. Defaults to false. No environment fallback; HTTPS certificate verification remains enabled.",
 				Optional:            true,
 			},
 		},
