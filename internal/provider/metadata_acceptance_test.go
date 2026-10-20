@@ -159,14 +159,14 @@ data "twenty_field" "standard_name" {
 				})},
 			{Config: updated, ConfigPlanChecks: noChanges},
 			{PreConfig: func() {
-				_, err := client.UpdateMetadataField(t.Context(), fixture.Operator.API, client.UpdateOneFieldMetadataInput{Id: fieldIDs["TEXT"], Update: client.UpdateFieldInput{Description: nullable.NewNullableWithValue("Out of band")}})
+				_, err := client.UpdateOneField(t.Context(), fixture.Operator.API, client.UpdateOneFieldMetadataInput{Id: fieldIDs["TEXT"], Update: client.UpdateFieldInput{Description: nullable.NewNullableWithValue("Out of band")}})
 				if err != nil {
 					t.Fatal("out-of-band disposable field update failed")
 				}
 			}, Config: updated, ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(textAddress, plancheck.ResourceActionUpdate)}}},
 			{Config: updated, ConfigPlanChecks: noChanges},
 			{PreConfig: func() {
-				_, err := client.DeleteMetadataField(t.Context(), fixture.Operator.API, client.DeleteOneFieldInput{Id: fieldIDs["NUMBER"]})
+				_, err := client.DeleteOneField(t.Context(), fixture.Operator.API, client.DeleteOneFieldInput{Id: fieldIDs["NUMBER"]})
 				if err != nil {
 					t.Fatal("out-of-band disposable field deletion failed")
 				}

@@ -21,8 +21,8 @@ func TestFieldFailedUpdateCannotDisableDeletionProtection(t *testing.T) {
 	plan.Label = types.StringValue("Updated tier")
 	plan.DeletionProtection = types.BoolValue(false)
 	mock.change = func(op string, _ map[string]any) {
-		if op == "UpdateMetadataField" {
-			mock.fail["ListMetadataFields"] = errors.New("unavailable after write")
+		if op == "UpdateOneField" {
+			mock.fail["Fields"] = errors.New("unavailable after write")
 		}
 	}
 	response := resource.UpdateResponse{State: state}
@@ -65,7 +65,7 @@ func TestFieldCreateCanonicalizesOnlyWireParentUUID(t *testing.T) {
 			}
 		}
 	}
-	if err := json.Unmarshal(mock.inputs["CreateMetadataField"], &variables); err != nil {
+	if err := json.Unmarshal(mock.inputs["CreateOneField"], &variables); err != nil {
 		t.Fatal(err)
 	}
 	if variables.Input.Field.ObjectMetadataID != strings.ToLower(parent) {

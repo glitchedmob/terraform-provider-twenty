@@ -224,7 +224,7 @@ func (r *fieldResource) Create(ctx context.Context, req resource.CreateRequest, 
 		metadataError(&resp.Diagnostics, "Create", "Field", err)
 		return
 	}
-	response, err := client.CreateMetadataField(ctx, metadataQueryClient{r.client}, client.CreateOneFieldMetadataInput{Field: client.CreateFieldInput{
+	response, err := client.CreateOneField(ctx, metadataQueryClient{r.client}, client.CreateOneFieldMetadataInput{Field: client.CreateFieldInput{
 		ObjectMetadataId: strings.ToLower(plan.ObjectID.ValueString()), Name: plan.Name.ValueString(), Type: client.FieldMetadataType(plan.Type.ValueString()), Label: plan.Label.ValueString(),
 		Description: roleStringInput(plan.Description), Icon: roleStringInput(plan.Icon), DefaultValue: nullable.NewNullNullable[json.RawMessage](),
 		IsNullable: nullable.NewNullableWithValue(true), IsActive: nullable.NewNullableWithValue(true), IsLabelSyncedWithName: nullable.NewNullableWithValue(false), IsSystem: nullable.NewNullableWithValue(false),
@@ -307,7 +307,7 @@ func (r *fieldResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		metadataError(&resp.Diagnostics, "Update", "Field", err)
 		return
 	}
-	response, err := client.UpdateMetadataField(ctx, metadataQueryClient{r.client}, client.UpdateOneFieldMetadataInput{Id: state.ID.ValueString(), Update: client.UpdateFieldInput{
+	response, err := client.UpdateOneField(ctx, metadataQueryClient{r.client}, client.UpdateOneFieldMetadataInput{Id: state.ID.ValueString(), Update: client.UpdateFieldInput{
 		Label: roleStringInput(plan.Label), Description: roleStringInput(plan.Description), Icon: roleStringInput(plan.Icon), IsLabelSyncedWithName: nullable.NewNullableWithValue(false),
 	}})
 	if err == nil && !strings.EqualFold(response.UpdateOneField.Id, state.ID.ValueString()) {
@@ -365,7 +365,7 @@ func (r *fieldResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 		return
 	}
 	// Deactivation deletes view fields and filters. Hard-delete directly instead.
-	response, err := client.DeleteMetadataField(ctx, metadataQueryClient{r.client}, client.DeleteOneFieldInput{Id: state.ID.ValueString()})
+	response, err := client.DeleteOneField(ctx, metadataQueryClient{r.client}, client.DeleteOneFieldInput{Id: state.ID.ValueString()})
 	if err == nil && !strings.EqualFold(response.DeleteOneField.Id, state.ID.ValueString()) {
 		err = errInvalidMetadataResponse
 	}

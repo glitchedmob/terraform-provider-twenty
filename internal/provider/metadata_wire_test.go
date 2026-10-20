@@ -101,7 +101,7 @@ func TestMetadataPaginationFailures(t *testing.T) {
 func TestMetadataFieldFilterCannotCrossObjects(t *testing.T) {
 	mock := newMetadataMock()
 	mock.change = func(op string, data map[string]any) {
-		if op != "ListMetadataFields" {
+		if op != "Fields" {
 			return
 		}
 		data["fields"].(map[string]any)["edges"].([]map[string]any)[0]["node"].(map[string]any)["objectMetadataId"] = metadataTestStandardObjectID

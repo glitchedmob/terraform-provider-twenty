@@ -181,18 +181,18 @@ func TestObjectDataSourceLookupFailures(t *testing.T) {
 			case "later page":
 				mock.pageSize = 1
 				mock.change = func(op string, data map[string]any) {
-					if op == "ListMetadataObjects" {
+					if op == "Objects" {
 						mock.fail[op] = errors.New("private-secret")
 					}
 				}
 			case "upstream":
-				mock.fail["ListMetadataObjects"] = errors.New("private-secret")
+				mock.fail["Objects"] = errors.New("private-secret")
 			case "unknown":
 				name = types.StringUnknown()
 			case "unconfigured":
 				d.client = nil
 			case "cancelled":
-				mock.fail["ListMetadataObjects"] = context.Canceled
+				mock.fail["Objects"] = context.Canceled
 			}
 			resp := objectDataSourceRead(t, d, id, name)
 			if !resp.Diagnostics.HasError() || !resp.State.Raw.IsNull() {
@@ -207,7 +207,7 @@ func TestObjectDataSourceLookupFailures(t *testing.T) {
 				t.Fatal("missing ambiguity diagnostic")
 			}
 			for _, call := range mock.calls {
-				if call != "ListMetadataObjects" {
+				if call != "Objects" {
 					t.Fatalf("data source performed unexpected operation %s", call)
 				}
 			}

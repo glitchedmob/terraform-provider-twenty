@@ -143,11 +143,11 @@ func TestObjectResourceCRUD(t *testing.T) {
 	var wire struct {
 		Input struct{ Object map[string]any }
 	}
-	if err := json.Unmarshal(mock.inputs["CreateMetadataObject"], &wire); err != nil {
+	if err := json.Unmarshal(mock.inputs["CreateOneObject"], &wire); err != nil {
 		t.Fatal(err)
 	}
 	if len(wire.Input.Object) != 8 || wire.Input.Object["isRemote"] != false || wire.Input.Object["isLabelSyncedWithName"] != false {
-		t.Fatalf("unexpected create options: %s", mock.inputs["CreateMetadataObject"])
+		t.Fatalf("unexpected create options: %s", mock.inputs["CreateOneObject"])
 	}
 	read := resource.ReadResponse{State: created.State}
 	r.Read(t.Context(), resource.ReadRequest{State: created.State}, &read)
@@ -174,17 +174,18 @@ func TestObjectResourceCRUD(t *testing.T) {
 	var updateWire struct {
 		Input struct{ Update map[string]any }
 	}
-	_ = json.Unmarshal(mock.inputs["UpdateMetadataObject"], &updateWire)
+	_ = json.Unmarshal(mock.inputs["UpdateOneObject"], &updateWire)
 	if len(updateWire.Input.Update) != 5 || updateWire.Input.Update["description"] != nil || updateWire.Input.Update["icon"] != nil || updateWire.Input.Update["isLabelSyncedWithName"] != false {
-		t.Fatalf("unexpected update: %s", mock.inputs["UpdateMetadataObject"])
+		t.Fatalf("unexpected update: %s", mock.inputs["UpdateOneObject"])
 	}
 	deleted := resource.DeleteResponse{State: updated.State}
+	beforeDelete := len(mock.calls)
 	r.Delete(t.Context(), resource.DeleteRequest{State: updated.State}, &deleted)
 	if deleted.Diagnostics.HasError() || !deleted.State.Raw.IsNull() {
 		t.Fatal("delete failed", deleted.Diagnostics)
 	}
-	if slices.Contains(mock.calls, "UpdateOneObject") {
-		t.Fatal("must not deactivate before deletion")
+	if slices.Contains(mock.calls[beforeDelete:], "UpdateOneObject") || !slices.Contains(mock.calls[beforeDelete:], "DeleteOneObject") {
+		t.Fatal("must delete directly without deactivation")
 	}
 }
 func TestObjectResourceCreateConflicts(t *testing.T) {
@@ -195,7 +196,7 @@ func TestObjectResourceCreateConflicts(t *testing.T) {
 		model.ID, model.NameSingular, model.NamePlural = types.StringUnknown(), types.StringValue(names[0]), types.StringValue(names[1])
 		resp := resource.CreateResponse{State: objectResourceState(t, model)}
 		mockObjectResource(mock).Create(t.Context(), resource.CreateRequest{Plan: objectResourcePlan(t, model)}, &resp)
-		if !resp.Diagnostics.HasError() || slices.Contains(mock.calls, "CreateMetadataObject") {
+		if !resp.Diagnostics.HasError() || slices.Contains(mock.calls, "CreateOneObject") {
 			t.Fatalf("name collision not rejected: %v", names)
 		}
 	}
@@ -205,12 +206,12 @@ func TestObjectResourceCreateFailureRetention(t *testing.T) {
 		t.Run(failure, func(t *testing.T) {
 			mock := newMetadataMock()
 			mock.change = func(op string, data map[string]any) {
-				if op != "CreateMetadataObject" {
+				if op != "CreateOneObject" {
 					return
 				}
 				switch failure {
 				case "read":
-					mock.fail["ListMetadataObjects"] = errors.New("private-secret")
+					mock.fail["Objects"] = errors.New("private-secret")
 				case "wrong values":
 					mock.objects[len(mock.objects)-1]["labelSingular"] = "Wrong"
 				case "wrong ownership":
@@ -220,7 +221,7 @@ func TestObjectResourceCreateFailureRetention(t *testing.T) {
 				}
 			}
 			if failure == "ambiguous" {
-				mock.failAfter["CreateMetadataObject"] = errors.New("private-secret")
+				mock.failAfter["CreateOneObject"] = errors.New("private-secret")
 			}
 			model := objectResourceTestModel()
 			model.ID, model.NameSingular, model.NamePlural = types.StringUnknown(), types.StringValue("invoice"), types.StringValue("invoices")
@@ -248,7 +249,7 @@ func TestObjectResourceCreateFailureRetention(t *testing.T) {
 				t.Fatal("confirmed UUID was lost")
 			}
 			// Retrying an uncertain create must stop on the existing name, not adopt it.
-			delete(mock.fail, "ListMetadataObjects")
+			delete(mock.fail, "Objects")
 			again := resource.CreateResponse{State: state}
 			before := len(mock.objects)
 			r.Create(t.Context(), resource.CreateRequest{Plan: objectResourcePlan(t, model)}, &again)
@@ -299,7 +300,7 @@ func TestObjectResourceProtectionAndRead(t *testing.T) {
 					t.Fatal("built-in delete accepted")
 				}
 			}
-			if slices.Contains(mock.calls, "UpdateMetadataObject") || slices.Contains(mock.calls, "DeleteMetadataObject") {
+			if slices.Contains(mock.calls, "UpdateOneObject") || slices.Contains(mock.calls, "DeleteOneObject") {
 				t.Fatal("built-in metadata mutated")
 			}
 		})
@@ -338,7 +339,7 @@ func TestObjectResourceReadErrorsRetainState(t *testing.T) {
 			case "later page":
 				mock.pageSize = 1
 				mock.change = func(op string, data map[string]any) {
-					if op == "ListMetadataObjects" {
+					if op == "Objects" {
 						mock.fail[op] = errors.New("private-secret")
 					}
 				}
@@ -387,19 +388,19 @@ func TestObjectResourceUpdateFailuresRetainState(t *testing.T) {
 				ctx, cancel = context.WithCancel(ctx)
 				cancel()
 			case "pre-read":
-				mock.fail["ListMetadataObjects"] = errors.New("private-secret")
+				mock.fail["Objects"] = errors.New("private-secret")
 			case "partial":
-				mock.failAfter["UpdateMetadataObject"] = errors.New("private-secret")
+				mock.failAfter["UpdateOneObject"] = errors.New("private-secret")
 			}
 			mock.change = func(op string, data map[string]any) {
-				if op != "UpdateMetadataObject" {
+				if op != "UpdateOneObject" {
 					return
 				}
 				switch failure {
 				case "mutation id":
 					data["updateOneObject"] = map[string]any{"id": metadataTestStandardObjectID}
 				case "readback":
-					mock.fail["ListMetadataObjects"] = errors.New("private-secret")
+					mock.fail["Objects"] = errors.New("private-secret")
 				case "values":
 					mock.objects[1]["labelSingular"] = "Wrong"
 				case "ownership":
@@ -412,7 +413,7 @@ func TestObjectResourceUpdateFailuresRetainState(t *testing.T) {
 			if !resp.Diagnostics.HasError() || !resp.State.Raw.Equal(state.Raw) {
 				t.Fatal("update failure lost prior state", resp.Diagnostics)
 			}
-			if slices.Contains([]string{"immutable plan", "immutable server", "invalid id", "identity", "cancelled", "pre-read"}, failure) && slices.Contains(mock.calls, "UpdateMetadataObject") {
+			if slices.Contains([]string{"immutable plan", "immutable server", "invalid id", "identity", "cancelled", "pre-read"}, failure) && slices.Contains(mock.calls, "UpdateOneObject") {
 				t.Fatal("unsafe mutation")
 			}
 		})
@@ -436,19 +437,19 @@ func TestObjectResourceDeleteFailuresRetainState(t *testing.T) {
 				ctx, cancel = context.WithCancel(ctx)
 				cancel()
 			case "pre-read":
-				mock.fail["ListMetadataObjects"] = errors.New("private-secret")
+				mock.fail["Objects"] = errors.New("private-secret")
 			case "partial":
-				mock.failAfter["DeleteMetadataObject"] = errors.New("private-secret")
+				mock.failAfter["DeleteOneObject"] = errors.New("private-secret")
 			}
 			mock.change = func(op string, data map[string]any) {
-				if op != "DeleteMetadataObject" {
+				if op != "DeleteOneObject" {
 					return
 				}
 				switch failure {
 				case "mutation id":
 					data["deleteOneObject"] = map[string]any{"id": metadataTestStandardObjectID}
 				case "readback":
-					mock.fail["ListMetadataObjects"] = errors.New("private-secret")
+					mock.fail["Objects"] = errors.New("private-secret")
 				case "still present":
 					mock.objects = append(mock.objects, metadataObjectFixture(metadataTestObjectID, "subscription"))
 				}
@@ -459,7 +460,7 @@ func TestObjectResourceDeleteFailuresRetainState(t *testing.T) {
 			if !resp.Diagnostics.HasError() || !resp.State.Raw.Equal(state.Raw) {
 				t.Fatal("delete failure lost state", resp.Diagnostics)
 			}
-			if slices.Contains([]string{"invalid id", "identity", "cancelled", "pre-read"}, failure) && slices.Contains(mock.calls, "DeleteMetadataObject") {
+			if slices.Contains([]string{"invalid id", "identity", "cancelled", "pre-read"}, failure) && slices.Contains(mock.calls, "DeleteOneObject") {
 				t.Fatal("unsafe mutation")
 			}
 		})
@@ -488,7 +489,7 @@ func TestObjectResourceMutationLock(t *testing.T) {
 	r.mutationLock.Unlock()
 	select {
 	case resp := <-done:
-		if !resp.Diagnostics.HasError() || slices.Contains(mock.calls, "DeleteMetadataObject") {
+		if !resp.Diagnostics.HasError() || slices.Contains(mock.calls, "DeleteOneObject") {
 			t.Fatal("cancelled waiter mutated object")
 		}
 	case <-time.After(time.Second):

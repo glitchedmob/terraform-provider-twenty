@@ -87,9 +87,9 @@ func (m *metadataMock) MakeRequest(ctx context.Context, req *graphql.Request, re
 	}
 	data := map[string]any{}
 	switch req.OpName {
-	case "ListMetadataObjects", "ListMetadataFields":
+	case "Objects", "Fields":
 		root, items := "objects", m.objects
-		if req.OpName == "ListMetadataFields" {
+		if req.OpName == "Fields" {
 			root, items = "fields", []map[string]any{}
 			for _, field := range m.fields {
 				if vars.Filter.Id.Eq != "" && !strings.EqualFold(field["id"].(string), vars.Filter.Id.Eq) {
@@ -122,7 +122,7 @@ func (m *metadataMock) MakeRequest(ctx context.Context, req *graphql.Request, re
 			cursor = strconv.Itoa(end)
 		}
 		data[root] = map[string]any{"edges": edges, "pageInfo": map[string]any{"hasNextPage": end < len(items), "endCursor": cursor}}
-	case "CreateMetadataObject":
+	case "CreateOneObject":
 		object := metadataObjectFixture(uuid.NewString(), vars.Input.Object["nameSingular"].(string))
 		for k, v := range vars.Input.Object {
 			object[k] = v
@@ -137,16 +137,16 @@ func (m *metadataMock) MakeRequest(ctx context.Context, req *graphql.Request, re
 		}
 		m.objects = append(m.objects, object)
 		data["createOneObject"] = map[string]any{"id": object["id"]}
-	case "CreateMetadataField":
+	case "CreateOneField":
 		field := metadataFieldFixture(uuid.NewString(), vars.Input.Field["objectMetadataId"].(string), vars.Input.Field["name"].(string))
 		for k, v := range vars.Input.Field {
 			field[k] = v
 		}
 		m.fields = append(m.fields, field)
 		data["createOneField"] = map[string]any{"id": field["id"]}
-	case "UpdateMetadataObject", "UpdateMetadataField":
+	case "UpdateOneObject", "UpdateOneField":
 		root, items := "updateOneObject", m.objects
-		if req.OpName == "UpdateMetadataField" {
+		if req.OpName == "UpdateOneField" {
 			root, items = "updateOneField", m.fields
 		}
 		for _, item := range items {
@@ -157,13 +157,13 @@ func (m *metadataMock) MakeRequest(ctx context.Context, req *graphql.Request, re
 				data[root] = map[string]any{"id": item["id"]}
 			}
 		}
-	case "DeleteMetadataObject":
+	case "DeleteOneObject":
 		data["deleteOneObject"] = map[string]any{"id": vars.Input.Id}
 		m.objects = slices.DeleteFunc(m.objects, func(item map[string]any) bool { return strings.EqualFold(item["id"].(string), vars.Input.Id) })
 		m.fields = slices.DeleteFunc(m.fields, func(item map[string]any) bool {
 			return strings.EqualFold(item["objectMetadataId"].(string), vars.Input.Id)
 		})
-	case "DeleteMetadataField":
+	case "DeleteOneField":
 		data["deleteOneField"] = map[string]any{"id": vars.Input.Id}
 		m.fields = slices.DeleteFunc(m.fields, func(item map[string]any) bool { return strings.EqualFold(item["id"].(string), vars.Input.Id) })
 	default:
@@ -186,7 +186,7 @@ func TestMetadataPaginationAndScope(t *testing.T) {
 	mock := newMetadataMock()
 	mock.pageSize = 1
 	objects, err := readMetadataObjects(t.Context(), mock)
-	if err != nil || len(objects) != 2 || slices.Index(mock.calls, "ListMetadataObjects") < 0 {
+	if err != nil || len(objects) != 2 || slices.Index(mock.calls, "Objects") < 0 {
 		t.Fatalf("paginated object read: %v", err)
 	}
 	fields, err := readMetadataFields(t.Context(), mock, metadataTestObjectID)

@@ -36,7 +36,7 @@ func mockFieldResource(mock *metadataMock) *fieldResource {
 func fieldNoMutation(t *testing.T, mock *metadataMock) {
 	t.Helper()
 	for _, op := range mock.calls {
-		if strings.HasPrefix(op, "CreateMetadata") || strings.HasPrefix(op, "UpdateMetadata") || strings.HasPrefix(op, "DeleteMetadata") {
+		if strings.HasPrefix(op, "CreateOne") || strings.HasPrefix(op, "UpdateOne") || strings.HasPrefix(op, "DeleteOne") {
 			t.Fatalf("unexpected write: %s", op)
 		}
 	}
@@ -162,7 +162,7 @@ func TestFieldResourceCRUD(t *testing.T) {
 			var input struct {
 				Input struct{ Field map[string]any }
 			}
-			if err := json.Unmarshal(mock.inputs["CreateMetadataField"], &input); err != nil {
+			if err := json.Unmarshal(mock.inputs["CreateOneField"], &input); err != nil {
 				t.Fatal(err)
 			}
 			f := input.Input.Field
@@ -198,7 +198,7 @@ func TestFieldResourceCRUD(t *testing.T) {
 			var updateInput struct {
 				Input struct{ Update map[string]any }
 			}
-			_ = json.Unmarshal(mock.inputs["UpdateMetadataField"], &updateInput)
+			_ = json.Unmarshal(mock.inputs["UpdateOneField"], &updateInput)
 			if len(updateInput.Input.Update) != 4 || updateInput.Input.Update["description"] != nil || updateInput.Input.Update["icon"] != nil {
 				t.Fatal("update must only manage label, strings, label sync", updateInput)
 			}
@@ -213,7 +213,7 @@ func TestFieldResourceCRUD(t *testing.T) {
 			if del.Diagnostics.HasError() || !del.State.Raw.IsNull() {
 				t.Fatal("delete failed", del.Diagnostics)
 			}
-			if slices.Contains(mock.calls, "UpdateMetadataField") || !slices.Contains(mock.calls, "DeleteMetadataField") {
+			if slices.Contains(mock.calls, "UpdateOneField") || !slices.Contains(mock.calls, "DeleteOneField") {
 				t.Fatal("delete must not deactivate first")
 			}
 		})
@@ -395,10 +395,10 @@ func TestFieldResourceAmbiguousCreateNeverAdopts(t *testing.T) {
 		t.Run(mode, func(t *testing.T) {
 			mock := newMetadataMock()
 			if mode == "error after write" {
-				mock.failAfter["CreateMetadataField"] = errors.New("private-secret")
+				mock.failAfter["CreateOneField"] = errors.New("private-secret")
 			} else {
 				mock.change = func(op string, data map[string]any) {
-					if op == "CreateMetadataField" {
+					if op == "CreateOneField" {
 						data["createOneField"] = map[string]any{}
 					}
 				}
@@ -429,7 +429,7 @@ func TestFieldResourceAmbiguousCreateNeverAdopts(t *testing.T) {
 			// Only the scoped conflict preflight reads fields. There is no name adoption read.
 			count := 0
 			for _, op := range mock.calls {
-				if op == "ListMetadataFields" {
+				if op == "Fields" {
 					count++
 				}
 			}
@@ -447,7 +447,7 @@ func TestFieldResourcePostWriteFailuresRetainID(t *testing.T) {
 				r := mockFieldResource(mock)
 				model := fieldResourceTestModel()
 				model.DeletionProtection = types.BoolValue(false)
-				mutation := map[string]string{"create": "CreateMetadataField", "update": "UpdateMetadataField", "delete": "DeleteMetadataField"}[op]
+				mutation := map[string]string{"create": "CreateOneField", "update": "UpdateOneField", "delete": "DeleteOneField"}[op]
 				if failure == "mutation error" {
 					mock.failAfter[mutation] = errors.New("private-secret")
 				}
@@ -456,7 +456,7 @@ func TestFieldResourcePostWriteFailuresRetainID(t *testing.T) {
 						return
 					}
 					if failure == "read error" {
-						mock.fail["ListMetadataFields"] = errors.New("private-secret")
+						mock.fail["Fields"] = errors.New("private-secret")
 					}
 					if failure == "mismatch" {
 						switch op {
@@ -518,7 +518,7 @@ func TestFieldResourcePostWriteFailuresRetainID(t *testing.T) {
 func TestFieldResourceIncompleteReadRetainsState(t *testing.T) {
 	mock := newMetadataMock()
 	mock.change = func(op string, data map[string]any) {
-		if op == "ListMetadataFields" {
+		if op == "Fields" {
 			delete(data["fields"].(map[string]any), "pageInfo")
 		}
 	}
@@ -541,7 +541,7 @@ func TestFieldResourceCancellationAndIdentity(t *testing.T) {
 					mock.workspace.workspace["id"] = metadataTestObjectID
 				} else {
 					mock.change = func(current string, _ map[string]any) {
-						if current == "ListMetadataFields" {
+						if current == "Fields" {
 							cancel()
 						}
 					}
@@ -602,10 +602,10 @@ func TestFieldResourceWrongMutationIDRetainsState(t *testing.T) {
 		t.Run(op, func(t *testing.T) {
 			mock := newMetadataMock()
 			mock.change = func(current string, data map[string]any) {
-				if current == "UpdateMetadataField" {
+				if current == "UpdateOneField" {
 					data["updateOneField"] = map[string]any{"id": metadataTestStandardFieldID}
 				}
-				if current == "DeleteMetadataField" {
+				if current == "DeleteOneField" {
 					data["deleteOneField"] = map[string]any{"id": metadataTestStandardFieldID}
 				}
 			}

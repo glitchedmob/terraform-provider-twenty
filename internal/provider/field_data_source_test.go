@@ -182,15 +182,15 @@ func TestFieldDataSourceMissingAndFailures(t *testing.T) {
 		"case sensitive name": func(m *metadataMock, c *fieldDataSourceModel) { c.Name = types.StringValue("Tier") },
 		"missing parent":      func(m *metadataMock, c *fieldDataSourceModel) { m.objects = m.objects[:1] },
 		"field list failure": func(m *metadataMock, c *fieldDataSourceModel) {
-			m.fail["ListMetadataFields"] = errors.New("private-secret")
+			m.fail["Fields"] = errors.New("private-secret")
 		},
 		"parent list failure": func(m *metadataMock, c *fieldDataSourceModel) {
-			m.fail["ListMetadataObjects"] = errors.New("private-secret")
+			m.fail["Objects"] = errors.New("private-secret")
 		},
 		"malformed field": func(m *metadataMock, c *fieldDataSourceModel) { delete(m.fields[1], "description") },
 		"incomplete pagination": func(m *metadataMock, c *fieldDataSourceModel) {
 			m.change = func(op string, data map[string]any) {
-				if op == "ListMetadataFields" {
+				if op == "Fields" {
 					delete(data["fields"].(map[string]any), "pageInfo")
 				}
 			}

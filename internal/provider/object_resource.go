@@ -185,7 +185,7 @@ func (r *objectResource) Create(ctx context.Context, req resource.CreateRequest,
 		metadataError(&resp.Diagnostics, "Create", "Object", err)
 		return
 	}
-	response, err := client.CreateMetadataObject(ctx, metadataQueryClient{r.client}, client.CreateOneObjectInput{Object: client.CreateObjectInput{
+	response, err := client.CreateOneObject(ctx, metadataQueryClient{r.client}, client.CreateOneObjectInput{Object: client.CreateObjectInput{
 		NameSingular: plan.NameSingular.ValueString(), NamePlural: plan.NamePlural.ValueString(),
 		LabelSingular: plan.LabelSingular.ValueString(), LabelPlural: plan.LabelPlural.ValueString(),
 		Description: roleStringInput(plan.Description), Icon: roleStringInput(plan.Icon),
@@ -277,7 +277,7 @@ func (r *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 		metadataError(&resp.Diagnostics, "Update", "Object", err)
 		return
 	}
-	response, err := client.UpdateMetadataObject(ctx, metadataQueryClient{r.client}, client.UpdateOneObjectInput{Id: state.ID.ValueString(), Update: client.UpdateObjectPayload{
+	response, err := client.UpdateOneObject(ctx, metadataQueryClient{r.client}, client.UpdateOneObjectInput{Id: state.ID.ValueString(), Update: client.UpdateObjectPayload{
 		LabelSingular: nullable.NewNullableWithValue(plan.LabelSingular.ValueString()), LabelPlural: nullable.NewNullableWithValue(plan.LabelPlural.ValueString()),
 		Description: roleStringInput(plan.Description), Icon: roleStringInput(plan.Icon), IsLabelSyncedWithName: nullable.NewNullableWithValue(false),
 	}})
@@ -337,7 +337,7 @@ func (r *objectResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		metadataError(&resp.Diagnostics, "Delete", "Object", err)
 		return
 	}
-	response, err := client.DeleteMetadataObject(ctx, metadataQueryClient{r.client}, client.DeleteOneObjectInput{Id: state.ID.ValueString()})
+	response, err := client.DeleteOneObject(ctx, metadataQueryClient{r.client}, client.DeleteOneObjectInput{Id: state.ID.ValueString()})
 	if err == nil && !strings.EqualFold(response.DeleteOneObject.Id, state.ID.ValueString()) {
 		err = errInvalidMetadataResponse
 	}

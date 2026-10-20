@@ -60,16 +60,16 @@ func (c metadataQueryClient) MakeRequest(ctx context.Context, req *graphql.Reque
 		return errInvalidMetadataResponse
 	}
 	switch req.OpName {
-	case "ListMetadataObjects", "ListMetadataFields":
+	case "Objects", "Fields":
 		root, field := "objects", false
-		if req.OpName == "ListMetadataFields" {
+		if req.OpName == "Fields" {
 			root, field = "fields", true
 		}
 		if err := validateMetadataConnection(data[root], field); err != nil {
 			return err
 		}
-	case "CreateMetadataObject", "UpdateMetadataObject", "DeleteMetadataObject", "CreateMetadataField", "UpdateMetadataField", "DeleteMetadataField":
-		root := map[string]string{"CreateMetadataObject": "createOneObject", "UpdateMetadataObject": "updateOneObject", "DeleteMetadataObject": "deleteOneObject", "CreateMetadataField": "createOneField", "UpdateMetadataField": "updateOneField", "DeleteMetadataField": "deleteOneField"}[req.OpName]
+	case "CreateOneObject", "UpdateOneObject", "DeleteOneObject", "CreateOneField", "UpdateOneField", "DeleteOneField":
+		root := map[string]string{"CreateOneObject": "createOneObject", "UpdateOneObject": "updateOneObject", "DeleteOneObject": "deleteOneObject", "CreateOneField": "createOneField", "UpdateOneField": "updateOneField", "DeleteOneField": "deleteOneField"}[req.OpName]
 		var item map[string]json.RawMessage
 		if json.Unmarshal(data[root], &item) != nil || !workspaceWireUUID(item["id"]) {
 			return errInvalidMetadataResponse
@@ -165,7 +165,7 @@ func readMetadataObjects(ctx context.Context, api graphql.Client) ([]client.Obje
 	paging := client.CursorPaging{First: nullable.NewNullableWithValue(100)}
 	seen, cursors := map[string]bool{}, map[string]bool{}
 	for {
-		response, err := client.ListMetadataObjects(ctx, metadataQueryClient{api}, paging)
+		response, err := client.Objects(ctx, metadataQueryClient{api}, paging)
 		if err != nil {
 			return nil, err
 		}
@@ -210,7 +210,7 @@ func listMetadataFields(ctx context.Context, api graphql.Client, filter client.F
 	paging := client.CursorPaging{First: nullable.NewNullableWithValue(100)}
 	seen, cursors := map[string]bool{}, map[string]bool{}
 	for {
-		response, err := client.ListMetadataFields(ctx, metadataQueryClient{api}, filter, paging)
+		response, err := client.Fields(ctx, metadataQueryClient{api}, filter, paging)
 		if err != nil {
 			return nil, err
 		}

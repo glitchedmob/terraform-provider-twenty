@@ -149,42 +149,6 @@ func (v *CreateFieldInput) GetSettings() nullable.Nullable[json.RawMessage] { re
 // GetType returns CreateFieldInput.Type, and is useful for accessing the field via an interface.
 func (v *CreateFieldInput) GetType() FieldMetadataType { return v.Type }
 
-// CreateMetadataFieldCreateOneField includes the requested fields of the GraphQL type Field.
-type CreateMetadataFieldCreateOneField struct {
-	Id string `json:"id"`
-}
-
-// GetId returns CreateMetadataFieldCreateOneField.Id, and is useful for accessing the field via an interface.
-func (v *CreateMetadataFieldCreateOneField) GetId() string { return v.Id }
-
-// CreateMetadataFieldResponse is returned by CreateMetadataField on success.
-type CreateMetadataFieldResponse struct {
-	CreateOneField CreateMetadataFieldCreateOneField `json:"createOneField"`
-}
-
-// GetCreateOneField returns CreateMetadataFieldResponse.CreateOneField, and is useful for accessing the field via an interface.
-func (v *CreateMetadataFieldResponse) GetCreateOneField() CreateMetadataFieldCreateOneField {
-	return v.CreateOneField
-}
-
-// CreateMetadataObjectCreateOneObject includes the requested fields of the GraphQL type Object.
-type CreateMetadataObjectCreateOneObject struct {
-	Id string `json:"id"`
-}
-
-// GetId returns CreateMetadataObjectCreateOneObject.Id, and is useful for accessing the field via an interface.
-func (v *CreateMetadataObjectCreateOneObject) GetId() string { return v.Id }
-
-// CreateMetadataObjectResponse is returned by CreateMetadataObject on success.
-type CreateMetadataObjectResponse struct {
-	CreateOneObject CreateMetadataObjectCreateOneObject `json:"createOneObject"`
-}
-
-// GetCreateOneObject returns CreateMetadataObjectResponse.CreateOneObject, and is useful for accessing the field via an interface.
-func (v *CreateMetadataObjectResponse) GetCreateOneObject() CreateMetadataObjectCreateOneObject {
-	return v.CreateOneObject
-}
-
 type CreateObjectInput struct {
 	Color                           nullable.Nullable[string]          `json:"color,omitempty"`
 	Description                     nullable.Nullable[string]          `json:"description,omitempty"`
@@ -246,6 +210,14 @@ func (v *CreateObjectInput) GetShortcut() nullable.Nullable[string] { return v.S
 // GetSkipNameField returns CreateObjectInput.SkipNameField, and is useful for accessing the field via an interface.
 func (v *CreateObjectInput) GetSkipNameField() nullable.Nullable[bool] { return v.SkipNameField }
 
+// CreateOneFieldCreateOneField includes the requested fields of the GraphQL type Field.
+type CreateOneFieldCreateOneField struct {
+	Id string `json:"id"`
+}
+
+// GetId returns CreateOneFieldCreateOneField.Id, and is useful for accessing the field via an interface.
+func (v *CreateOneFieldCreateOneField) GetId() string { return v.Id }
+
 type CreateOneFieldMetadataInput struct {
 	// The record to create
 	Field CreateFieldInput `json:"field"`
@@ -254,6 +226,24 @@ type CreateOneFieldMetadataInput struct {
 // GetField returns CreateOneFieldMetadataInput.Field, and is useful for accessing the field via an interface.
 func (v *CreateOneFieldMetadataInput) GetField() CreateFieldInput { return v.Field }
 
+// CreateOneFieldResponse is returned by CreateOneField on success.
+type CreateOneFieldResponse struct {
+	CreateOneField CreateOneFieldCreateOneField `json:"createOneField"`
+}
+
+// GetCreateOneField returns CreateOneFieldResponse.CreateOneField, and is useful for accessing the field via an interface.
+func (v *CreateOneFieldResponse) GetCreateOneField() CreateOneFieldCreateOneField {
+	return v.CreateOneField
+}
+
+// CreateOneObjectCreateOneObject includes the requested fields of the GraphQL type Object.
+type CreateOneObjectCreateOneObject struct {
+	Id string `json:"id"`
+}
+
+// GetId returns CreateOneObjectCreateOneObject.Id, and is useful for accessing the field via an interface.
+func (v *CreateOneObjectCreateOneObject) GetId() string { return v.Id }
+
 type CreateOneObjectInput struct {
 	// The object to create
 	Object CreateObjectInput `json:"object"`
@@ -261,6 +251,16 @@ type CreateOneObjectInput struct {
 
 // GetObject returns CreateOneObjectInput.Object, and is useful for accessing the field via an interface.
 func (v *CreateOneObjectInput) GetObject() CreateObjectInput { return v.Object }
+
+// CreateOneObjectResponse is returned by CreateOneObject on success.
+type CreateOneObjectResponse struct {
+	CreateOneObject CreateOneObjectCreateOneObject `json:"createOneObject"`
+}
+
+// GetCreateOneObject returns CreateOneObjectResponse.CreateOneObject, and is useful for accessing the field via an interface.
+func (v *CreateOneObjectResponse) GetCreateOneObject() CreateOneObjectCreateOneObject {
+	return v.CreateOneObject
+}
 
 // CreateOneRoleResponse is returned by CreateOneRole on success.
 type CreateOneRoleResponse struct {
@@ -619,41 +619,13 @@ func (v *CursorPaging) GetFirst() nullable.Nullable[int] { return v.First }
 // GetLast returns CursorPaging.Last, and is useful for accessing the field via an interface.
 func (v *CursorPaging) GetLast() nullable.Nullable[int] { return v.Last }
 
-// DeleteMetadataFieldDeleteOneField includes the requested fields of the GraphQL type Field.
-type DeleteMetadataFieldDeleteOneField struct {
+// DeleteOneFieldDeleteOneField includes the requested fields of the GraphQL type Field.
+type DeleteOneFieldDeleteOneField struct {
 	Id string `json:"id"`
 }
 
-// GetId returns DeleteMetadataFieldDeleteOneField.Id, and is useful for accessing the field via an interface.
-func (v *DeleteMetadataFieldDeleteOneField) GetId() string { return v.Id }
-
-// DeleteMetadataFieldResponse is returned by DeleteMetadataField on success.
-type DeleteMetadataFieldResponse struct {
-	DeleteOneField DeleteMetadataFieldDeleteOneField `json:"deleteOneField"`
-}
-
-// GetDeleteOneField returns DeleteMetadataFieldResponse.DeleteOneField, and is useful for accessing the field via an interface.
-func (v *DeleteMetadataFieldResponse) GetDeleteOneField() DeleteMetadataFieldDeleteOneField {
-	return v.DeleteOneField
-}
-
-// DeleteMetadataObjectDeleteOneObject includes the requested fields of the GraphQL type Object.
-type DeleteMetadataObjectDeleteOneObject struct {
-	Id string `json:"id"`
-}
-
-// GetId returns DeleteMetadataObjectDeleteOneObject.Id, and is useful for accessing the field via an interface.
-func (v *DeleteMetadataObjectDeleteOneObject) GetId() string { return v.Id }
-
-// DeleteMetadataObjectResponse is returned by DeleteMetadataObject on success.
-type DeleteMetadataObjectResponse struct {
-	DeleteOneObject DeleteMetadataObjectDeleteOneObject `json:"deleteOneObject"`
-}
-
-// GetDeleteOneObject returns DeleteMetadataObjectResponse.DeleteOneObject, and is useful for accessing the field via an interface.
-func (v *DeleteMetadataObjectResponse) GetDeleteOneObject() DeleteMetadataObjectDeleteOneObject {
-	return v.DeleteOneObject
-}
+// GetId returns DeleteOneFieldDeleteOneField.Id, and is useful for accessing the field via an interface.
+func (v *DeleteOneFieldDeleteOneField) GetId() string { return v.Id }
 
 type DeleteOneFieldInput struct {
 	// The id of the field to delete.
@@ -663,6 +635,24 @@ type DeleteOneFieldInput struct {
 // GetId returns DeleteOneFieldInput.Id, and is useful for accessing the field via an interface.
 func (v *DeleteOneFieldInput) GetId() string { return v.Id }
 
+// DeleteOneFieldResponse is returned by DeleteOneField on success.
+type DeleteOneFieldResponse struct {
+	DeleteOneField DeleteOneFieldDeleteOneField `json:"deleteOneField"`
+}
+
+// GetDeleteOneField returns DeleteOneFieldResponse.DeleteOneField, and is useful for accessing the field via an interface.
+func (v *DeleteOneFieldResponse) GetDeleteOneField() DeleteOneFieldDeleteOneField {
+	return v.DeleteOneField
+}
+
+// DeleteOneObjectDeleteOneObject includes the requested fields of the GraphQL type Object.
+type DeleteOneObjectDeleteOneObject struct {
+	Id string `json:"id"`
+}
+
+// GetId returns DeleteOneObjectDeleteOneObject.Id, and is useful for accessing the field via an interface.
+func (v *DeleteOneObjectDeleteOneObject) GetId() string { return v.Id }
+
 type DeleteOneObjectInput struct {
 	// The id of the record to delete.
 	Id string `json:"id"`
@@ -670,6 +660,16 @@ type DeleteOneObjectInput struct {
 
 // GetId returns DeleteOneObjectInput.Id, and is useful for accessing the field via an interface.
 func (v *DeleteOneObjectInput) GetId() string { return v.Id }
+
+// DeleteOneObjectResponse is returned by DeleteOneObject on success.
+type DeleteOneObjectResponse struct {
+	DeleteOneObject DeleteOneObjectDeleteOneObject `json:"deleteOneObject"`
+}
+
+// GetDeleteOneObject returns DeleteOneObjectResponse.DeleteOneObject, and is useful for accessing the field via an interface.
+func (v *DeleteOneObjectResponse) GetDeleteOneObject() DeleteOneObjectDeleteOneObject {
+	return v.DeleteOneObject
+}
 
 // DeleteOneRoleResponse is returned by DeleteOneRole on success.
 type DeleteOneRoleResponse struct {
@@ -935,6 +935,59 @@ func (v *FieldPermissionInput) GetFieldMetadataId() string { return v.FieldMetad
 
 // GetObjectMetadataId returns FieldPermissionInput.ObjectMetadataId, and is useful for accessing the field via an interface.
 func (v *FieldPermissionInput) GetObjectMetadataId() string { return v.ObjectMetadataId }
+
+// FieldsFieldsFieldConnection includes the requested fields of the GraphQL type FieldConnection.
+type FieldsFieldsFieldConnection struct {
+	// Array of edges.
+	Edges []FieldsFieldsFieldConnectionEdgesFieldEdge `json:"edges"`
+	// Paging information
+	PageInfo FieldsFieldsFieldConnectionPageInfo `json:"pageInfo"`
+}
+
+// GetEdges returns FieldsFieldsFieldConnection.Edges, and is useful for accessing the field via an interface.
+func (v *FieldsFieldsFieldConnection) GetEdges() []FieldsFieldsFieldConnectionEdgesFieldEdge {
+	return v.Edges
+}
+
+// GetPageInfo returns FieldsFieldsFieldConnection.PageInfo, and is useful for accessing the field via an interface.
+func (v *FieldsFieldsFieldConnection) GetPageInfo() FieldsFieldsFieldConnectionPageInfo {
+	return v.PageInfo
+}
+
+// FieldsFieldsFieldConnectionEdgesFieldEdge includes the requested fields of the GraphQL type FieldEdge.
+type FieldsFieldsFieldConnectionEdgesFieldEdge struct {
+	// The node containing the Field
+	Node FieldMetadata `json:"node"`
+}
+
+// GetNode returns FieldsFieldsFieldConnectionEdgesFieldEdge.Node, and is useful for accessing the field via an interface.
+func (v *FieldsFieldsFieldConnectionEdgesFieldEdge) GetNode() FieldMetadata { return v.Node }
+
+// FieldsFieldsFieldConnectionPageInfo includes the requested fields of the GraphQL type PageInfo.
+type FieldsFieldsFieldConnectionPageInfo struct {
+	// true if paging forward and there are more records.
+	HasNextPage nullable.Nullable[bool] `json:"hasNextPage"`
+	// The cursor of the last returned record.
+	EndCursor nullable.Nullable[string] `json:"endCursor"`
+}
+
+// GetHasNextPage returns FieldsFieldsFieldConnectionPageInfo.HasNextPage, and is useful for accessing the field via an interface.
+func (v *FieldsFieldsFieldConnectionPageInfo) GetHasNextPage() nullable.Nullable[bool] {
+	return v.HasNextPage
+}
+
+// GetEndCursor returns FieldsFieldsFieldConnectionPageInfo.EndCursor, and is useful for accessing the field via an interface.
+func (v *FieldsFieldsFieldConnectionPageInfo) GetEndCursor() nullable.Nullable[string] {
+	return v.EndCursor
+}
+
+// FieldsResponse is returned by Fields on success.
+type FieldsResponse struct {
+	Fields FieldsFieldsFieldConnection `json:"fields"`
+}
+
+// GetFields returns FieldsResponse.Fields, and is useful for accessing the field via an interface.
+func (v *FieldsResponse) GetFields() FieldsFieldsFieldConnection { return v.Fields }
 
 // FindManyApplicationsFindManyApplicationsApplication includes the requested fields of the GraphQL type Application.
 type FindManyApplicationsFindManyApplicationsApplication struct {
@@ -1583,120 +1636,6 @@ func (v *Invitation) GetExpiresAt() time.Time { return v.ExpiresAt }
 // GetRoleId returns Invitation.RoleId, and is useful for accessing the field via an interface.
 func (v *Invitation) GetRoleId() nullable.Nullable[string] { return v.RoleId }
 
-// ListMetadataFieldsFieldsFieldConnection includes the requested fields of the GraphQL type FieldConnection.
-type ListMetadataFieldsFieldsFieldConnection struct {
-	// Array of edges.
-	Edges []ListMetadataFieldsFieldsFieldConnectionEdgesFieldEdge `json:"edges"`
-	// Paging information
-	PageInfo ListMetadataFieldsFieldsFieldConnectionPageInfo `json:"pageInfo"`
-}
-
-// GetEdges returns ListMetadataFieldsFieldsFieldConnection.Edges, and is useful for accessing the field via an interface.
-func (v *ListMetadataFieldsFieldsFieldConnection) GetEdges() []ListMetadataFieldsFieldsFieldConnectionEdgesFieldEdge {
-	return v.Edges
-}
-
-// GetPageInfo returns ListMetadataFieldsFieldsFieldConnection.PageInfo, and is useful for accessing the field via an interface.
-func (v *ListMetadataFieldsFieldsFieldConnection) GetPageInfo() ListMetadataFieldsFieldsFieldConnectionPageInfo {
-	return v.PageInfo
-}
-
-// ListMetadataFieldsFieldsFieldConnectionEdgesFieldEdge includes the requested fields of the GraphQL type FieldEdge.
-type ListMetadataFieldsFieldsFieldConnectionEdgesFieldEdge struct {
-	// The node containing the Field
-	Node FieldMetadata `json:"node"`
-}
-
-// GetNode returns ListMetadataFieldsFieldsFieldConnectionEdgesFieldEdge.Node, and is useful for accessing the field via an interface.
-func (v *ListMetadataFieldsFieldsFieldConnectionEdgesFieldEdge) GetNode() FieldMetadata {
-	return v.Node
-}
-
-// ListMetadataFieldsFieldsFieldConnectionPageInfo includes the requested fields of the GraphQL type PageInfo.
-type ListMetadataFieldsFieldsFieldConnectionPageInfo struct {
-	// true if paging forward and there are more records.
-	HasNextPage nullable.Nullable[bool] `json:"hasNextPage"`
-	// The cursor of the last returned record.
-	EndCursor nullable.Nullable[string] `json:"endCursor"`
-}
-
-// GetHasNextPage returns ListMetadataFieldsFieldsFieldConnectionPageInfo.HasNextPage, and is useful for accessing the field via an interface.
-func (v *ListMetadataFieldsFieldsFieldConnectionPageInfo) GetHasNextPage() nullable.Nullable[bool] {
-	return v.HasNextPage
-}
-
-// GetEndCursor returns ListMetadataFieldsFieldsFieldConnectionPageInfo.EndCursor, and is useful for accessing the field via an interface.
-func (v *ListMetadataFieldsFieldsFieldConnectionPageInfo) GetEndCursor() nullable.Nullable[string] {
-	return v.EndCursor
-}
-
-// ListMetadataFieldsResponse is returned by ListMetadataFields on success.
-type ListMetadataFieldsResponse struct {
-	Fields ListMetadataFieldsFieldsFieldConnection `json:"fields"`
-}
-
-// GetFields returns ListMetadataFieldsResponse.Fields, and is useful for accessing the field via an interface.
-func (v *ListMetadataFieldsResponse) GetFields() ListMetadataFieldsFieldsFieldConnection {
-	return v.Fields
-}
-
-// ListMetadataObjectsObjectsObjectConnection includes the requested fields of the GraphQL type ObjectConnection.
-type ListMetadataObjectsObjectsObjectConnection struct {
-	// Array of edges.
-	Edges []ListMetadataObjectsObjectsObjectConnectionEdgesObjectEdge `json:"edges"`
-	// Paging information
-	PageInfo ListMetadataObjectsObjectsObjectConnectionPageInfo `json:"pageInfo"`
-}
-
-// GetEdges returns ListMetadataObjectsObjectsObjectConnection.Edges, and is useful for accessing the field via an interface.
-func (v *ListMetadataObjectsObjectsObjectConnection) GetEdges() []ListMetadataObjectsObjectsObjectConnectionEdgesObjectEdge {
-	return v.Edges
-}
-
-// GetPageInfo returns ListMetadataObjectsObjectsObjectConnection.PageInfo, and is useful for accessing the field via an interface.
-func (v *ListMetadataObjectsObjectsObjectConnection) GetPageInfo() ListMetadataObjectsObjectsObjectConnectionPageInfo {
-	return v.PageInfo
-}
-
-// ListMetadataObjectsObjectsObjectConnectionEdgesObjectEdge includes the requested fields of the GraphQL type ObjectEdge.
-type ListMetadataObjectsObjectsObjectConnectionEdgesObjectEdge struct {
-	// The node containing the Object
-	Node ObjectMetadata `json:"node"`
-}
-
-// GetNode returns ListMetadataObjectsObjectsObjectConnectionEdgesObjectEdge.Node, and is useful for accessing the field via an interface.
-func (v *ListMetadataObjectsObjectsObjectConnectionEdgesObjectEdge) GetNode() ObjectMetadata {
-	return v.Node
-}
-
-// ListMetadataObjectsObjectsObjectConnectionPageInfo includes the requested fields of the GraphQL type PageInfo.
-type ListMetadataObjectsObjectsObjectConnectionPageInfo struct {
-	// true if paging forward and there are more records.
-	HasNextPage nullable.Nullable[bool] `json:"hasNextPage"`
-	// The cursor of the last returned record.
-	EndCursor nullable.Nullable[string] `json:"endCursor"`
-}
-
-// GetHasNextPage returns ListMetadataObjectsObjectsObjectConnectionPageInfo.HasNextPage, and is useful for accessing the field via an interface.
-func (v *ListMetadataObjectsObjectsObjectConnectionPageInfo) GetHasNextPage() nullable.Nullable[bool] {
-	return v.HasNextPage
-}
-
-// GetEndCursor returns ListMetadataObjectsObjectsObjectConnectionPageInfo.EndCursor, and is useful for accessing the field via an interface.
-func (v *ListMetadataObjectsObjectsObjectConnectionPageInfo) GetEndCursor() nullable.Nullable[string] {
-	return v.EndCursor
-}
-
-// ListMetadataObjectsResponse is returned by ListMetadataObjects on success.
-type ListMetadataObjectsResponse struct {
-	Objects ListMetadataObjectsObjectsObjectConnection `json:"objects"`
-}
-
-// GetObjects returns ListMetadataObjectsResponse.Objects, and is useful for accessing the field via an interface.
-func (v *ListMetadataObjectsResponse) GetObjects() ListMetadataObjectsObjectsObjectConnection {
-	return v.Objects
-}
-
 // MemberIdentity includes the GraphQL fields of WorkspaceMember requested by the fragment MemberIdentity.
 type MemberIdentity struct {
 	Id              string                     `json:"id"`
@@ -1784,7 +1723,7 @@ var AllMetadataWritability = []MetadataWritability{
 	MetadataWritabilitySystem,
 }
 
-// ObjectMetadata includes the GraphQL fields of Object requested by the fragment ObjectMetadata.
+// Operation names follow their root field names, as required by the session transport.
 type ObjectMetadata struct {
 	Id                             string                    `json:"id"`
 	ApplicationId                  string                    `json:"applicationId"`
@@ -2184,6 +2123,59 @@ var AllObjectSharingReach = []ObjectSharingReach{
 	ObjectSharingReachRoleAccess,
 	ObjectSharingReachWorkspace,
 }
+
+// ObjectsObjectsObjectConnection includes the requested fields of the GraphQL type ObjectConnection.
+type ObjectsObjectsObjectConnection struct {
+	// Array of edges.
+	Edges []ObjectsObjectsObjectConnectionEdgesObjectEdge `json:"edges"`
+	// Paging information
+	PageInfo ObjectsObjectsObjectConnectionPageInfo `json:"pageInfo"`
+}
+
+// GetEdges returns ObjectsObjectsObjectConnection.Edges, and is useful for accessing the field via an interface.
+func (v *ObjectsObjectsObjectConnection) GetEdges() []ObjectsObjectsObjectConnectionEdgesObjectEdge {
+	return v.Edges
+}
+
+// GetPageInfo returns ObjectsObjectsObjectConnection.PageInfo, and is useful for accessing the field via an interface.
+func (v *ObjectsObjectsObjectConnection) GetPageInfo() ObjectsObjectsObjectConnectionPageInfo {
+	return v.PageInfo
+}
+
+// ObjectsObjectsObjectConnectionEdgesObjectEdge includes the requested fields of the GraphQL type ObjectEdge.
+type ObjectsObjectsObjectConnectionEdgesObjectEdge struct {
+	// The node containing the Object
+	Node ObjectMetadata `json:"node"`
+}
+
+// GetNode returns ObjectsObjectsObjectConnectionEdgesObjectEdge.Node, and is useful for accessing the field via an interface.
+func (v *ObjectsObjectsObjectConnectionEdgesObjectEdge) GetNode() ObjectMetadata { return v.Node }
+
+// ObjectsObjectsObjectConnectionPageInfo includes the requested fields of the GraphQL type PageInfo.
+type ObjectsObjectsObjectConnectionPageInfo struct {
+	// true if paging forward and there are more records.
+	HasNextPage nullable.Nullable[bool] `json:"hasNextPage"`
+	// The cursor of the last returned record.
+	EndCursor nullable.Nullable[string] `json:"endCursor"`
+}
+
+// GetHasNextPage returns ObjectsObjectsObjectConnectionPageInfo.HasNextPage, and is useful for accessing the field via an interface.
+func (v *ObjectsObjectsObjectConnectionPageInfo) GetHasNextPage() nullable.Nullable[bool] {
+	return v.HasNextPage
+}
+
+// GetEndCursor returns ObjectsObjectsObjectConnectionPageInfo.EndCursor, and is useful for accessing the field via an interface.
+func (v *ObjectsObjectsObjectConnectionPageInfo) GetEndCursor() nullable.Nullable[string] {
+	return v.EndCursor
+}
+
+// ObjectsResponse is returned by Objects on success.
+type ObjectsResponse struct {
+	Objects ObjectsObjectsObjectConnection `json:"objects"`
+}
+
+// GetObjects returns ObjectsResponse.Objects, and is useful for accessing the field via an interface.
+func (v *ObjectsResponse) GetObjects() ObjectsObjectsObjectConnection { return v.Objects }
 
 // Onboarding status
 type OnboardingStatus string
@@ -3208,42 +3200,6 @@ func (v *UpdateFieldInput) GetUniversalIdentifier() nullable.Nullable[string] {
 	return v.UniversalIdentifier
 }
 
-// UpdateMetadataFieldResponse is returned by UpdateMetadataField on success.
-type UpdateMetadataFieldResponse struct {
-	UpdateOneField UpdateMetadataFieldUpdateOneField `json:"updateOneField"`
-}
-
-// GetUpdateOneField returns UpdateMetadataFieldResponse.UpdateOneField, and is useful for accessing the field via an interface.
-func (v *UpdateMetadataFieldResponse) GetUpdateOneField() UpdateMetadataFieldUpdateOneField {
-	return v.UpdateOneField
-}
-
-// UpdateMetadataFieldUpdateOneField includes the requested fields of the GraphQL type Field.
-type UpdateMetadataFieldUpdateOneField struct {
-	Id string `json:"id"`
-}
-
-// GetId returns UpdateMetadataFieldUpdateOneField.Id, and is useful for accessing the field via an interface.
-func (v *UpdateMetadataFieldUpdateOneField) GetId() string { return v.Id }
-
-// UpdateMetadataObjectResponse is returned by UpdateMetadataObject on success.
-type UpdateMetadataObjectResponse struct {
-	UpdateOneObject UpdateMetadataObjectUpdateOneObject `json:"updateOneObject"`
-}
-
-// GetUpdateOneObject returns UpdateMetadataObjectResponse.UpdateOneObject, and is useful for accessing the field via an interface.
-func (v *UpdateMetadataObjectResponse) GetUpdateOneObject() UpdateMetadataObjectUpdateOneObject {
-	return v.UpdateOneObject
-}
-
-// UpdateMetadataObjectUpdateOneObject includes the requested fields of the GraphQL type Object.
-type UpdateMetadataObjectUpdateOneObject struct {
-	Id string `json:"id"`
-}
-
-// GetId returns UpdateMetadataObjectUpdateOneObject.Id, and is useful for accessing the field via an interface.
-func (v *UpdateMetadataObjectUpdateOneObject) GetId() string { return v.Id }
-
 type UpdateObjectPayload struct {
 	Color                          nullable.Nullable[string]              `json:"color,omitempty"`
 	Description                    nullable.Nullable[string]              `json:"description,omitempty"`
@@ -3342,6 +3298,24 @@ func (v *UpdateOneFieldMetadataInput) GetId() string { return v.Id }
 // GetUpdate returns UpdateOneFieldMetadataInput.Update, and is useful for accessing the field via an interface.
 func (v *UpdateOneFieldMetadataInput) GetUpdate() UpdateFieldInput { return v.Update }
 
+// UpdateOneFieldResponse is returned by UpdateOneField on success.
+type UpdateOneFieldResponse struct {
+	UpdateOneField UpdateOneFieldUpdateOneField `json:"updateOneField"`
+}
+
+// GetUpdateOneField returns UpdateOneFieldResponse.UpdateOneField, and is useful for accessing the field via an interface.
+func (v *UpdateOneFieldResponse) GetUpdateOneField() UpdateOneFieldUpdateOneField {
+	return v.UpdateOneField
+}
+
+// UpdateOneFieldUpdateOneField includes the requested fields of the GraphQL type Field.
+type UpdateOneFieldUpdateOneField struct {
+	Id string `json:"id"`
+}
+
+// GetId returns UpdateOneFieldUpdateOneField.Id, and is useful for accessing the field via an interface.
+func (v *UpdateOneFieldUpdateOneField) GetId() string { return v.Id }
+
 type UpdateOneObjectInput struct {
 	// The id of the object to update
 	Id     string              `json:"id"`
@@ -3353,6 +3327,24 @@ func (v *UpdateOneObjectInput) GetId() string { return v.Id }
 
 // GetUpdate returns UpdateOneObjectInput.Update, and is useful for accessing the field via an interface.
 func (v *UpdateOneObjectInput) GetUpdate() UpdateObjectPayload { return v.Update }
+
+// UpdateOneObjectResponse is returned by UpdateOneObject on success.
+type UpdateOneObjectResponse struct {
+	UpdateOneObject UpdateOneObjectUpdateOneObject `json:"updateOneObject"`
+}
+
+// GetUpdateOneObject returns UpdateOneObjectResponse.UpdateOneObject, and is useful for accessing the field via an interface.
+func (v *UpdateOneObjectResponse) GetUpdateOneObject() UpdateOneObjectUpdateOneObject {
+	return v.UpdateOneObject
+}
+
+// UpdateOneObjectUpdateOneObject includes the requested fields of the GraphQL type Object.
+type UpdateOneObjectUpdateOneObject struct {
+	Id string `json:"id"`
+}
+
+// GetId returns UpdateOneObjectUpdateOneObject.Id, and is useful for accessing the field via an interface.
+func (v *UpdateOneObjectUpdateOneObject) GetId() string { return v.Id }
 
 // UpdateOneRoleResponse is returned by UpdateOneRole on success.
 type UpdateOneRoleResponse struct {
@@ -3648,21 +3640,21 @@ func (v *WorkspaceIdentityWorkspaceUrls) GetCustomUrl() nullable.Nullable[string
 // GetSubdomainUrl returns WorkspaceIdentityWorkspaceUrls.SubdomainUrl, and is useful for accessing the field via an interface.
 func (v *WorkspaceIdentityWorkspaceUrls) GetSubdomainUrl() string { return v.SubdomainUrl }
 
-// __CreateMetadataFieldInput is used internally by genqlient
-type __CreateMetadataFieldInput struct {
+// __CreateOneFieldInput is used internally by genqlient
+type __CreateOneFieldInput struct {
 	Input CreateOneFieldMetadataInput `json:"input"`
 }
 
-// GetInput returns __CreateMetadataFieldInput.Input, and is useful for accessing the field via an interface.
-func (v *__CreateMetadataFieldInput) GetInput() CreateOneFieldMetadataInput { return v.Input }
+// GetInput returns __CreateOneFieldInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreateOneFieldInput) GetInput() CreateOneFieldMetadataInput { return v.Input }
 
-// __CreateMetadataObjectInput is used internally by genqlient
-type __CreateMetadataObjectInput struct {
+// __CreateOneObjectInput is used internally by genqlient
+type __CreateOneObjectInput struct {
 	Input CreateOneObjectInput `json:"input"`
 }
 
-// GetInput returns __CreateMetadataObjectInput.Input, and is useful for accessing the field via an interface.
-func (v *__CreateMetadataObjectInput) GetInput() CreateOneObjectInput { return v.Input }
+// GetInput returns __CreateOneObjectInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreateOneObjectInput) GetInput() CreateOneObjectInput { return v.Input }
 
 // __CreateOneRoleInput is used internally by genqlient
 type __CreateOneRoleInput struct {
@@ -3672,21 +3664,21 @@ type __CreateOneRoleInput struct {
 // GetInput returns __CreateOneRoleInput.Input, and is useful for accessing the field via an interface.
 func (v *__CreateOneRoleInput) GetInput() CreateRoleInput { return v.Input }
 
-// __DeleteMetadataFieldInput is used internally by genqlient
-type __DeleteMetadataFieldInput struct {
+// __DeleteOneFieldInput is used internally by genqlient
+type __DeleteOneFieldInput struct {
 	Input DeleteOneFieldInput `json:"input"`
 }
 
-// GetInput returns __DeleteMetadataFieldInput.Input, and is useful for accessing the field via an interface.
-func (v *__DeleteMetadataFieldInput) GetInput() DeleteOneFieldInput { return v.Input }
+// GetInput returns __DeleteOneFieldInput.Input, and is useful for accessing the field via an interface.
+func (v *__DeleteOneFieldInput) GetInput() DeleteOneFieldInput { return v.Input }
 
-// __DeleteMetadataObjectInput is used internally by genqlient
-type __DeleteMetadataObjectInput struct {
+// __DeleteOneObjectInput is used internally by genqlient
+type __DeleteOneObjectInput struct {
 	Input DeleteOneObjectInput `json:"input"`
 }
 
-// GetInput returns __DeleteMetadataObjectInput.Input, and is useful for accessing the field via an interface.
-func (v *__DeleteMetadataObjectInput) GetInput() DeleteOneObjectInput { return v.Input }
+// GetInput returns __DeleteOneObjectInput.Input, and is useful for accessing the field via an interface.
+func (v *__DeleteOneObjectInput) GetInput() DeleteOneObjectInput { return v.Input }
 
 // __DeleteOneRoleInput is used internally by genqlient
 type __DeleteOneRoleInput struct {
@@ -3713,6 +3705,18 @@ type __DeleteWorkspaceInvitationInput struct {
 
 // GetAppTokenId returns __DeleteWorkspaceInvitationInput.AppTokenId, and is useful for accessing the field via an interface.
 func (v *__DeleteWorkspaceInvitationInput) GetAppTokenId() string { return v.AppTokenId }
+
+// __FieldsInput is used internally by genqlient
+type __FieldsInput struct {
+	Filter FieldFilter  `json:"filter"`
+	Paging CursorPaging `json:"paging"`
+}
+
+// GetFilter returns __FieldsInput.Filter, and is useful for accessing the field via an interface.
+func (v *__FieldsInput) GetFilter() FieldFilter { return v.Filter }
+
+// GetPaging returns __FieldsInput.Paging, and is useful for accessing the field via an interface.
+func (v *__FieldsInput) GetPaging() CursorPaging { return v.Paging }
 
 // __GetAuthTokensFromLoginTokenInput is used internally by genqlient
 type __GetAuthTokensFromLoginTokenInput struct {
@@ -3774,25 +3778,13 @@ type __GetPublicWorkspaceDataByIdInput struct {
 // GetId returns __GetPublicWorkspaceDataByIdInput.Id, and is useful for accessing the field via an interface.
 func (v *__GetPublicWorkspaceDataByIdInput) GetId() string { return v.Id }
 
-// __ListMetadataFieldsInput is used internally by genqlient
-type __ListMetadataFieldsInput struct {
-	Filter FieldFilter  `json:"filter"`
+// __ObjectsInput is used internally by genqlient
+type __ObjectsInput struct {
 	Paging CursorPaging `json:"paging"`
 }
 
-// GetFilter returns __ListMetadataFieldsInput.Filter, and is useful for accessing the field via an interface.
-func (v *__ListMetadataFieldsInput) GetFilter() FieldFilter { return v.Filter }
-
-// GetPaging returns __ListMetadataFieldsInput.Paging, and is useful for accessing the field via an interface.
-func (v *__ListMetadataFieldsInput) GetPaging() CursorPaging { return v.Paging }
-
-// __ListMetadataObjectsInput is used internally by genqlient
-type __ListMetadataObjectsInput struct {
-	Paging CursorPaging `json:"paging"`
-}
-
-// GetPaging returns __ListMetadataObjectsInput.Paging, and is useful for accessing the field via an interface.
-func (v *__ListMetadataObjectsInput) GetPaging() CursorPaging { return v.Paging }
+// GetPaging returns __ObjectsInput.Paging, and is useful for accessing the field via an interface.
+func (v *__ObjectsInput) GetPaging() CursorPaging { return v.Paging }
 
 // __RenewTokenInput is used internally by genqlient
 type __RenewTokenInput struct {
@@ -3814,21 +3806,21 @@ func (v *__SendInvitationsInput) GetEmails() []string { return v.Emails }
 // GetRoleId returns __SendInvitationsInput.RoleId, and is useful for accessing the field via an interface.
 func (v *__SendInvitationsInput) GetRoleId() nullable.Nullable[string] { return v.RoleId }
 
-// __UpdateMetadataFieldInput is used internally by genqlient
-type __UpdateMetadataFieldInput struct {
+// __UpdateOneFieldInput is used internally by genqlient
+type __UpdateOneFieldInput struct {
 	Input UpdateOneFieldMetadataInput `json:"input"`
 }
 
-// GetInput returns __UpdateMetadataFieldInput.Input, and is useful for accessing the field via an interface.
-func (v *__UpdateMetadataFieldInput) GetInput() UpdateOneFieldMetadataInput { return v.Input }
+// GetInput returns __UpdateOneFieldInput.Input, and is useful for accessing the field via an interface.
+func (v *__UpdateOneFieldInput) GetInput() UpdateOneFieldMetadataInput { return v.Input }
 
-// __UpdateMetadataObjectInput is used internally by genqlient
-type __UpdateMetadataObjectInput struct {
+// __UpdateOneObjectInput is used internally by genqlient
+type __UpdateOneObjectInput struct {
 	Input UpdateOneObjectInput `json:"input"`
 }
 
-// GetInput returns __UpdateMetadataObjectInput.Input, and is useful for accessing the field via an interface.
-func (v *__UpdateMetadataObjectInput) GetInput() UpdateOneObjectInput { return v.Input }
+// GetInput returns __UpdateOneObjectInput.Input, and is useful for accessing the field via an interface.
+func (v *__UpdateOneObjectInput) GetInput() UpdateOneObjectInput { return v.Input }
 
 // __UpdateOneRoleInput is used internally by genqlient
 type __UpdateOneRoleInput struct {
@@ -3874,29 +3866,29 @@ type __UpsertPermissionFlagsInput struct {
 // GetInput returns __UpsertPermissionFlagsInput.Input, and is useful for accessing the field via an interface.
 func (v *__UpsertPermissionFlagsInput) GetInput() UpsertPermissionFlagsInput { return v.Input }
 
-// The mutation executed by CreateMetadataField.
-const CreateMetadataField_Operation = `
-mutation CreateMetadataField ($input: CreateOneFieldMetadataInput!) {
+// The mutation executed by CreateOneField.
+const CreateOneField_Operation = `
+mutation CreateOneField ($input: CreateOneFieldMetadataInput!) {
 	createOneField(input: $input) {
 		id
 	}
 }
 `
 
-func CreateMetadataField(
+func CreateOneField(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	input CreateOneFieldMetadataInput,
-) (data_ *CreateMetadataFieldResponse, err_ error) {
+) (data_ *CreateOneFieldResponse, err_ error) {
 	req_ := &graphql.Request{
-		OpName: "CreateMetadataField",
-		Query:  CreateMetadataField_Operation,
-		Variables: &__CreateMetadataFieldInput{
+		OpName: "CreateOneField",
+		Query:  CreateOneField_Operation,
+		Variables: &__CreateOneFieldInput{
 			Input: input,
 		},
 	}
 
-	data_ = &CreateMetadataFieldResponse{}
+	data_ = &CreateOneFieldResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -3908,9 +3900,9 @@ func CreateMetadataField(
 	return data_, err_
 }
 
-// The mutation executed by CreateMetadataObject.
-const CreateMetadataObject_Operation = `
-mutation CreateMetadataObject ($input: CreateOneObjectInput!) {
+// The mutation executed by CreateOneObject.
+const CreateOneObject_Operation = `
+mutation CreateOneObject ($input: CreateOneObjectInput!) {
 	createOneObject(input: $input) {
 		id
 	}
@@ -3918,20 +3910,20 @@ mutation CreateMetadataObject ($input: CreateOneObjectInput!) {
 `
 
 // Mutation responses are identifiers only. Always re-read metadata after writes.
-func CreateMetadataObject(
+func CreateOneObject(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	input CreateOneObjectInput,
-) (data_ *CreateMetadataObjectResponse, err_ error) {
+) (data_ *CreateOneObjectResponse, err_ error) {
 	req_ := &graphql.Request{
-		OpName: "CreateMetadataObject",
-		Query:  CreateMetadataObject_Operation,
-		Variables: &__CreateMetadataObjectInput{
+		OpName: "CreateOneObject",
+		Query:  CreateOneObject_Operation,
+		Variables: &__CreateOneObjectInput{
 			Input: input,
 		},
 	}
 
-	data_ = &CreateMetadataObjectResponse{}
+	data_ = &CreateOneObjectResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -4243,29 +4235,29 @@ func CurrentWorkspace(
 	return data_, err_
 }
 
-// The mutation executed by DeleteMetadataField.
-const DeleteMetadataField_Operation = `
-mutation DeleteMetadataField ($input: DeleteOneFieldInput!) {
+// The mutation executed by DeleteOneField.
+const DeleteOneField_Operation = `
+mutation DeleteOneField ($input: DeleteOneFieldInput!) {
 	deleteOneField(input: $input) {
 		id
 	}
 }
 `
 
-func DeleteMetadataField(
+func DeleteOneField(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	input DeleteOneFieldInput,
-) (data_ *DeleteMetadataFieldResponse, err_ error) {
+) (data_ *DeleteOneFieldResponse, err_ error) {
 	req_ := &graphql.Request{
-		OpName: "DeleteMetadataField",
-		Query:  DeleteMetadataField_Operation,
-		Variables: &__DeleteMetadataFieldInput{
+		OpName: "DeleteOneField",
+		Query:  DeleteOneField_Operation,
+		Variables: &__DeleteOneFieldInput{
 			Input: input,
 		},
 	}
 
-	data_ = &DeleteMetadataFieldResponse{}
+	data_ = &DeleteOneFieldResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -4277,29 +4269,29 @@ func DeleteMetadataField(
 	return data_, err_
 }
 
-// The mutation executed by DeleteMetadataObject.
-const DeleteMetadataObject_Operation = `
-mutation DeleteMetadataObject ($input: DeleteOneObjectInput!) {
+// The mutation executed by DeleteOneObject.
+const DeleteOneObject_Operation = `
+mutation DeleteOneObject ($input: DeleteOneObjectInput!) {
 	deleteOneObject(input: $input) {
 		id
 	}
 }
 `
 
-func DeleteMetadataObject(
+func DeleteOneObject(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	input DeleteOneObjectInput,
-) (data_ *DeleteMetadataObjectResponse, err_ error) {
+) (data_ *DeleteOneObjectResponse, err_ error) {
 	req_ := &graphql.Request{
-		OpName: "DeleteMetadataObject",
-		Query:  DeleteMetadataObject_Operation,
-		Variables: &__DeleteMetadataObjectInput{
+		OpName: "DeleteOneObject",
+		Query:  DeleteOneObject_Operation,
+		Variables: &__DeleteOneObjectInput{
 			Input: input,
 		},
 	}
 
-	data_ = &DeleteMetadataObjectResponse{}
+	data_ = &DeleteOneObjectResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -4401,6 +4393,66 @@ func DeleteWorkspaceInvitation(
 	}
 
 	data_ = &DeleteWorkspaceInvitationResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by Fields.
+const Fields_Operation = `
+query Fields ($filter: FieldFilter!, $paging: CursorPaging!) {
+	fields(filter: $filter, paging: $paging) {
+		edges {
+			node {
+				... FieldMetadata
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+fragment FieldMetadata on Field {
+	id
+	applicationId
+	universalIdentifier
+	objectMetadataId
+	name
+	label
+	type
+	description
+	icon
+	isActive
+	isSystem
+	isLabelSyncedWithName
+	isNullable
+	writability
+}
+`
+
+func Fields(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	filter FieldFilter,
+	paging CursorPaging,
+) (data_ *FieldsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "Fields",
+		Query:  Fields_Operation,
+		Variables: &__FieldsInput{
+			Filter: filter,
+			Paging: paging,
+		},
+	}
+
+	data_ = &FieldsResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -4806,69 +4858,9 @@ func GetRoles(
 	return data_, err_
 }
 
-// The query executed by ListMetadataFields.
-const ListMetadataFields_Operation = `
-query ListMetadataFields ($filter: FieldFilter!, $paging: CursorPaging!) {
-	fields(filter: $filter, paging: $paging) {
-		edges {
-			node {
-				... FieldMetadata
-			}
-		}
-		pageInfo {
-			hasNextPage
-			endCursor
-		}
-	}
-}
-fragment FieldMetadata on Field {
-	id
-	applicationId
-	universalIdentifier
-	objectMetadataId
-	name
-	label
-	type
-	description
-	icon
-	isActive
-	isSystem
-	isLabelSyncedWithName
-	isNullable
-	writability
-}
-`
-
-func ListMetadataFields(
-	ctx_ context.Context,
-	client_ graphql.Client,
-	filter FieldFilter,
-	paging CursorPaging,
-) (data_ *ListMetadataFieldsResponse, err_ error) {
-	req_ := &graphql.Request{
-		OpName: "ListMetadataFields",
-		Query:  ListMetadataFields_Operation,
-		Variables: &__ListMetadataFieldsInput{
-			Filter: filter,
-			Paging: paging,
-		},
-	}
-
-	data_ = &ListMetadataFieldsResponse{}
-	resp_ := &graphql.Response{Data: data_}
-
-	err_ = client_.MakeRequest(
-		ctx_,
-		req_,
-		resp_,
-	)
-
-	return data_, err_
-}
-
-// The query executed by ListMetadataObjects.
-const ListMetadataObjects_Operation = `
-query ListMetadataObjects ($paging: CursorPaging!) {
+// The query executed by Objects.
+const Objects_Operation = `
+query Objects ($paging: CursorPaging!) {
 	objects(paging: $paging) {
 		edges {
 			node {
@@ -4900,20 +4892,20 @@ fragment ObjectMetadata on Object {
 }
 `
 
-func ListMetadataObjects(
+func Objects(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	paging CursorPaging,
-) (data_ *ListMetadataObjectsResponse, err_ error) {
+) (data_ *ObjectsResponse, err_ error) {
 	req_ := &graphql.Request{
-		OpName: "ListMetadataObjects",
-		Query:  ListMetadataObjects_Operation,
-		Variables: &__ListMetadataObjectsInput{
+		OpName: "Objects",
+		Query:  Objects_Operation,
+		Variables: &__ObjectsInput{
 			Paging: paging,
 		},
 	}
 
-	data_ = &ListMetadataObjectsResponse{}
+	data_ = &ObjectsResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -5020,29 +5012,29 @@ func SendInvitations(
 	return data_, err_
 }
 
-// The mutation executed by UpdateMetadataField.
-const UpdateMetadataField_Operation = `
-mutation UpdateMetadataField ($input: UpdateOneFieldMetadataInput!) {
+// The mutation executed by UpdateOneField.
+const UpdateOneField_Operation = `
+mutation UpdateOneField ($input: UpdateOneFieldMetadataInput!) {
 	updateOneField(input: $input) {
 		id
 	}
 }
 `
 
-func UpdateMetadataField(
+func UpdateOneField(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	input UpdateOneFieldMetadataInput,
-) (data_ *UpdateMetadataFieldResponse, err_ error) {
+) (data_ *UpdateOneFieldResponse, err_ error) {
 	req_ := &graphql.Request{
-		OpName: "UpdateMetadataField",
-		Query:  UpdateMetadataField_Operation,
-		Variables: &__UpdateMetadataFieldInput{
+		OpName: "UpdateOneField",
+		Query:  UpdateOneField_Operation,
+		Variables: &__UpdateOneFieldInput{
 			Input: input,
 		},
 	}
 
-	data_ = &UpdateMetadataFieldResponse{}
+	data_ = &UpdateOneFieldResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -5054,29 +5046,29 @@ func UpdateMetadataField(
 	return data_, err_
 }
 
-// The mutation executed by UpdateMetadataObject.
-const UpdateMetadataObject_Operation = `
-mutation UpdateMetadataObject ($input: UpdateOneObjectInput!) {
+// The mutation executed by UpdateOneObject.
+const UpdateOneObject_Operation = `
+mutation UpdateOneObject ($input: UpdateOneObjectInput!) {
 	updateOneObject(input: $input) {
 		id
 	}
 }
 `
 
-func UpdateMetadataObject(
+func UpdateOneObject(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	input UpdateOneObjectInput,
-) (data_ *UpdateMetadataObjectResponse, err_ error) {
+) (data_ *UpdateOneObjectResponse, err_ error) {
 	req_ := &graphql.Request{
-		OpName: "UpdateMetadataObject",
-		Query:  UpdateMetadataObject_Operation,
-		Variables: &__UpdateMetadataObjectInput{
+		OpName: "UpdateOneObject",
+		Query:  UpdateOneObject_Operation,
+		Variables: &__UpdateOneObjectInput{
 			Input: input,
 		},
 	}
 
-	data_ = &UpdateMetadataObjectResponse{}
+	data_ = &UpdateOneObjectResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
