@@ -1,6 +1,7 @@
 # Metadata GraphQL generation
 
-The committed SDL is the complete Twenty v2.44.0 Metadata schema. Only the
+The committed SDL is the complete Metadata schema for the minimum supported
+Twenty server, v2.46.0. Only the
 handwritten IAM, identity, and password-session operations in `operations/`
 generate provider client code. The schema contains other upstream operations;
 they are not selected. Use `/metadata`, never Core GraphQL `/graphql` or CRM
@@ -11,22 +12,22 @@ CRUD and flag replacement through the Terraform resource. Step 4C tests invitati
 ## Provenance and license
 
 - Upstream repository: [twentyhq/twenty](https://github.com/twentyhq/twenty).
-- Release: `v2.44.0`.
-- Source commit: `f7a4720eb4d479bfa3f6634bcdd703bb4de66600`.
-- Official raw SDL source: <https://raw.githubusercontent.com/twentyhq/twenty/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-client-sdk/src/metadata/generated/schema.graphql>.
-- SDL SHA256: `f93a16c80bb560ee516f5f9af85c9d67e26848983952a8ff8c692ca70e5e9e59`.
-- Official package license: <https://raw.githubusercontent.com/twentyhq/twenty/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-client-sdk/LICENSE>.
+- Release: `v2.46.0`.
+- Source commit: `9070979232c4f37165108a2eb5a4042e0cfdc3d6`.
+- Official raw SDL source: <https://raw.githubusercontent.com/twentyhq/twenty/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-client-sdk/src/metadata/generated/schema.graphql>.
+- SDL SHA256: `f807c09348a879d96274901cf9bfbea372a2827159429cc222d68357241d36c1`.
+- Official package license: <https://raw.githubusercontent.com/twentyhq/twenty/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-client-sdk/LICENSE>.
 - License SHA256: `f2c3d261cefa7be3fe81790e777f72c83083b832e653c493db0cc960e81f2b0f`.
 
-The cached research SDL matched a fresh download of that official raw URL
-byte-for-byte when stage 2 added it. `schema.graphql` is an unmodified copy.
-No introspection was used.
+The SDL was fetched from that exact release source when raising the minimum
+server version to v2.46.0. `schema.graphql` is an unmodified copy. The SDK
+license is byte-identical to the previous pin. No introspection was used.
 
 `LICENSE` is the upstream twenty-client-sdk MIT license, with its copyright
 notice intact. The pinned
-[package manifest](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-client-sdk/package.json)
+[package manifest](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-client-sdk/package.json)
 declares MIT. The upstream
-[root license](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/LICENSE)
+[root license](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/LICENSE)
 also identifies this SDK package as an MIT exception to the server's AGPL
 license. The provider's own code remains MPL-2.0. Keep this upstream notice
 with the schema and generated client when redistributing them.
@@ -65,7 +66,7 @@ exact source commit. Download the Metadata SDL, SDK license, and package
 manifest from official raw GitHub URLs at that commit into temporary files:
 
 ```shell
-commit=f7a4720eb4d479bfa3f6634bcdd703bb4de66600
+commit=9070979232c4f37165108a2eb5a4042e0cfdc3d6
 base="https://raw.githubusercontent.com/twentyhq/twenty/$commit/packages/twenty-client-sdk"
 tmp="$(mktemp -d)"
 curl --fail --location --silent --show-error "$base/src/metadata/generated/schema.graphql" -o "$tmp/schema.graphql"

@@ -86,7 +86,7 @@ func TestAccSessionAndRole(t *testing.T) {
 
 	t.Run("workspace_member_resource", func(t *testing.T) { testAccWorkspaceMemberResource(t, fixture) })
 
-	t.Run("terraform_owned_role_and_accepted_member_teardown_regression", func(t *testing.T) { testAccCombinedTeardown(t, fixture) })
+	t.Run("terraform_owned_role_and_accepted_member_one_pass_teardown", func(t *testing.T) { testAccCombinedTeardown(t, fixture) })
 
 	t.Run("missing_role", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{

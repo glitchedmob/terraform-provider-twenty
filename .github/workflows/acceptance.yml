@@ -12,7 +12,8 @@ permissions:
 
 jobs:
   acceptance:
-    name: Twenty v2.44.0
+    # Exercise the minimum supported server version, not a floating latest tag.
+    name: Twenty v2.46.0 minimum
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -36,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: twenty-v2.44.0-logs
+          name: twenty-v2.46.0-logs
           path: _artifacts/
           if-no-files-found: ignore
           retention-days: 7

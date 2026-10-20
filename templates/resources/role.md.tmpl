@@ -11,11 +11,11 @@ Manages a custom role in the authenticated workspace. The separate [role data so
 
 The caller needs `ROLES` and visibility of current workspace members and roles. Deletion also needs `APPLICATIONS` to inspect application defaults and `WORKSPACE_MEMBERS` to inspect all stored invitation role references. A full-settings administrator already has these grants. Create and update need neither extra grant. Object-record grants do not provide those settings permissions. Keep the automation account's membership and roles outside Terraform and maintain an independent recovery administrator.
 
-## Known v2.44 teardown constraint
+## Server compatibility
 
-Destroying an accepted member and its Terraform-owned custom role is not fully supported on v2.44.0. The server removes membership but can retain its user-workspace ID in the role-assignment cache. The following role deletion then fails. The provider returns a fixed cache diagnostic, retains the role in state, and does not retry or rebind other users. The member can already be absent from both state and server while the role remains in both.
+Twenty v2.46.0 is the minimum supported server version. It includes the [upstream role-cache fix](https://github.com/twentyhq/twenty/pull/27226) needed to delete an accepted member and then its custom role in one Terraform destroy. CI runs this minimum with a digest-pinned disposable image and requires successful teardown without cache maintenance, reassignment, or retries. Older releases are unsupported.
 
-Inspect actual membership and retained role state. Combined teardown remains constrained until the upstream cache is refreshed or fixed. This pin has no verified safe Metadata-only cache refresh or tested repair procedure. Do not assume an immediate retry or server restart will resolve it.
+If removal or role deletion fails, inspect both server and Terraform state before another attempt. Membership removal may already have succeeded. The provider retains failed role deletions in state and never runs server maintenance or blindly retries mutations.
 
 ## Example usage
 
@@ -45,7 +45,7 @@ Before each create, update, or delete operation, the provider reads current iden
 
 Downscoping settings access or user assignability must leave an assigned full-settings administrator outside the operator. Explicit settings flags alone do not count as the independent full-settings administrator. This guard does not prove that another administrator can still log in; keep recovery credentials usable outside Terraform.
 
-Twenty can silently rebind assignments during role deletion. The provider therefore refuses deletion when members, agents, API keys returned by the server, or application defaults reference the role. Expired keys still count. The pinned server excludes revoked keys from both role assignment lists and deletion rebinding; those inactive keys cannot be enumerated for this guard. Remove assignments deliberately outside this resource before deleting, through declared membership resources where applicable. v2.44.0 may retain removed membership IDs in its role-assignment cache and reject later role deletion. See the [membership guide](../guides/membership.md). Missing or inconsistent safety data fails closed.
+Twenty can silently rebind assignments during role deletion. The provider therefore refuses deletion when members, agents, API keys returned by the server, or application defaults reference the role. Expired keys still count. The pinned server excludes revoked keys from both role assignment lists and deletion rebinding; those inactive keys cannot be enumerated for this guard. Remove assignments deliberately outside this resource before deleting, through declared membership resources where applicable. The minimum supported server refreshes role caches after accepted-member removal. See the [membership guide](../guides/membership.md) for teardown and partial-failure handling. Missing or inconsistent safety data fails closed.
 
 Stored invitations with an explicit reference to the role also block deletion, even when expired or outside Terraform. Null invitation roles follow the protected workspace default. This prevents deletion from stranding invitation metadata or breaking acceptance and membership reads. The provider never cancels or rebinds invitations during role deletion. Inspect and deliberately revoke or replace those invitations through supported Twenty administration first. Failed, incomplete, malformed, or duplicate-ID invitation reads retain role state and refuse deletion. A role already absent from a complete validated role read needs no invitation changes.
 

@@ -11,7 +11,7 @@ Reads the current workspace through Metadata GraphQL. It takes no arguments. The
 
 Each read requests `CurrentUser` to verify the authenticated user, workspace, and membership against the configured session identity, then loads computed properties through `CurrentWorkspace`. It does not use the configuration-time snapshot or the cached workspace summary from `CurrentUser` for those properties. An identity mismatch, missing required field, or malformed response is an error.
 
-No settings permission is required. In Twenty v2.44.0, a verified member with no explicit settings flags can read this identity even when role listing is denied.
+No settings permission is required. In Twenty v2.46.0, a verified member with no explicit settings flags can read this identity even when role listing is denied.
 
 ## Example usage
 

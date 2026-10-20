@@ -52,65 +52,23 @@ type CreateOneRoleResponse struct {
 func (v *CreateOneRoleResponse) GetCreateOneRole() RoleProperties { return v.CreateOneRole }
 
 type CreateRoleInput struct {
-	Id                            nullable.Nullable[string] `json:"id,omitempty"`
-	Label                         string                    `json:"label"`
-	Description                   nullable.Nullable[string] `json:"description,omitempty"`
-	Icon                          nullable.Nullable[string] `json:"icon,omitempty"`
-	CanUpdateAllSettings          nullable.Nullable[bool]   `json:"canUpdateAllSettings,omitempty"`
 	CanAccessAllTools             nullable.Nullable[bool]   `json:"canAccessAllTools,omitempty"`
-	CanReadAllObjectRecords       nullable.Nullable[bool]   `json:"canReadAllObjectRecords,omitempty"`
-	CanUpdateAllObjectRecords     nullable.Nullable[bool]   `json:"canUpdateAllObjectRecords,omitempty"`
-	CanSoftDeleteAllObjectRecords nullable.Nullable[bool]   `json:"canSoftDeleteAllObjectRecords,omitempty"`
-	CanDestroyAllObjectRecords    nullable.Nullable[bool]   `json:"canDestroyAllObjectRecords,omitempty"`
-	CanBeAssignedToUsers          nullable.Nullable[bool]   `json:"canBeAssignedToUsers,omitempty"`
 	CanBeAssignedToAgents         nullable.Nullable[bool]   `json:"canBeAssignedToAgents,omitempty"`
 	CanBeAssignedToApiKeys        nullable.Nullable[bool]   `json:"canBeAssignedToApiKeys,omitempty"`
-}
-
-// GetId returns CreateRoleInput.Id, and is useful for accessing the field via an interface.
-func (v *CreateRoleInput) GetId() nullable.Nullable[string] { return v.Id }
-
-// GetLabel returns CreateRoleInput.Label, and is useful for accessing the field via an interface.
-func (v *CreateRoleInput) GetLabel() string { return v.Label }
-
-// GetDescription returns CreateRoleInput.Description, and is useful for accessing the field via an interface.
-func (v *CreateRoleInput) GetDescription() nullable.Nullable[string] { return v.Description }
-
-// GetIcon returns CreateRoleInput.Icon, and is useful for accessing the field via an interface.
-func (v *CreateRoleInput) GetIcon() nullable.Nullable[string] { return v.Icon }
-
-// GetCanUpdateAllSettings returns CreateRoleInput.CanUpdateAllSettings, and is useful for accessing the field via an interface.
-func (v *CreateRoleInput) GetCanUpdateAllSettings() nullable.Nullable[bool] {
-	return v.CanUpdateAllSettings
+	CanBeAssignedToUsers          nullable.Nullable[bool]   `json:"canBeAssignedToUsers,omitempty"`
+	CanDestroyAllObjectRecords    nullable.Nullable[bool]   `json:"canDestroyAllObjectRecords,omitempty"`
+	CanReadAllObjectRecords       nullable.Nullable[bool]   `json:"canReadAllObjectRecords,omitempty"`
+	CanSoftDeleteAllObjectRecords nullable.Nullable[bool]   `json:"canSoftDeleteAllObjectRecords,omitempty"`
+	CanUpdateAllObjectRecords     nullable.Nullable[bool]   `json:"canUpdateAllObjectRecords,omitempty"`
+	CanUpdateAllSettings          nullable.Nullable[bool]   `json:"canUpdateAllSettings,omitempty"`
+	Description                   nullable.Nullable[string] `json:"description,omitempty"`
+	Icon                          nullable.Nullable[string] `json:"icon,omitempty"`
+	Id                            nullable.Nullable[string] `json:"id,omitempty"`
+	Label                         string                    `json:"label"`
 }
 
 // GetCanAccessAllTools returns CreateRoleInput.CanAccessAllTools, and is useful for accessing the field via an interface.
 func (v *CreateRoleInput) GetCanAccessAllTools() nullable.Nullable[bool] { return v.CanAccessAllTools }
-
-// GetCanReadAllObjectRecords returns CreateRoleInput.CanReadAllObjectRecords, and is useful for accessing the field via an interface.
-func (v *CreateRoleInput) GetCanReadAllObjectRecords() nullable.Nullable[bool] {
-	return v.CanReadAllObjectRecords
-}
-
-// GetCanUpdateAllObjectRecords returns CreateRoleInput.CanUpdateAllObjectRecords, and is useful for accessing the field via an interface.
-func (v *CreateRoleInput) GetCanUpdateAllObjectRecords() nullable.Nullable[bool] {
-	return v.CanUpdateAllObjectRecords
-}
-
-// GetCanSoftDeleteAllObjectRecords returns CreateRoleInput.CanSoftDeleteAllObjectRecords, and is useful for accessing the field via an interface.
-func (v *CreateRoleInput) GetCanSoftDeleteAllObjectRecords() nullable.Nullable[bool] {
-	return v.CanSoftDeleteAllObjectRecords
-}
-
-// GetCanDestroyAllObjectRecords returns CreateRoleInput.CanDestroyAllObjectRecords, and is useful for accessing the field via an interface.
-func (v *CreateRoleInput) GetCanDestroyAllObjectRecords() nullable.Nullable[bool] {
-	return v.CanDestroyAllObjectRecords
-}
-
-// GetCanBeAssignedToUsers returns CreateRoleInput.CanBeAssignedToUsers, and is useful for accessing the field via an interface.
-func (v *CreateRoleInput) GetCanBeAssignedToUsers() nullable.Nullable[bool] {
-	return v.CanBeAssignedToUsers
-}
 
 // GetCanBeAssignedToAgents returns CreateRoleInput.CanBeAssignedToAgents, and is useful for accessing the field via an interface.
 func (v *CreateRoleInput) GetCanBeAssignedToAgents() nullable.Nullable[bool] {
@@ -121,6 +79,48 @@ func (v *CreateRoleInput) GetCanBeAssignedToAgents() nullable.Nullable[bool] {
 func (v *CreateRoleInput) GetCanBeAssignedToApiKeys() nullable.Nullable[bool] {
 	return v.CanBeAssignedToApiKeys
 }
+
+// GetCanBeAssignedToUsers returns CreateRoleInput.CanBeAssignedToUsers, and is useful for accessing the field via an interface.
+func (v *CreateRoleInput) GetCanBeAssignedToUsers() nullable.Nullable[bool] {
+	return v.CanBeAssignedToUsers
+}
+
+// GetCanDestroyAllObjectRecords returns CreateRoleInput.CanDestroyAllObjectRecords, and is useful for accessing the field via an interface.
+func (v *CreateRoleInput) GetCanDestroyAllObjectRecords() nullable.Nullable[bool] {
+	return v.CanDestroyAllObjectRecords
+}
+
+// GetCanReadAllObjectRecords returns CreateRoleInput.CanReadAllObjectRecords, and is useful for accessing the field via an interface.
+func (v *CreateRoleInput) GetCanReadAllObjectRecords() nullable.Nullable[bool] {
+	return v.CanReadAllObjectRecords
+}
+
+// GetCanSoftDeleteAllObjectRecords returns CreateRoleInput.CanSoftDeleteAllObjectRecords, and is useful for accessing the field via an interface.
+func (v *CreateRoleInput) GetCanSoftDeleteAllObjectRecords() nullable.Nullable[bool] {
+	return v.CanSoftDeleteAllObjectRecords
+}
+
+// GetCanUpdateAllObjectRecords returns CreateRoleInput.CanUpdateAllObjectRecords, and is useful for accessing the field via an interface.
+func (v *CreateRoleInput) GetCanUpdateAllObjectRecords() nullable.Nullable[bool] {
+	return v.CanUpdateAllObjectRecords
+}
+
+// GetCanUpdateAllSettings returns CreateRoleInput.CanUpdateAllSettings, and is useful for accessing the field via an interface.
+func (v *CreateRoleInput) GetCanUpdateAllSettings() nullable.Nullable[bool] {
+	return v.CanUpdateAllSettings
+}
+
+// GetDescription returns CreateRoleInput.Description, and is useful for accessing the field via an interface.
+func (v *CreateRoleInput) GetDescription() nullable.Nullable[string] { return v.Description }
+
+// GetIcon returns CreateRoleInput.Icon, and is useful for accessing the field via an interface.
+func (v *CreateRoleInput) GetIcon() nullable.Nullable[string] { return v.Icon }
+
+// GetId returns CreateRoleInput.Id, and is useful for accessing the field via an interface.
+func (v *CreateRoleInput) GetId() nullable.Nullable[string] { return v.Id }
+
+// GetLabel returns CreateRoleInput.Label, and is useful for accessing the field via an interface.
+func (v *CreateRoleInput) GetLabel() string { return v.Label }
 
 // CurrentUserCurrentUser includes the requested fields of the GraphQL type User.
 type CurrentUserCurrentUser struct {
@@ -449,17 +449,11 @@ func (v *FieldPermissionDetails) GetCanUpdateFieldValue() nullable.Nullable[bool
 }
 
 type FieldPermissionInput struct {
-	ObjectMetadataId    string                  `json:"objectMetadataId"`
-	FieldMetadataId     string                  `json:"fieldMetadataId"`
 	CanReadFieldValue   nullable.Nullable[bool] `json:"canReadFieldValue,omitempty"`
 	CanUpdateFieldValue nullable.Nullable[bool] `json:"canUpdateFieldValue,omitempty"`
+	FieldMetadataId     string                  `json:"fieldMetadataId"`
+	ObjectMetadataId    string                  `json:"objectMetadataId"`
 }
-
-// GetObjectMetadataId returns FieldPermissionInput.ObjectMetadataId, and is useful for accessing the field via an interface.
-func (v *FieldPermissionInput) GetObjectMetadataId() string { return v.ObjectMetadataId }
-
-// GetFieldMetadataId returns FieldPermissionInput.FieldMetadataId, and is useful for accessing the field via an interface.
-func (v *FieldPermissionInput) GetFieldMetadataId() string { return v.FieldMetadataId }
 
 // GetCanReadFieldValue returns FieldPermissionInput.CanReadFieldValue, and is useful for accessing the field via an interface.
 func (v *FieldPermissionInput) GetCanReadFieldValue() nullable.Nullable[bool] {
@@ -470,6 +464,12 @@ func (v *FieldPermissionInput) GetCanReadFieldValue() nullable.Nullable[bool] {
 func (v *FieldPermissionInput) GetCanUpdateFieldValue() nullable.Nullable[bool] {
 	return v.CanUpdateFieldValue
 }
+
+// GetFieldMetadataId returns FieldPermissionInput.FieldMetadataId, and is useful for accessing the field via an interface.
+func (v *FieldPermissionInput) GetFieldMetadataId() string { return v.FieldMetadataId }
+
+// GetObjectMetadataId returns FieldPermissionInput.ObjectMetadataId, and is useful for accessing the field via an interface.
+func (v *FieldPermissionInput) GetObjectMetadataId() string { return v.ObjectMetadataId }
 
 // FindManyApplicationsFindManyApplicationsApplication includes the requested fields of the GraphQL type Application.
 type FindManyApplicationsFindManyApplicationsApplication struct {
@@ -1437,29 +1437,11 @@ func (v *ObjectPermissionDetailsRowLevelPermissionPredicatesRowLevelPermissionPr
 }
 
 type ObjectPermissionInput struct {
-	ObjectMetadataId           string                  `json:"objectMetadataId"`
-	CanReadObjectRecords       nullable.Nullable[bool] `json:"canReadObjectRecords,omitempty"`
-	CanUpdateObjectRecords     nullable.Nullable[bool] `json:"canUpdateObjectRecords,omitempty"`
-	CanSoftDeleteObjectRecords nullable.Nullable[bool] `json:"canSoftDeleteObjectRecords,omitempty"`
 	CanDestroyObjectRecords    nullable.Nullable[bool] `json:"canDestroyObjectRecords,omitempty"`
-}
-
-// GetObjectMetadataId returns ObjectPermissionInput.ObjectMetadataId, and is useful for accessing the field via an interface.
-func (v *ObjectPermissionInput) GetObjectMetadataId() string { return v.ObjectMetadataId }
-
-// GetCanReadObjectRecords returns ObjectPermissionInput.CanReadObjectRecords, and is useful for accessing the field via an interface.
-func (v *ObjectPermissionInput) GetCanReadObjectRecords() nullable.Nullable[bool] {
-	return v.CanReadObjectRecords
-}
-
-// GetCanUpdateObjectRecords returns ObjectPermissionInput.CanUpdateObjectRecords, and is useful for accessing the field via an interface.
-func (v *ObjectPermissionInput) GetCanUpdateObjectRecords() nullable.Nullable[bool] {
-	return v.CanUpdateObjectRecords
-}
-
-// GetCanSoftDeleteObjectRecords returns ObjectPermissionInput.CanSoftDeleteObjectRecords, and is useful for accessing the field via an interface.
-func (v *ObjectPermissionInput) GetCanSoftDeleteObjectRecords() nullable.Nullable[bool] {
-	return v.CanSoftDeleteObjectRecords
+	CanReadObjectRecords       nullable.Nullable[bool] `json:"canReadObjectRecords,omitempty"`
+	CanSoftDeleteObjectRecords nullable.Nullable[bool] `json:"canSoftDeleteObjectRecords,omitempty"`
+	CanUpdateObjectRecords     nullable.Nullable[bool] `json:"canUpdateObjectRecords,omitempty"`
+	ObjectMetadataId           string                  `json:"objectMetadataId"`
 }
 
 // GetCanDestroyObjectRecords returns ObjectPermissionInput.CanDestroyObjectRecords, and is useful for accessing the field via an interface.
@@ -1467,29 +1449,45 @@ func (v *ObjectPermissionInput) GetCanDestroyObjectRecords() nullable.Nullable[b
 	return v.CanDestroyObjectRecords
 }
 
+// GetCanReadObjectRecords returns ObjectPermissionInput.CanReadObjectRecords, and is useful for accessing the field via an interface.
+func (v *ObjectPermissionInput) GetCanReadObjectRecords() nullable.Nullable[bool] {
+	return v.CanReadObjectRecords
+}
+
+// GetCanSoftDeleteObjectRecords returns ObjectPermissionInput.CanSoftDeleteObjectRecords, and is useful for accessing the field via an interface.
+func (v *ObjectPermissionInput) GetCanSoftDeleteObjectRecords() nullable.Nullable[bool] {
+	return v.CanSoftDeleteObjectRecords
+}
+
+// GetCanUpdateObjectRecords returns ObjectPermissionInput.CanUpdateObjectRecords, and is useful for accessing the field via an interface.
+func (v *ObjectPermissionInput) GetCanUpdateObjectRecords() nullable.Nullable[bool] {
+	return v.CanUpdateObjectRecords
+}
+
+// GetObjectMetadataId returns ObjectPermissionInput.ObjectMetadataId, and is useful for accessing the field via an interface.
+func (v *ObjectPermissionInput) GetObjectMetadataId() string { return v.ObjectMetadataId }
+
 // Onboarding status
 type OnboardingStatus string
 
 const (
-	OnboardingStatusPlanRequired        OnboardingStatus = "PLAN_REQUIRED"
-	OnboardingStatusWorkspaceActivation OnboardingStatus = "WORKSPACE_ACTIVATION"
-	OnboardingStatusProfileCreation     OnboardingStatus = "PROFILE_CREATION"
-	OnboardingStatusSyncEmail           OnboardingStatus = "SYNC_EMAIL"
-	OnboardingStatusAppsInstallation    OnboardingStatus = "APPS_INSTALLATION"
-	OnboardingStatusInviteTeam          OnboardingStatus = "INVITE_TEAM"
 	OnboardingStatusBookCall            OnboardingStatus = "BOOK_CALL"
 	OnboardingStatusCompleted           OnboardingStatus = "COMPLETED"
+	OnboardingStatusInviteTeam          OnboardingStatus = "INVITE_TEAM"
+	OnboardingStatusPlanRequired        OnboardingStatus = "PLAN_REQUIRED"
+	OnboardingStatusProfileCreation     OnboardingStatus = "PROFILE_CREATION"
+	OnboardingStatusSyncEmail           OnboardingStatus = "SYNC_EMAIL"
+	OnboardingStatusWorkspaceActivation OnboardingStatus = "WORKSPACE_ACTIVATION"
 )
 
 var AllOnboardingStatus = []OnboardingStatus{
-	OnboardingStatusPlanRequired,
-	OnboardingStatusWorkspaceActivation,
-	OnboardingStatusProfileCreation,
-	OnboardingStatusSyncEmail,
-	OnboardingStatusAppsInstallation,
-	OnboardingStatusInviteTeam,
 	OnboardingStatusBookCall,
 	OnboardingStatusCompleted,
+	OnboardingStatusInviteTeam,
+	OnboardingStatusPlanRequired,
+	OnboardingStatusProfileCreation,
+	OnboardingStatusSyncEmail,
+	OnboardingStatusWorkspaceActivation,
 }
 
 // PermissionFlag includes the GraphQL fields of RolePermissionFlag requested by the fragment PermissionFlag.
@@ -1511,61 +1509,61 @@ func (v *PermissionFlag) GetFlag() string { return v.Flag }
 type PermissionFlagType string
 
 const (
+	PermissionFlagTypeAi                      PermissionFlagType = "AI"
+	PermissionFlagTypeAiSettings              PermissionFlagType = "AI_SETTINGS"
 	PermissionFlagTypeApiKeysAndWebhooks      PermissionFlagType = "API_KEYS_AND_WEBHOOKS"
+	PermissionFlagTypeApplications            PermissionFlagType = "APPLICATIONS"
+	PermissionFlagTypeBilling                 PermissionFlagType = "BILLING"
+	PermissionFlagTypeCodeInterpreterTool     PermissionFlagType = "CODE_INTERPRETER_TOOL"
+	PermissionFlagTypeConnectedAccounts       PermissionFlagType = "CONNECTED_ACCOUNTS"
+	PermissionFlagTypeCreateCalendarEventTool PermissionFlagType = "CREATE_CALENDAR_EVENT_TOOL"
+	PermissionFlagTypeDataModel               PermissionFlagType = "DATA_MODEL"
+	PermissionFlagTypeDownloadFile            PermissionFlagType = "DOWNLOAD_FILE"
+	PermissionFlagTypeExportCsv               PermissionFlagType = "EXPORT_CSV"
+	PermissionFlagTypeHttpRequestTool         PermissionFlagType = "HTTP_REQUEST_TOOL"
+	PermissionFlagTypeImpersonate             PermissionFlagType = "IMPERSONATE"
+	PermissionFlagTypeImportCsv               PermissionFlagType = "IMPORT_CSV"
+	PermissionFlagTypeLayouts                 PermissionFlagType = "LAYOUTS"
+	PermissionFlagTypeMarketplaceApps         PermissionFlagType = "MARKETPLACE_APPS"
+	PermissionFlagTypeProfileInformation      PermissionFlagType = "PROFILE_INFORMATION"
+	PermissionFlagTypeRoles                   PermissionFlagType = "ROLES"
+	PermissionFlagTypeSecurity                PermissionFlagType = "SECURITY"
+	PermissionFlagTypeSendEmailTool           PermissionFlagType = "SEND_EMAIL_TOOL"
+	PermissionFlagTypeSsoBypass               PermissionFlagType = "SSO_BYPASS"
+	PermissionFlagTypeUploadFile              PermissionFlagType = "UPLOAD_FILE"
+	PermissionFlagTypeViews                   PermissionFlagType = "VIEWS"
+	PermissionFlagTypeWorkflows               PermissionFlagType = "WORKFLOWS"
 	PermissionFlagTypeWorkspace               PermissionFlagType = "WORKSPACE"
 	PermissionFlagTypeWorkspaceMembers        PermissionFlagType = "WORKSPACE_MEMBERS"
-	PermissionFlagTypeRoles                   PermissionFlagType = "ROLES"
-	PermissionFlagTypeDataModel               PermissionFlagType = "DATA_MODEL"
-	PermissionFlagTypeSecurity                PermissionFlagType = "SECURITY"
-	PermissionFlagTypeWorkflows               PermissionFlagType = "WORKFLOWS"
-	PermissionFlagTypeImpersonate             PermissionFlagType = "IMPERSONATE"
-	PermissionFlagTypeSsoBypass               PermissionFlagType = "SSO_BYPASS"
-	PermissionFlagTypeApplications            PermissionFlagType = "APPLICATIONS"
-	PermissionFlagTypeMarketplaceApps         PermissionFlagType = "MARKETPLACE_APPS"
-	PermissionFlagTypeLayouts                 PermissionFlagType = "LAYOUTS"
-	PermissionFlagTypeBilling                 PermissionFlagType = "BILLING"
-	PermissionFlagTypeAiSettings              PermissionFlagType = "AI_SETTINGS"
-	PermissionFlagTypeAi                      PermissionFlagType = "AI"
-	PermissionFlagTypeViews                   PermissionFlagType = "VIEWS"
-	PermissionFlagTypeUploadFile              PermissionFlagType = "UPLOAD_FILE"
-	PermissionFlagTypeDownloadFile            PermissionFlagType = "DOWNLOAD_FILE"
-	PermissionFlagTypeSendEmailTool           PermissionFlagType = "SEND_EMAIL_TOOL"
-	PermissionFlagTypeCreateCalendarEventTool PermissionFlagType = "CREATE_CALENDAR_EVENT_TOOL"
-	PermissionFlagTypeHttpRequestTool         PermissionFlagType = "HTTP_REQUEST_TOOL"
-	PermissionFlagTypeCodeInterpreterTool     PermissionFlagType = "CODE_INTERPRETER_TOOL"
-	PermissionFlagTypeImportCsv               PermissionFlagType = "IMPORT_CSV"
-	PermissionFlagTypeExportCsv               PermissionFlagType = "EXPORT_CSV"
-	PermissionFlagTypeConnectedAccounts       PermissionFlagType = "CONNECTED_ACCOUNTS"
-	PermissionFlagTypeProfileInformation      PermissionFlagType = "PROFILE_INFORMATION"
 )
 
 var AllPermissionFlagType = []PermissionFlagType{
+	PermissionFlagTypeAi,
+	PermissionFlagTypeAiSettings,
 	PermissionFlagTypeApiKeysAndWebhooks,
+	PermissionFlagTypeApplications,
+	PermissionFlagTypeBilling,
+	PermissionFlagTypeCodeInterpreterTool,
+	PermissionFlagTypeConnectedAccounts,
+	PermissionFlagTypeCreateCalendarEventTool,
+	PermissionFlagTypeDataModel,
+	PermissionFlagTypeDownloadFile,
+	PermissionFlagTypeExportCsv,
+	PermissionFlagTypeHttpRequestTool,
+	PermissionFlagTypeImpersonate,
+	PermissionFlagTypeImportCsv,
+	PermissionFlagTypeLayouts,
+	PermissionFlagTypeMarketplaceApps,
+	PermissionFlagTypeProfileInformation,
+	PermissionFlagTypeRoles,
+	PermissionFlagTypeSecurity,
+	PermissionFlagTypeSendEmailTool,
+	PermissionFlagTypeSsoBypass,
+	PermissionFlagTypeUploadFile,
+	PermissionFlagTypeViews,
+	PermissionFlagTypeWorkflows,
 	PermissionFlagTypeWorkspace,
 	PermissionFlagTypeWorkspaceMembers,
-	PermissionFlagTypeRoles,
-	PermissionFlagTypeDataModel,
-	PermissionFlagTypeSecurity,
-	PermissionFlagTypeWorkflows,
-	PermissionFlagTypeImpersonate,
-	PermissionFlagTypeSsoBypass,
-	PermissionFlagTypeApplications,
-	PermissionFlagTypeMarketplaceApps,
-	PermissionFlagTypeLayouts,
-	PermissionFlagTypeBilling,
-	PermissionFlagTypeAiSettings,
-	PermissionFlagTypeAi,
-	PermissionFlagTypeViews,
-	PermissionFlagTypeUploadFile,
-	PermissionFlagTypeDownloadFile,
-	PermissionFlagTypeSendEmailTool,
-	PermissionFlagTypeCreateCalendarEventTool,
-	PermissionFlagTypeHttpRequestTool,
-	PermissionFlagTypeCodeInterpreterTool,
-	PermissionFlagTypeImportCsv,
-	PermissionFlagTypeExportCsv,
-	PermissionFlagTypeConnectedAccounts,
-	PermissionFlagTypeProfileInformation,
 }
 
 // PermissionPredicate includes the GraphQL fields of RowLevelPermissionPredicate requested by the fragment PermissionPredicate.
@@ -2236,40 +2234,40 @@ var AllRowLevelPermissionPredicateGroupLogicalOperator = []RowLevelPermissionPre
 type RowLevelPermissionPredicateOperand string
 
 const (
-	RowLevelPermissionPredicateOperandIs                 RowLevelPermissionPredicateOperand = "IS"
-	RowLevelPermissionPredicateOperandIsNotNull          RowLevelPermissionPredicateOperand = "IS_NOT_NULL"
-	RowLevelPermissionPredicateOperandIsNot              RowLevelPermissionPredicateOperand = "IS_NOT"
-	RowLevelPermissionPredicateOperandLessThanOrEqual    RowLevelPermissionPredicateOperand = "LESS_THAN_OR_EQUAL"
-	RowLevelPermissionPredicateOperandGreaterThanOrEqual RowLevelPermissionPredicateOperand = "GREATER_THAN_OR_EQUAL"
-	RowLevelPermissionPredicateOperandIsBefore           RowLevelPermissionPredicateOperand = "IS_BEFORE"
-	RowLevelPermissionPredicateOperandIsAfter            RowLevelPermissionPredicateOperand = "IS_AFTER"
 	RowLevelPermissionPredicateOperandContains           RowLevelPermissionPredicateOperand = "CONTAINS"
 	RowLevelPermissionPredicateOperandDoesNotContain     RowLevelPermissionPredicateOperand = "DOES_NOT_CONTAIN"
+	RowLevelPermissionPredicateOperandGreaterThanOrEqual RowLevelPermissionPredicateOperand = "GREATER_THAN_OR_EQUAL"
+	RowLevelPermissionPredicateOperandIs                 RowLevelPermissionPredicateOperand = "IS"
+	RowLevelPermissionPredicateOperandIsAfter            RowLevelPermissionPredicateOperand = "IS_AFTER"
+	RowLevelPermissionPredicateOperandIsBefore           RowLevelPermissionPredicateOperand = "IS_BEFORE"
 	RowLevelPermissionPredicateOperandIsEmpty            RowLevelPermissionPredicateOperand = "IS_EMPTY"
-	RowLevelPermissionPredicateOperandIsNotEmpty         RowLevelPermissionPredicateOperand = "IS_NOT_EMPTY"
-	RowLevelPermissionPredicateOperandIsRelative         RowLevelPermissionPredicateOperand = "IS_RELATIVE"
-	RowLevelPermissionPredicateOperandIsInPast           RowLevelPermissionPredicateOperand = "IS_IN_PAST"
 	RowLevelPermissionPredicateOperandIsInFuture         RowLevelPermissionPredicateOperand = "IS_IN_FUTURE"
+	RowLevelPermissionPredicateOperandIsInPast           RowLevelPermissionPredicateOperand = "IS_IN_PAST"
+	RowLevelPermissionPredicateOperandIsNot              RowLevelPermissionPredicateOperand = "IS_NOT"
+	RowLevelPermissionPredicateOperandIsNotEmpty         RowLevelPermissionPredicateOperand = "IS_NOT_EMPTY"
+	RowLevelPermissionPredicateOperandIsNotNull          RowLevelPermissionPredicateOperand = "IS_NOT_NULL"
+	RowLevelPermissionPredicateOperandIsRelative         RowLevelPermissionPredicateOperand = "IS_RELATIVE"
 	RowLevelPermissionPredicateOperandIsToday            RowLevelPermissionPredicateOperand = "IS_TODAY"
+	RowLevelPermissionPredicateOperandLessThanOrEqual    RowLevelPermissionPredicateOperand = "LESS_THAN_OR_EQUAL"
 	RowLevelPermissionPredicateOperandVectorSearch       RowLevelPermissionPredicateOperand = "VECTOR_SEARCH"
 )
 
 var AllRowLevelPermissionPredicateOperand = []RowLevelPermissionPredicateOperand{
-	RowLevelPermissionPredicateOperandIs,
-	RowLevelPermissionPredicateOperandIsNotNull,
-	RowLevelPermissionPredicateOperandIsNot,
-	RowLevelPermissionPredicateOperandLessThanOrEqual,
-	RowLevelPermissionPredicateOperandGreaterThanOrEqual,
-	RowLevelPermissionPredicateOperandIsBefore,
-	RowLevelPermissionPredicateOperandIsAfter,
 	RowLevelPermissionPredicateOperandContains,
 	RowLevelPermissionPredicateOperandDoesNotContain,
+	RowLevelPermissionPredicateOperandGreaterThanOrEqual,
+	RowLevelPermissionPredicateOperandIs,
+	RowLevelPermissionPredicateOperandIsAfter,
+	RowLevelPermissionPredicateOperandIsBefore,
 	RowLevelPermissionPredicateOperandIsEmpty,
-	RowLevelPermissionPredicateOperandIsNotEmpty,
-	RowLevelPermissionPredicateOperandIsRelative,
-	RowLevelPermissionPredicateOperandIsInPast,
 	RowLevelPermissionPredicateOperandIsInFuture,
+	RowLevelPermissionPredicateOperandIsInPast,
+	RowLevelPermissionPredicateOperandIsNot,
+	RowLevelPermissionPredicateOperandIsNotEmpty,
+	RowLevelPermissionPredicateOperandIsNotNull,
+	RowLevelPermissionPredicateOperandIsRelative,
 	RowLevelPermissionPredicateOperandIsToday,
+	RowLevelPermissionPredicateOperandLessThanOrEqual,
 	RowLevelPermissionPredicateOperandVectorSearch,
 }
 
@@ -2277,14 +2275,14 @@ type SSOIdentityProviderStatus string
 
 const (
 	SSOIdentityProviderStatusActive   SSOIdentityProviderStatus = "Active"
-	SSOIdentityProviderStatusInactive SSOIdentityProviderStatus = "Inactive"
 	SSOIdentityProviderStatusError    SSOIdentityProviderStatus = "Error"
+	SSOIdentityProviderStatusInactive SSOIdentityProviderStatus = "Inactive"
 )
 
 var AllSSOIdentityProviderStatus = []SSOIdentityProviderStatus{
 	SSOIdentityProviderStatusActive,
-	SSOIdentityProviderStatusInactive,
 	SSOIdentityProviderStatusError,
+	SSOIdentityProviderStatusInactive,
 }
 
 // SendInvitationsResponse is returned by SendInvitations on success.
@@ -2349,74 +2347,35 @@ type UpdateOneRoleResponse struct {
 func (v *UpdateOneRoleResponse) GetUpdateOneRole() RoleProperties { return v.UpdateOneRole }
 
 type UpdateRoleInput struct {
-	Update UpdateRolePayload `json:"update"`
 	// The id of the role to update
-	Id string `json:"id"`
+	Id     string            `json:"id"`
+	Update UpdateRolePayload `json:"update"`
 }
-
-// GetUpdate returns UpdateRoleInput.Update, and is useful for accessing the field via an interface.
-func (v *UpdateRoleInput) GetUpdate() UpdateRolePayload { return v.Update }
 
 // GetId returns UpdateRoleInput.Id, and is useful for accessing the field via an interface.
 func (v *UpdateRoleInput) GetId() string { return v.Id }
 
+// GetUpdate returns UpdateRoleInput.Update, and is useful for accessing the field via an interface.
+func (v *UpdateRoleInput) GetUpdate() UpdateRolePayload { return v.Update }
+
 type UpdateRolePayload struct {
-	Label                         nullable.Nullable[string] `json:"label,omitempty"`
-	Description                   nullable.Nullable[string] `json:"description,omitempty"`
-	Icon                          nullable.Nullable[string] `json:"icon,omitempty"`
-	CanUpdateAllSettings          nullable.Nullable[bool]   `json:"canUpdateAllSettings,omitempty"`
 	CanAccessAllTools             nullable.Nullable[bool]   `json:"canAccessAllTools,omitempty"`
-	CanReadAllObjectRecords       nullable.Nullable[bool]   `json:"canReadAllObjectRecords,omitempty"`
-	CanUpdateAllObjectRecords     nullable.Nullable[bool]   `json:"canUpdateAllObjectRecords,omitempty"`
-	CanSoftDeleteAllObjectRecords nullable.Nullable[bool]   `json:"canSoftDeleteAllObjectRecords,omitempty"`
-	CanDestroyAllObjectRecords    nullable.Nullable[bool]   `json:"canDestroyAllObjectRecords,omitempty"`
-	CanBeAssignedToUsers          nullable.Nullable[bool]   `json:"canBeAssignedToUsers,omitempty"`
 	CanBeAssignedToAgents         nullable.Nullable[bool]   `json:"canBeAssignedToAgents,omitempty"`
 	CanBeAssignedToApiKeys        nullable.Nullable[bool]   `json:"canBeAssignedToApiKeys,omitempty"`
-}
-
-// GetLabel returns UpdateRolePayload.Label, and is useful for accessing the field via an interface.
-func (v *UpdateRolePayload) GetLabel() nullable.Nullable[string] { return v.Label }
-
-// GetDescription returns UpdateRolePayload.Description, and is useful for accessing the field via an interface.
-func (v *UpdateRolePayload) GetDescription() nullable.Nullable[string] { return v.Description }
-
-// GetIcon returns UpdateRolePayload.Icon, and is useful for accessing the field via an interface.
-func (v *UpdateRolePayload) GetIcon() nullable.Nullable[string] { return v.Icon }
-
-// GetCanUpdateAllSettings returns UpdateRolePayload.CanUpdateAllSettings, and is useful for accessing the field via an interface.
-func (v *UpdateRolePayload) GetCanUpdateAllSettings() nullable.Nullable[bool] {
-	return v.CanUpdateAllSettings
+	CanBeAssignedToUsers          nullable.Nullable[bool]   `json:"canBeAssignedToUsers,omitempty"`
+	CanDestroyAllObjectRecords    nullable.Nullable[bool]   `json:"canDestroyAllObjectRecords,omitempty"`
+	CanReadAllObjectRecords       nullable.Nullable[bool]   `json:"canReadAllObjectRecords,omitempty"`
+	CanSoftDeleteAllObjectRecords nullable.Nullable[bool]   `json:"canSoftDeleteAllObjectRecords,omitempty"`
+	CanUpdateAllObjectRecords     nullable.Nullable[bool]   `json:"canUpdateAllObjectRecords,omitempty"`
+	CanUpdateAllSettings          nullable.Nullable[bool]   `json:"canUpdateAllSettings,omitempty"`
+	Description                   nullable.Nullable[string] `json:"description,omitempty"`
+	Icon                          nullable.Nullable[string] `json:"icon,omitempty"`
+	Label                         nullable.Nullable[string] `json:"label,omitempty"`
 }
 
 // GetCanAccessAllTools returns UpdateRolePayload.CanAccessAllTools, and is useful for accessing the field via an interface.
 func (v *UpdateRolePayload) GetCanAccessAllTools() nullable.Nullable[bool] {
 	return v.CanAccessAllTools
-}
-
-// GetCanReadAllObjectRecords returns UpdateRolePayload.CanReadAllObjectRecords, and is useful for accessing the field via an interface.
-func (v *UpdateRolePayload) GetCanReadAllObjectRecords() nullable.Nullable[bool] {
-	return v.CanReadAllObjectRecords
-}
-
-// GetCanUpdateAllObjectRecords returns UpdateRolePayload.CanUpdateAllObjectRecords, and is useful for accessing the field via an interface.
-func (v *UpdateRolePayload) GetCanUpdateAllObjectRecords() nullable.Nullable[bool] {
-	return v.CanUpdateAllObjectRecords
-}
-
-// GetCanSoftDeleteAllObjectRecords returns UpdateRolePayload.CanSoftDeleteAllObjectRecords, and is useful for accessing the field via an interface.
-func (v *UpdateRolePayload) GetCanSoftDeleteAllObjectRecords() nullable.Nullable[bool] {
-	return v.CanSoftDeleteAllObjectRecords
-}
-
-// GetCanDestroyAllObjectRecords returns UpdateRolePayload.CanDestroyAllObjectRecords, and is useful for accessing the field via an interface.
-func (v *UpdateRolePayload) GetCanDestroyAllObjectRecords() nullable.Nullable[bool] {
-	return v.CanDestroyAllObjectRecords
-}
-
-// GetCanBeAssignedToUsers returns UpdateRolePayload.CanBeAssignedToUsers, and is useful for accessing the field via an interface.
-func (v *UpdateRolePayload) GetCanBeAssignedToUsers() nullable.Nullable[bool] {
-	return v.CanBeAssignedToUsers
 }
 
 // GetCanBeAssignedToAgents returns UpdateRolePayload.CanBeAssignedToAgents, and is useful for accessing the field via an interface.
@@ -2428,6 +2387,45 @@ func (v *UpdateRolePayload) GetCanBeAssignedToAgents() nullable.Nullable[bool] {
 func (v *UpdateRolePayload) GetCanBeAssignedToApiKeys() nullable.Nullable[bool] {
 	return v.CanBeAssignedToApiKeys
 }
+
+// GetCanBeAssignedToUsers returns UpdateRolePayload.CanBeAssignedToUsers, and is useful for accessing the field via an interface.
+func (v *UpdateRolePayload) GetCanBeAssignedToUsers() nullable.Nullable[bool] {
+	return v.CanBeAssignedToUsers
+}
+
+// GetCanDestroyAllObjectRecords returns UpdateRolePayload.CanDestroyAllObjectRecords, and is useful for accessing the field via an interface.
+func (v *UpdateRolePayload) GetCanDestroyAllObjectRecords() nullable.Nullable[bool] {
+	return v.CanDestroyAllObjectRecords
+}
+
+// GetCanReadAllObjectRecords returns UpdateRolePayload.CanReadAllObjectRecords, and is useful for accessing the field via an interface.
+func (v *UpdateRolePayload) GetCanReadAllObjectRecords() nullable.Nullable[bool] {
+	return v.CanReadAllObjectRecords
+}
+
+// GetCanSoftDeleteAllObjectRecords returns UpdateRolePayload.CanSoftDeleteAllObjectRecords, and is useful for accessing the field via an interface.
+func (v *UpdateRolePayload) GetCanSoftDeleteAllObjectRecords() nullable.Nullable[bool] {
+	return v.CanSoftDeleteAllObjectRecords
+}
+
+// GetCanUpdateAllObjectRecords returns UpdateRolePayload.CanUpdateAllObjectRecords, and is useful for accessing the field via an interface.
+func (v *UpdateRolePayload) GetCanUpdateAllObjectRecords() nullable.Nullable[bool] {
+	return v.CanUpdateAllObjectRecords
+}
+
+// GetCanUpdateAllSettings returns UpdateRolePayload.CanUpdateAllSettings, and is useful for accessing the field via an interface.
+func (v *UpdateRolePayload) GetCanUpdateAllSettings() nullable.Nullable[bool] {
+	return v.CanUpdateAllSettings
+}
+
+// GetDescription returns UpdateRolePayload.Description, and is useful for accessing the field via an interface.
+func (v *UpdateRolePayload) GetDescription() nullable.Nullable[string] { return v.Description }
+
+// GetIcon returns UpdateRolePayload.Icon, and is useful for accessing the field via an interface.
+func (v *UpdateRolePayload) GetIcon() nullable.Nullable[string] { return v.Icon }
+
+// GetLabel returns UpdateRolePayload.Label, and is useful for accessing the field via an interface.
+func (v *UpdateRolePayload) GetLabel() nullable.Nullable[string] { return v.Label }
 
 // UpdateWorkspaceMemberRoleResponse is returned by UpdateWorkspaceMemberRole on success.
 type UpdateWorkspaceMemberRoleResponse struct {
@@ -2496,17 +2494,17 @@ func (v *UpdateWorkspaceMemberRoleUpdateWorkspaceMemberRoleWorkspaceMemberNameFu
 }
 
 type UpsertFieldPermissionsInput struct {
-	RoleId           string                 `json:"roleId"`
 	FieldPermissions []FieldPermissionInput `json:"fieldPermissions"`
+	RoleId           string                 `json:"roleId"`
 }
-
-// GetRoleId returns UpsertFieldPermissionsInput.RoleId, and is useful for accessing the field via an interface.
-func (v *UpsertFieldPermissionsInput) GetRoleId() string { return v.RoleId }
 
 // GetFieldPermissions returns UpsertFieldPermissionsInput.FieldPermissions, and is useful for accessing the field via an interface.
 func (v *UpsertFieldPermissionsInput) GetFieldPermissions() []FieldPermissionInput {
 	return v.FieldPermissions
 }
+
+// GetRoleId returns UpsertFieldPermissionsInput.RoleId, and is useful for accessing the field via an interface.
+func (v *UpsertFieldPermissionsInput) GetRoleId() string { return v.RoleId }
 
 // UpsertFieldPermissionsResponse is returned by UpsertFieldPermissions on success.
 type UpsertFieldPermissionsResponse struct {
@@ -2519,17 +2517,17 @@ func (v *UpsertFieldPermissionsResponse) GetUpsertFieldPermissions() []FieldPerm
 }
 
 type UpsertObjectPermissionsInput struct {
-	RoleId            string                  `json:"roleId"`
 	ObjectPermissions []ObjectPermissionInput `json:"objectPermissions"`
+	RoleId            string                  `json:"roleId"`
 }
-
-// GetRoleId returns UpsertObjectPermissionsInput.RoleId, and is useful for accessing the field via an interface.
-func (v *UpsertObjectPermissionsInput) GetRoleId() string { return v.RoleId }
 
 // GetObjectPermissions returns UpsertObjectPermissionsInput.ObjectPermissions, and is useful for accessing the field via an interface.
 func (v *UpsertObjectPermissionsInput) GetObjectPermissions() []ObjectPermissionInput {
 	return v.ObjectPermissions
 }
+
+// GetRoleId returns UpsertObjectPermissionsInput.RoleId, and is useful for accessing the field via an interface.
+func (v *UpsertObjectPermissionsInput) GetRoleId() string { return v.RoleId }
 
 // UpsertObjectPermissionsResponse is returned by UpsertObjectPermissions on success.
 type UpsertObjectPermissionsResponse struct {
@@ -2542,15 +2540,15 @@ func (v *UpsertObjectPermissionsResponse) GetUpsertObjectPermissions() []ObjectP
 }
 
 type UpsertPermissionFlagsInput struct {
-	RoleId             string   `json:"roleId"`
 	PermissionFlagKeys []string `json:"permissionFlagKeys"`
+	RoleId             string   `json:"roleId"`
 }
-
-// GetRoleId returns UpsertPermissionFlagsInput.RoleId, and is useful for accessing the field via an interface.
-func (v *UpsertPermissionFlagsInput) GetRoleId() string { return v.RoleId }
 
 // GetPermissionFlagKeys returns UpsertPermissionFlagsInput.PermissionFlagKeys, and is useful for accessing the field via an interface.
 func (v *UpsertPermissionFlagsInput) GetPermissionFlagKeys() []string { return v.PermissionFlagKeys }
+
+// GetRoleId returns UpsertPermissionFlagsInput.RoleId, and is useful for accessing the field via an interface.
+func (v *UpsertPermissionFlagsInput) GetRoleId() string { return v.RoleId }
 
 // UpsertPermissionFlagsResponse is returned by UpsertPermissionFlags on success.
 type UpsertPermissionFlagsResponse struct {
@@ -2565,20 +2563,20 @@ func (v *UpsertPermissionFlagsResponse) GetUpsertPermissionFlags() []PermissionF
 type WorkspaceActivationStatus string
 
 const (
+	WorkspaceActivationStatusActive          WorkspaceActivationStatus = "ACTIVE"
+	WorkspaceActivationStatusCreated         WorkspaceActivationStatus = "CREATED"
+	WorkspaceActivationStatusInactive        WorkspaceActivationStatus = "INACTIVE"
 	WorkspaceActivationStatusOngoingCreation WorkspaceActivationStatus = "ONGOING_CREATION"
 	WorkspaceActivationStatusPendingCreation WorkspaceActivationStatus = "PENDING_CREATION"
-	WorkspaceActivationStatusCreated         WorkspaceActivationStatus = "CREATED"
-	WorkspaceActivationStatusActive          WorkspaceActivationStatus = "ACTIVE"
-	WorkspaceActivationStatusInactive        WorkspaceActivationStatus = "INACTIVE"
 	WorkspaceActivationStatusSuspended       WorkspaceActivationStatus = "SUSPENDED"
 )
 
 var AllWorkspaceActivationStatus = []WorkspaceActivationStatus{
+	WorkspaceActivationStatusActive,
+	WorkspaceActivationStatusCreated,
+	WorkspaceActivationStatusInactive,
 	WorkspaceActivationStatusOngoingCreation,
 	WorkspaceActivationStatusPendingCreation,
-	WorkspaceActivationStatusCreated,
-	WorkspaceActivationStatusActive,
-	WorkspaceActivationStatusInactive,
 	WorkspaceActivationStatusSuspended,
 }
 

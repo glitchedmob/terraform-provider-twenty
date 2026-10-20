@@ -2,7 +2,7 @@
 
 ## Scope and safety
 
-Stages 1, 2, 3, and steps 4A/4B/4C are complete. Initial IAM work continues only under assigned authorization. The current role-invitation review fix permits parallel independent work in isolated worktrees. Step 4C implemented `twenty_workspace_member` invitation and accepted-member management. Implement only the assigned work and keep each branch's file ownership separate; the parent agent manages the PR stack. Read the serial checklist and tested handoff in [DEVELOPMENT.md](DEVELOPMENT.md) before continuing. Workspace settings and object/field permission ownership are outside this authorization.
+Stages 1, 2, 3, and steps 4A/4B/4C are complete. Initial IAM work continues only under assigned authorization. The current assignment raises the minimum supported and disposable test server to Twenty v2.46.0 and requires one-pass accepted-member/custom-role teardown after upstream PR #27226. The invitation-deletion guards remain required; the separate manual cache-recovery PR is superseded. Independent review may use isolated worktrees. Step 4C implemented `twenty_workspace_member` invitation and accepted-member management. Implement only the assigned work and keep each branch's file ownership separate; the parent agent manages the PR stack. Read the serial checklist and tested handoff in [DEVELOPMENT.md](DEVELOPMENT.md) before continuing. Workspace settings and object/field permission ownership are outside this authorization.
 
 The provider uses Twenty's Metadata GraphQL endpoint, `/metadata`. Implemented types are the role/member resources and the role/workspace data sources. Workspace lookup reads only the current authenticated workspace, with no selectors or mutations. Do not add workspace resources or workspace mutation calls. Membership manages only declared normalized emails in the authenticated workspace; existing access requires explicit import. Keep global users/passwords outside resources. Do not add CRM record CRUD, Core GraphQL `/graphql` calls, or Core REST record operations.
 
@@ -51,11 +51,11 @@ Never bypass the absent or raw-null configuration early return in `TwentyProvide
 Authorized disposable container target:
 
 ```text
-twentycrm/twenty:v2.44.0@sha256:01fb6d2c00397976fd7613dbeb9703b514b52fb6270339b7a326a2a975d15b26
+twentycrm/twenty:v2.46.0@sha256:bb4e94f0215cbd14c7356b0324d9b7ac10ccd077042cd6d5058ad02ef2080605
 ```
 
 Use this image for both server and worker and pin supporting services in `integration/compose.yml`. Container testing is authorized only for the disposable IAM acceptance stack. It does not authorize deployment or infrastructure changes.
 
-The upstream source pin is `twentyhq/twenty` commit `f7a4720eb4d479bfa3f6634bcdd703bb4de66600`, corresponding to v2.44.0. The [Metadata SDL](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-client-sdk/src/metadata/generated/schema.graphql) is the committed genqlient input. Follow the resolver links in [DEVELOPMENT.md](DEVELOPMENT.md) when choosing operations.
+The upstream source pin is `twentyhq/twenty` commit `9070979232c4f37165108a2eb5a4042e0cfdc3d6`, corresponding to the minimum v2.46.0. The [Metadata SDL](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-client-sdk/src/metadata/generated/schema.graphql) is the committed genqlient input. Follow the resolver links in [DEVELOPMENT.md](DEVELOPMENT.md) when choosing operations.
 
 Use the public [Kaneo provider](https://github.com/glitchedmob/terraform-provider-kaneo) as the structural reference. Do not import its REST client, resource implementations, acceptance stack, or unused dependencies.

@@ -1,5 +1,7 @@
 # Development plan and handoff
 
+Current minimum supported Twenty server: **v2.46.0**. The source and container pins below include upstream PR #27226. Earlier stage logs describe the historical v2.44.0 baseline and its expected cache failure; they are not the current compatibility policy. See the minimum-version handoff below.
+
 Work in separate, serial stages. Stages 1, 2, 3, and steps 4A/4B/4C are complete. Initial IAM work is authorized one assigned step at a time. Step 4A added the `twenty_role` resource; step 4B added the read-only `twenty_workspace` data source; step 4C added `twenty_workspace_member`. Further implementation requires its own serial assignment. Workspace settings and object/field permission ownership remain out of scope. Checkboxes record completed work; the handoffs below record actual checks and container results.
 
 ## Stage 1: scaffold
@@ -632,21 +634,43 @@ Verification used Go 1.27.1, Terraform 1.14.7, golangci-lint v2.13.2, tfplugindo
 
 An initial full run passed the new regressions but failed an older ROLES-only invitation-denial check because the expanded permission test had just granted `WORKSPACE_MEMBERS`. The test now restores `ROLES` alone before that independent check. This was a test-premise error, not an invitation guard failure. No production, infrastructure, live account, release, merge, tag, signing secret, push, or PR-management action was used.
 
+## Minimum-version and upstream cache-fix handoff
+
+The current assignment raises the minimum supported and disposable test target to Twenty v2.46.0. Upstream [PR #27226](https://github.com/twentyhq/twenty/pull/27226) merged as `d1530d5c46a90bf1223ab7c30a114d460c6f67b4` and refreshes role-target caches after membership deletion. GitHub commit comparison shows v2.45.0's tag is an ancestor of that fix despite its later publication time. v2.46.0 is the first stable released tag containing the merge. This supersedes provider PR #2's manual cache-maintenance test/procedure. No manual cache-maintenance code is needed on this minimum. Invitation reader/deletion guards in PRs #1/#3 remain necessary and unchanged.
+
+Server and worker now use the same public-registry-verified v2.46.0 manifest digest. Supporting services and Go dependencies are unchanged. The unmodified Metadata SDL comes from the release tag's exact source commit; its SHA256 is `f807c09348a879d96274901cf9bfbea372a2827159429cc222d68357241d36c1`. The SDK MIT license is byte-identical to the previous pin. Selected operations are regenerated from this SDL with the pinned offline tool.
+
+The combined Terraform-owned role/member regression now requires one successful destroy after real invitation acceptance and an empty plan. Both resources must disappear from server and state, with exactly one membership-deletion and one role-deletion call and no reassignment, maintenance, or retry. Fresh logins compare both protected administrators' identities and permission flags before/after and check unchanged Admin role properties. Membership fixture-role cleanup now fails on any deletion error instead of leaving those roles for stack destruction. Synthetic cache-error tests still retain role state and fixed redacted diagnostics if the condition recurs; the diagnostic no longer attributes every occurrence to v2.44.
+
+README and generated-page sources declare v2.46.0 as the minimum, remove the obsolete expected-failure claim, and retain partial-failure/removal-cascade warnings. Pinned-source review found the selected operations, role defaults/flags, and invitation lifecycle compatible. The auth service refactors an existing invitation-consuming password-login path, so authentication docs now warn that login can join an invited user before a later email-verification rejection. Removal docs also include the new transfer of eligible record-share grants to a custodian. This is a documented support/test floor, not a new runtime server-version query or gate. No new resource, mutation, server maintenance, production access, or release is included.
+
+### Verification
+
+Checks used Go 1.27.1, golangci-lint v2.13.2, tfplugindocs v0.25.0, and Terraform 1.14.7 downloaded from the official release archive and verified against its published SHA256 `e8bbcefea8015156e04e2a325cde37a0b2fb761728bda548e2fe3b8ad7c18c96`. The default PATH Terraform reports 1.14.5 and was not used for this assignment's formatting, docs, or acceptance attempt.
+
+- `make fmt`, `make fmt-check`, `make lint`, `make test`, `go test -race -count=1 ./...`, `go vet ./...`, `make build`, and `go mod verify` passed. Lint reported zero issues. Unit coverage remained 94.0% provider, 53.7% client, and 9.0% disposable helpers. No dependency changes were needed.
+- `make generate` passed the new SDL and unchanged license checksums. A second generation matched both generated-client SHA256 values. Selected operation documents did not change.
+- `make generate-docs` and `make validate-docs` passed with Twenty credential variables removed and Terraform 1.14.7 first in PATH. A final repeated generation matched all documentation SHA256 values. Generated pages accompany their sources.
+- `make testacc` was attempted with the pinned Terraform path but failed before stack startup because the configured local Docker Desktop Unix socket is absent. Sanitized diagnostics show every disposable service unavailable; cleanup also could not reach Docker. No server lifecycle case ran. This is not an acceptance pass, and the new minimum-version one-pass teardown still requires Docker-enabled CI or a local disposable-stack run.
+- `git diff --check` passed.
+
+No alternate daemon, production instance, live account, maintenance command, release, tag, or infrastructure change was used.
+
 ## Upstream pins
 
-- Twenty target: `v2.44.0`
-- Source commit: `f7a4720eb4d479bfa3f6634bcdd703bb4de66600`
-- Container: `twentycrm/twenty:v2.44.0@sha256:01fb6d2c00397976fd7613dbeb9703b514b52fb6270339b7a326a2a975d15b26`
-- [Metadata SDL](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-client-sdk/src/metadata/generated/schema.graphql)
-- [Auth resolver](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/auth/auth.resolver.ts)
-- [Role resolver](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/metadata-modules/role/role.resolver.ts)
-- [Invitation resolver](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/workspace-invitation/workspace-invitation.resolver.ts)
-- [User resolver](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/user/user.resolver.ts)
-- [Workspace resolver](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/workspace/workspace.resolver.ts)
-- [Workspace user count and removal](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/user-workspace/user-workspace.service.ts)
-- [Invitation lifecycle service](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/workspace-invitation/services/workspace-invitation.service.ts)
-- [Accepted removal and cascades](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/core-modules/user/services/user.service.ts)
-- [User-role assignment/cache service](https://github.com/twentyhq/twenty/blob/f7a4720eb4d479bfa3f6634bcdd703bb4de66600/packages/twenty-server/src/engine/metadata-modules/user-role/user-role.service.ts)
+- Minimum Twenty target: `v2.46.0`
+- Source commit: `9070979232c4f37165108a2eb5a4042e0cfdc3d6`
+- Container: `twentycrm/twenty:v2.46.0@sha256:bb4e94f0215cbd14c7356b0324d9b7ac10ccd077042cd6d5058ad02ef2080605`
+- [Metadata SDL](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-client-sdk/src/metadata/generated/schema.graphql)
+- [Auth resolver](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-server/src/engine/core-modules/auth/auth.resolver.ts)
+- [Role resolver](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-server/src/engine/metadata-modules/role/role.resolver.ts)
+- [Invitation resolver](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-server/src/engine/core-modules/workspace-invitation/workspace-invitation.resolver.ts)
+- [User resolver](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-server/src/engine/core-modules/user/user.resolver.ts)
+- [Workspace resolver](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-server/src/engine/core-modules/workspace/workspace.resolver.ts)
+- [Workspace user count and removal](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-server/src/engine/core-modules/user-workspace/user-workspace.service.ts)
+- [Invitation lifecycle service](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-server/src/engine/core-modules/workspace-invitation/services/workspace-invitation.service.ts)
+- [Accepted removal and cascades](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-server/src/engine/core-modules/user/services/user.service.ts)
+- [User-role assignment/cache service](https://github.com/twentyhq/twenty/blob/9070979232c4f37165108a2eb5a4042e0cfdc3d6/packages/twenty-server/src/engine/metadata-modules/user-role/user-role.service.ts)
 
 These public source pins guide implementation. They are not end-to-end authentication or compatibility results.
 

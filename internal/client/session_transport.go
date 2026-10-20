@@ -47,7 +47,7 @@ var (
 	errRenewalFailed       = errors.New("twenty session renewal failed; configure the provider again")
 	errAuthentication      = errors.New("twenty session authentication was rejected; configure the provider again")
 	errServer              = errors.New("twenty could not complete the Metadata operation")
-	errRoleDeletionCache   = errors.New("twenty v2.44 could not delete the role because its role-assignment cache references missing workspace memberships. Membership removal may already have succeeded. The role remains managed in state; inspect current membership and role state and resolve the upstream cache defect before another teardown attempt. No automatic retry or assignment repair was attempted")
+	errRoleDeletionCache   = errors.New("twenty could not delete the role because its role-assignment cache references missing workspace memberships. Membership removal may already have succeeded. The role remains managed in state; inspect current membership and role state and resolve the upstream cache defect before another teardown attempt. No automatic retry or assignment repair was attempted")
 )
 
 // DiagnosticMessage returns only canonical messages for known session errors.

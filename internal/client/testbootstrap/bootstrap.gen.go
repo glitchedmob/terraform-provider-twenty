@@ -466,20 +466,20 @@ func (v *TestVerifyEmailVerifyEmailAndGetWorkspaceAgnosticTokenAvailableWorkspac
 type WorkspaceActivationStatus string
 
 const (
+	WorkspaceActivationStatusActive          WorkspaceActivationStatus = "ACTIVE"
+	WorkspaceActivationStatusCreated         WorkspaceActivationStatus = "CREATED"
+	WorkspaceActivationStatusInactive        WorkspaceActivationStatus = "INACTIVE"
 	WorkspaceActivationStatusOngoingCreation WorkspaceActivationStatus = "ONGOING_CREATION"
 	WorkspaceActivationStatusPendingCreation WorkspaceActivationStatus = "PENDING_CREATION"
-	WorkspaceActivationStatusCreated         WorkspaceActivationStatus = "CREATED"
-	WorkspaceActivationStatusActive          WorkspaceActivationStatus = "ACTIVE"
-	WorkspaceActivationStatusInactive        WorkspaceActivationStatus = "INACTIVE"
 	WorkspaceActivationStatusSuspended       WorkspaceActivationStatus = "SUSPENDED"
 )
 
 var AllWorkspaceActivationStatus = []WorkspaceActivationStatus{
+	WorkspaceActivationStatusActive,
+	WorkspaceActivationStatusCreated,
+	WorkspaceActivationStatusInactive,
 	WorkspaceActivationStatusOngoingCreation,
 	WorkspaceActivationStatusPendingCreation,
-	WorkspaceActivationStatusCreated,
-	WorkspaceActivationStatusActive,
-	WorkspaceActivationStatusInactive,
 	WorkspaceActivationStatusSuspended,
 }
 
