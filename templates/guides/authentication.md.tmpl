@@ -49,6 +49,8 @@ Each provider configuration starts a new session. Access and rotating refresh to
 | Operation | Required settings permissions |
 | --- | --- |
 | Read current workspace | None |
+| Read objects, look up fields by object/name, or manage custom objects and fields | `DATA_MODEL` |
+| Look up a field by UUID | None |
 | Read, create, or update roles | `ROLES` |
 | Delete roles | `ROLES`, `APPLICATIONS`, `WORKSPACE_MEMBERS` |
 | Manage or import memberships | `ROLES`, `WORKSPACE_MEMBERS` |

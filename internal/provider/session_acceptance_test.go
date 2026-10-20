@@ -17,7 +17,7 @@ import (
 	"github.com/glitchedmob/terraform-provider-twenty/internal/client"
 )
 
-// One disposable stack is reused across session, data source, and IAM resource tests.
+// One disposable stack is reused across session, data source, IAM, and metadata tests.
 // No managed resources alter the operator or its independent recovery admin.
 func TestAccSessionAndRole(t *testing.T) {
 	fixture := acceptance.Bootstrap(t, acceptance.Start(t))
@@ -87,6 +87,8 @@ func TestAccSessionAndRole(t *testing.T) {
 	t.Run("workspace_member_resource", func(t *testing.T) { testAccWorkspaceMemberResource(t, fixture) })
 
 	t.Run("terraform_owned_role_and_accepted_member_one_pass_teardown", func(t *testing.T) { testAccCombinedTeardown(t, fixture) })
+
+	t.Run("custom_objects_fields_and_metadata_lookups", func(t *testing.T) { testAccMetadata(t, fixture) })
 
 	t.Run("missing_role", func(t *testing.T) {
 		resource.Test(t, resource.TestCase{

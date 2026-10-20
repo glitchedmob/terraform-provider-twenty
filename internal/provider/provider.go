@@ -36,7 +36,7 @@ type TwentyProviderModel struct {
 // ClientData shares one in-memory session with resources and data sources.
 type ClientData struct {
 	Client *client.Session
-	// MutationLock serializes fresh safety checks and IAM mutations across all
+	// MutationLock serializes fresh safety checks and Metadata mutations across all
 	// resources sharing this provider configuration. It is not a server lock.
 	MutationLock sync.Mutex
 }
@@ -56,7 +56,7 @@ func (p *TwentyProvider) Metadata(_ context.Context, _ provider.MetadataRequest,
 
 func (p *TwentyProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manage Twenty roles and workspace memberships through Metadata GraphQL. Requires Twenty v2.46.0 or later and a dedicated verified automation account.",
+		MarkdownDescription: "Manage Twenty custom objects, fields, roles, and workspace memberships through Metadata GraphQL. Requires Twenty v2.46.0 or later and a dedicated verified automation account.",
 		Attributes: map[string]schema.Attribute{
 			"endpoint": schema.StringAttribute{
 				MarkdownDescription: "Instance HTTPS base URL without `/metadata`, other paths, credentials, query, or fragment. Environment fallback: `TWENTY_ENDPOINT`. No default.",
@@ -107,11 +107,11 @@ func (p *TwentyProvider) Configure(ctx context.Context, req provider.ConfigureRe
 }
 
 func (p *TwentyProvider) Resources(context.Context) []func() resource.Resource {
-	return []func() resource.Resource{NewRoleResource, NewWorkspaceMemberResource}
+	return []func() resource.Resource{NewObjectResource, NewFieldResource, NewRoleResource, NewWorkspaceMemberResource}
 }
 
 func (p *TwentyProvider) DataSources(context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{NewRoleDataSource, NewWorkspaceDataSource}
+	return []func() datasource.DataSource{NewObjectDataSource, NewFieldDataSource, NewRoleDataSource, NewWorkspaceDataSource}
 }
 
 // New returns a provider factory for protocol server registration and tests.
