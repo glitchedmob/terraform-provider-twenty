@@ -64,21 +64,11 @@ func (c roleSafetyClient) MakeRequest(ctx context.Context, req *graphql.Request,
 		}
 	case "FindManyApplications":
 		var apps []map[string]json.RawMessage
-		if json.Unmarshal(data["findManyApplications"], &apps) != nil || apps == nil {
-			err = errInvalidRoleResponse
-		} else {
-			ids := map[string]bool{}
-			for _, app := range apps {
-				var id string
-				if json.Unmarshal(app["id"], &id) != nil || !validRoleUUID(id) || ids[strings.ToLower(id)] {
-					err = errInvalidRoleResponse
-					break
-				}
-				ids[strings.ToLower(id)] = true
-				if len(app["defaultRoleId"]) == 0 || (string(app["defaultRoleId"]) != "null" && !wireUUID(app["defaultRoleId"])) {
-					err = errInvalidRoleResponse
-					break
-				}
+		apps, err = wireList(data["findManyApplications"])
+		for _, app := range apps {
+			if len(app["defaultRoleId"]) == 0 || (string(app["defaultRoleId"]) != "null" && !wireUUID(app["defaultRoleId"])) {
+				err = errInvalidRoleResponse
+				break
 			}
 		}
 	default:

@@ -894,15 +894,12 @@ func TestMembershipMutationResponses(t *testing.T) {
 
 func TestGeneratedErrorAndContextPropagation(t *testing.T) {
 	t.Parallel()
+	// Generated wrappers share one implementation pattern. Cover representative
+	// signatures here; the wire tests above cover operation-specific inputs.
 	operations := []struct {
 		name string
 		call func(context.Context, graphql.Client) error
 	}{
-		{"CreateOneRole", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.CreateOneRole(ctx, c, client.CreateRoleInput{})
-			return err
-		}},
-		{"CurrentUser", func(ctx context.Context, c graphql.Client) error { _, err := client.CurrentUser(ctx, c); return err }},
 		{"CurrentWorkspace", func(ctx context.Context, c graphql.Client) error {
 			_, err := client.CurrentWorkspace(ctx, c)
 			return err
@@ -911,61 +908,8 @@ func TestGeneratedErrorAndContextPropagation(t *testing.T) {
 			_, err := client.DeleteOneRole(ctx, c, roleID)
 			return err
 		}},
-		{"DeleteUserFromWorkspace", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.DeleteUserFromWorkspace(ctx, c, memberID)
-			return err
-		}},
-		{"DeleteWorkspaceInvitation", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.DeleteWorkspaceInvitation(ctx, c, "synthetic-id")
-			return err
-		}},
-		{"FindWorkspaceInvitations", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.FindWorkspaceInvitations(ctx, c)
-			return err
-		}},
-		{"GetAuthTokensFromLoginToken", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.GetAuthTokensFromLoginToken(ctx, c, "synthetic-token", "https://synthetic.example.invalid")
-			return err
-		}},
-		{"GetLoginTokenFromCredentials", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.GetLoginTokenFromCredentials(ctx, c, "synthetic@example.invalid", "not-a-password", "https://synthetic.example.invalid", nil, nil, nil)
-			return err
-		}},
-		{"GetPublicWorkspaceDataByDomain", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.GetPublicWorkspaceDataByDomain(ctx, c, "https://synthetic.example.invalid")
-			return err
-		}},
-		{"GetPublicWorkspaceDataById", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.GetPublicWorkspaceDataById(ctx, c, workspaceID)
-			return err
-		}},
-		{"GetRoles", func(ctx context.Context, c graphql.Client) error { _, err := client.GetRoles(ctx, c); return err }},
-		{"RenewToken", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.RenewToken(ctx, c, "synthetic-token")
-			return err
-		}},
-		{"SendInvitations", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.SendInvitations(ctx, c, []string{}, nil)
-			return err
-		}},
 		{"UpdateOneRole", func(ctx context.Context, c graphql.Client) error {
 			_, err := client.UpdateOneRole(ctx, c, client.UpdateRoleInput{})
-			return err
-		}},
-		{"UpdateWorkspaceMemberRole", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.UpdateWorkspaceMemberRole(ctx, c, memberID, roleID)
-			return err
-		}},
-		{"UpsertFieldPermissions", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.UpsertFieldPermissions(ctx, c, client.UpsertFieldPermissionsInput{})
-			return err
-		}},
-		{"UpsertObjectPermissions", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.UpsertObjectPermissions(ctx, c, client.UpsertObjectPermissionsInput{})
-			return err
-		}},
-		{"UpsertPermissionFlags", func(ctx context.Context, c graphql.Client) error {
-			_, err := client.UpsertPermissionFlags(ctx, c, client.UpsertPermissionFlagsInput{})
 			return err
 		}},
 	}

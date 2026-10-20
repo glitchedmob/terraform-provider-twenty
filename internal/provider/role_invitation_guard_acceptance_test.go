@@ -95,19 +95,6 @@ resource "twenty_role" "custom" {
 	if err != nil || access.status != "absent" || snapshot.role(roleID) != nil {
 		t.Fatal("test-created invitation and role survived cleanup")
 	}
-	for _, admin := range []*acceptance.Account{fixture.Operator, fixture.Recovery} {
-		fresh, err := client.NewSession(t.Context(), fixture.Stack.Endpoint, admin.Email, admin.Password, true)
-		if err != nil || fresh.Identity().WorkspaceMemberID != admin.MemberID || fresh.Identity().UserID != admin.UserID {
-			t.Fatal("invitation guard changed a protected administrator identity/login")
-		}
-		identity, err := client.CurrentUser(t.Context(), fresh.Client())
-		if err != nil {
-			t.Fatal("read protected administrator after invitation guard cleanup")
-		}
-		member, err := identity.CurrentUser.WorkspaceMember.Get()
-		if err != nil || len(member.Roles) != 1 || member.Roles[0].Id != fixture.AdminRole.Id {
-			t.Fatal("invitation guard changed a protected administrator role")
-		}
-	}
+	protectedAdminIdentities(t, fixture)
 	t.Log("external pending invitation blocked Terraform role destroy; deliberate test-invitation revocation permitted cleanup; membership reads and both administrators preserved")
 }

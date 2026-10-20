@@ -207,6 +207,11 @@ resource "twenty_role" "denied" {
 			t.Run("roles_only_create_update_and_deletion_visibility", func(t *testing.T) {
 				t.Setenv("TWENTY_EMAIL", restricted.Email)
 				t.Setenv("TWENTY_PASSWORD", restricted.Password)
+				const updatedConfig = `provider "twenty" { allow_insecure_http = true }
+resource "twenty_role" "scoped" {
+ label = "ROLES-only updated role"
+ permission_flags = []
+}`
 				var scopedID string
 				resource.Test(t, resource.TestCase{ProtoV6ProviderFactories: acceptanceFactories(), CheckDestroy: func(_ *terraform.State) error {
 					role, err := readManagedRole(t.Context(), fixture.Operator.API, scopedID)
@@ -226,25 +231,13 @@ resource "twenty_role" "scoped" {
 						}
 						return nil
 					}},
-					{Config: `provider "twenty" { allow_insecure_http = true }
-resource "twenty_role" "scoped" {
- label = "ROLES-only updated role"
- permission_flags = []
-}`},
-					{Config: `provider "twenty" { allow_insecure_http = true }
-resource "twenty_role" "scoped" {
- label = "ROLES-only updated role"
- permission_flags = []
-}`, Destroy: true, ExpectError: regexp.MustCompile("Unable to Delete Twenty Role")},
+					{Config: updatedConfig},
+					{Config: updatedConfig, Destroy: true, ExpectError: regexp.MustCompile("Unable to Delete Twenty Role")},
 					{PreConfig: func() {
 						if _, err := client.UpsertPermissionFlags(t.Context(), fixture.Operator.API, client.UpsertPermissionFlagsInput{RoleId: roleID, PermissionFlagKeys: []string{"ROLES", "APPLICATIONS"}}); err != nil {
 							t.Fatal("grant application assignment visibility for deletion")
 						}
-					}, Config: `provider "twenty" { allow_insecure_http = true }
-resource "twenty_role" "scoped" {
- label = "ROLES-only updated role"
- permission_flags = []
-}`, Destroy: true, ExpectError: regexp.MustCompile("twenty denied permission for this Metadata operation")},
+					}, Config: updatedConfig, Destroy: true, ExpectError: regexp.MustCompile("twenty denied permission for this Metadata operation")},
 					{PreConfig: func() {
 						retained, err := readManagedRole(t.Context(), fixture.Operator.API, scopedID)
 						if err != nil || retained == nil || retained.Label != "ROLES-only updated role" {
@@ -253,11 +246,7 @@ resource "twenty_role" "scoped" {
 						if _, err := client.UpsertPermissionFlags(t.Context(), fixture.Operator.API, client.UpsertPermissionFlagsInput{RoleId: roleID, PermissionFlagKeys: []string{"ROLES", "APPLICATIONS", "WORKSPACE_MEMBERS"}}); err != nil {
 							t.Fatal("grant invitation reference visibility for safe deletion")
 						}
-					}, Config: `provider "twenty" { allow_insecure_http = true }
-resource "twenty_role" "scoped" {
- label = "ROLES-only updated role"
- permission_flags = []
-}`, Destroy: true},
+					}, Config: updatedConfig, Destroy: true},
 				}})
 			})
 			// The deletion test temporarily granted invitation visibility. Restore
@@ -287,26 +276,7 @@ resource "twenty_role" "scoped" {
 	})
 
 	t.Run("recovery_administrator_preserved", func(t *testing.T) {
-		for _, account := range []*acceptance.Account{fixture.Operator, fixture.Recovery} {
-			session, err := client.NewSession(t.Context(), fixture.Stack.Endpoint, account.Email, account.Password, true)
-			if err != nil {
-				t.Fatalf("authenticate protected disposable administrator: %s", err)
-			}
-			if session.Identity().WorkspaceMemberID != account.MemberID {
-				t.Fatal("protected administrator identity changed")
-			}
-			if _, err := session.GetRoles(t.Context()); err != nil {
-				t.Fatal("protected administrator lost settings permissions")
-			}
-			user, err := client.CurrentUser(t.Context(), session.Client())
-			if err != nil {
-				t.Fatal("read protected administrator assignment")
-			}
-			own, err := user.CurrentUser.WorkspaceMember.Get()
-			if err != nil || len(own.Roles) != 1 || own.Roles[0].Id != fixture.AdminRole.Id || own.UserId != account.UserID {
-				t.Fatal("unmanaged administrator assignment changed")
-			}
-		}
+		protectedAdminIdentities(t, fixture)
 	})
 }
 

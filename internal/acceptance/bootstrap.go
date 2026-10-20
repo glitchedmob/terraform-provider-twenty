@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -265,33 +264,7 @@ func (s *sanitizedClient) MakeRequest(ctx context.Context, request *graphql.Requ
 			return errors.New("disposable Metadata operation failed: User workspaces not found")
 		}
 		if len(response.Errors) != 0 {
-			classes := []string{}
-			for _, marker := range []string{"complex", "duplicate", "root resolver", "many fields", "nested fields", "authentication", "invalid", "permission", "workspace", "unknown", "syntax", "unexpected", "expected ", "session", "limit", "fragment"} {
-				if strings.Contains(strings.ToLower(err.Error()), marker) {
-					classes = append(classes, marker)
-				}
-			}
-			queryFields := map[string]bool{}
-			for _, field := range regexp.MustCompile(`[A-Za-z_][A-Za-z0-9_]*`).FindAllString(request.Query, -1) {
-				queryFields[field] = true
-			}
-			selected := []string{}
-			for _, item := range response.Errors {
-				for _, name := range regexp.MustCompile(`"([A-Za-z_][A-Za-z0-9_]*)"`).FindAllStringSubmatch(item.Message, -1) {
-					if queryFields[name[1]] {
-						selected = append(selected, name[1])
-					}
-				}
-			}
-			path := []string{}
-			for _, element := range response.Errors[0].Path {
-				field := fmt.Sprint(element)
-				// Paths may include indices; emit only fields present in the static query.
-				if queryFields[field] {
-					path = append(path, field)
-				}
-			}
-			return fmt.Errorf("disposable Metadata GraphQL error: categories %s, selected fields %s, referenced query fields %s; upstream details withheld", strings.Join(classes, ","), strings.Join(path, "."), strings.Join(selected, ","))
+			return errors.New("disposable Metadata GraphQL error; upstream details withheld")
 		}
 		var httpError *graphql.HTTPError
 		if errors.As(err, &httpError) {

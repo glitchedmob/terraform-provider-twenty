@@ -13,6 +13,7 @@ import (
 
 	"github.com/Khan/genqlient/graphql"
 	"github.com/glitchedmob/terraform-provider-twenty/internal/client"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -168,6 +169,45 @@ func memberImport(t *testing.T, r *workspaceMemberResource, email string) tfsdk.
 	}
 	return resp.State
 }
+func newImportedMember(t *testing.T, accepted bool) (*memberMock, *workspaceMemberResource, tfsdk.State) {
+	t.Helper()
+	mock := newMemberMock()
+	mock.invite(memberEmail, roleTestID)
+	if accepted {
+		mock.accept()
+	}
+	r := mockMemberResource(mock)
+	return mock, r, memberImport(t, r, memberEmail)
+}
+
+func assertMemberWritesBlocked(t *testing.T, r *workspaceMemberResource, mock *memberMock, state tfsdk.State) {
+	t.Helper()
+	writes := []string{"SendInvitations", "DeleteWorkspaceInvitation", "UpdateWorkspaceMemberRole", "DeleteUserFromWorkspace"}
+	before := make([]int, len(writes))
+	for i, op := range writes {
+		before[i] = memberCallCount(mock, op)
+	}
+	plan := getMemberState(t, state)
+	plan.RoleID = types.StringValue(roleTestOther)
+	updated := resource.UpdateResponse{State: state}
+	r.Update(t.Context(), resource.UpdateRequest{State: state, Plan: memberPlan(t, plan)}, &updated)
+	deleted := resource.DeleteResponse{State: state}
+	r.Delete(t.Context(), resource.DeleteRequest{State: state}, &deleted)
+	if !updated.State.Raw.Equal(state.Raw) || !deleted.State.Raw.Equal(state.Raw) {
+		t.Fatal("blocked writes changed state")
+	}
+	for _, diagnostics := range []diag.Diagnostics{updated.Diagnostics, deleted.Diagnostics} {
+		if !diagnostics.HasError() || len(diagnostics) != 1 || diagnostics[0].Detail() != errMemberOwnership.Error() {
+			t.Fatal("blocked writes must require explicit inspection/import")
+		}
+	}
+	for i, op := range writes {
+		if memberCallCount(mock, op) != before[i] {
+			t.Fatalf("unconfirmed ownership allowed %s", op)
+		}
+	}
+}
+
 func TestMemberSchemaConfigAndValidation(t *testing.T) {
 	r := NewWorkspaceMemberResource().(*workspaceMemberResource)
 	var md resource.MetadataResponse
@@ -403,6 +443,22 @@ func TestMemberSafetyGuards(t *testing.T) {
 		t.Fatal("final member/admin guard allowed removal or downscope")
 	}
 }
+func TestMemberServerEmailPolicy(t *testing.T) {
+	for _, email := range []string{"Recovery@Example.Test", "a/b@example.test"} {
+		t.Run(email, func(t *testing.T) {
+			mock, r, state := newImportedMember(t, false)
+			mock.members[1]["userEmail"] = email
+			mock.rebind()
+			read := resource.ReadResponse{State: state}
+			r.Read(t.Context(), resource.ReadRequest{State: state}, &read)
+			if read.Diagnostics.HasError() || !read.State.Raw.Equal(state.Raw) {
+				t.Fatal("valid server email rejected or changed state")
+			}
+			assertNoMemberWrites(t, mock)
+		})
+	}
+}
+
 func TestMemberMalformedAndFailedReadsPreserveState(t *testing.T) {
 	changes := map[string]func(string, map[string]any){
 		"null invitations": func(op string, d map[string]any) {
@@ -432,6 +488,12 @@ func TestMemberMalformedAndFailedReadsPreserveState(t *testing.T) {
 				u["workspaceMembers"] = append(list, list[0])
 			}
 		},
+		"omitted member email": func(op string, d map[string]any) {
+			if op == "CurrentUser" {
+				members := d["currentUser"].(map[string]any)["workspaceMembers"].([]any)
+				delete(members[1].(map[string]any), "userEmail")
+			}
+		},
 		"missing email": func(op string, d map[string]any) {
 			if op == "CurrentUser" {
 				delete(d["currentUser"].(map[string]any), "email")
@@ -443,31 +505,44 @@ func TestMemberMalformedAndFailedReadsPreserveState(t *testing.T) {
 			}
 		},
 	}
+	for name, email := range map[string]any{
+		"null member email":       nil,
+		"non-string member email": 123,
+		"empty member email":      "",
+		"padded member email":     " recovery@example.test ",
+		"invalid member email":    "not-an-email",
+	} {
+		changes[name] = func(op string, d map[string]any) {
+			if op == "CurrentUser" {
+				members := d["currentUser"].(map[string]any)["workspaceMembers"].([]any)
+				members[1].(map[string]any)["userEmail"] = email
+			}
+		}
+	}
 	for name, change := range changes {
 		t.Run(name, func(t *testing.T) {
-			mock := newMemberMock()
-			mock.invite(memberEmail, roleTestID)
-			r := mockMemberResource(mock)
-			state := memberImport(t, r, memberEmail)
+			mock, r, state := newImportedMember(t, false)
 			mock.after = change
 			read := resource.ReadResponse{State: state}
 			r.Read(t.Context(), resource.ReadRequest{State: state}, &read)
 			if !read.Diagnostics.HasError() || !read.State.Raw.Equal(state.Raw) {
 				t.Fatal("malformed read lost state")
 			}
+			plan := getMemberState(t, state)
+			plan.RoleID = types.StringValue(roleTestOther)
+			updated := resource.UpdateResponse{State: state}
+			r.Update(t.Context(), resource.UpdateRequest{State: state, Plan: memberPlan(t, plan)}, &updated)
 			deleted := resource.DeleteResponse{State: state}
 			r.Delete(t.Context(), resource.DeleteRequest{State: state}, &deleted)
-			if !deleted.Diagnostics.HasError() || strings.Contains(strings.Join(mock.calls, ","), "DeleteWorkspaceInvitation") {
-				t.Fatal("malformed result caused cancellation")
+			if !updated.Diagnostics.HasError() || !deleted.Diagnostics.HasError() || !updated.State.Raw.Equal(state.Raw) || !deleted.State.Raw.Equal(state.Raw) {
+				t.Fatal("malformed result allowed a write or changed state")
 			}
+			assertNoMemberWrites(t, mock)
 		})
 	}
 	for _, op := range []string{"CurrentUser", "CurrentWorkspace", "GetRoles", "FindWorkspaceInvitations"} {
 		for _, err := range []error{errors.New("FORBIDDEN private-secret"), &graphql.HTTPError{StatusCode: 503}} {
-			mock := newMemberMock()
-			mock.invite(memberEmail, roleTestID)
-			r := mockMemberResource(mock)
-			state := memberImport(t, r, memberEmail)
+			mock, r, state := newImportedMember(t, false)
 			mock.fail[op] = err
 			read := resource.ReadResponse{State: state}
 			r.Read(t.Context(), resource.ReadRequest{State: state}, &read)

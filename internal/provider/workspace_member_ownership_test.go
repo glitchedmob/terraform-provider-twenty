@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestMemberAmbiguousSendRequiresExplicitImportBeforeFurtherWrites(t *testing.T) {
@@ -32,20 +31,17 @@ func TestMemberAmbiguousSendRequiresExplicitImportBeforeFurtherWrites(t *testing
 			t.Fatal("refresh must not confer ownership of an ambiguous send")
 		}
 		state := refreshed.State
-		plan := getMemberState(t, state)
-		plan.RoleID = types.StringValue(roleTestOther)
-		updated := resource.UpdateResponse{State: state}
-		r.Update(t.Context(), resource.UpdateRequest{State: state, Plan: memberPlan(t, plan)}, &updated)
-		deleted := resource.DeleteResponse{State: state}
-		r.Delete(t.Context(), resource.DeleteRequest{State: state}, &deleted)
-		if !updated.Diagnostics.HasError() || !deleted.Diagnostics.HasError() || memberCallCount(mock, "DeleteWorkspaceInvitation") != 0 || memberCallCount(mock, "DeleteUserFromWorkspace") != 0 || memberCallCount(mock, "UpdateWorkspaceMemberRole") != 0 {
-			t.Fatal("unconfirmed ownership allowed another write")
+		assertMemberWritesBlocked(t, r, mock, state)
+		for _, op := range []string{"DeleteWorkspaceInvitation", "DeleteUserFromWorkspace", "UpdateWorkspaceMemberRole"} {
+			if memberCallCount(mock, op) != 0 {
+				t.Fatalf("ambiguous create or refresh attempted %s", op)
+			}
 		}
 		state = memberImport(t, r, memberEmail)
 		if !getMemberState(t, state).OwnershipConfirmed.ValueBool() {
 			t.Fatal("explicit import must confirm takeover")
 		}
-		deleted = resource.DeleteResponse{State: state}
+		deleted := resource.DeleteResponse{State: state}
 		r.Delete(t.Context(), resource.DeleteRequest{State: state}, &deleted)
 		if deleted.Diagnostics.HasError() {
 			t.Fatal(deleted.Diagnostics)
@@ -83,7 +79,7 @@ func TestMemberConcurrentDeclaredEmailSendsOnlyOnce(t *testing.T) {
 	}
 }
 func TestMemberDuplicateEmailAndNilIdentityFailClosed(t *testing.T) {
-	for _, kind := range []string{"email", "user", "membership", "nil user", "nil membership", "nil role"} {
+	for _, kind := range []string{"email", "mixed-case email", "user", "membership", "nil user", "nil membership", "nil role"} {
 		t.Run(kind, func(t *testing.T) {
 			mock := newMemberMock()
 			mock.invite(memberEmail, roleTestID)
@@ -92,6 +88,8 @@ func TestMemberDuplicateEmailAndNilIdentityFailClosed(t *testing.T) {
 			switch kind {
 			case "email":
 				mock.members[2]["userEmail"] = "recovery@example.test"
+			case "mixed-case email":
+				mock.members[2]["userEmail"] = "Recovery@Example.Test"
 			case "user":
 				mock.members[2]["userId"] = safetyRecovery
 			case "membership":

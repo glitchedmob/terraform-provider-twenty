@@ -85,10 +85,7 @@ func TestMemberPartialInvitationSend(t *testing.T) {
 func TestMemberCancelFailuresNeverResend(t *testing.T) {
 	for _, failure := range []string{"before cancel", "ambiguous cancel", "error result", "lossy result", "read failed", "replacement send failed"} {
 		t.Run(failure, func(t *testing.T) {
-			mock := newMemberMock()
-			mock.invite(memberEmail, roleTestID)
-			r := mockMemberResource(mock)
-			state := memberImport(t, r, memberEmail)
+			mock, r, state := newImportedMember(t, false)
 			m := getMemberState(t, state)
 			m.RoleID = types.StringValue(roleTestOther)
 			switch failure {
@@ -142,10 +139,7 @@ func TestMemberCancelFailuresNeverResend(t *testing.T) {
 func TestMemberAcceptanceRaceDoesNotRemoveOrReassign(t *testing.T) {
 	for _, action := range []string{"update during cancel", "delete during cancel", "update before read", "delete before read"} {
 		t.Run(action, func(t *testing.T) {
-			mock := newMemberMock()
-			mock.invite(memberEmail, roleTestID)
-			r := mockMemberResource(mock)
-			state := memberImport(t, r, memberEmail)
+			mock, r, state := newImportedMember(t, false)
 			m := getMemberState(t, state)
 			m.RoleID = types.StringValue(roleTestOther)
 			if strings.Contains(action, "before read") {
@@ -195,14 +189,7 @@ func TestMemberAcceptanceRaceDoesNotRemoveOrReassign(t *testing.T) {
 			}
 			if strings.Contains(action, "during cancel") {
 				mock.calls = nil
-				got.RoleID = types.StringValue(roleTestOther)
-				updated := resource.UpdateResponse{State: read.State}
-				r.Update(t.Context(), resource.UpdateRequest{State: read.State, Plan: memberPlan(t, got)}, &updated)
-				deleted := resource.DeleteResponse{State: read.State}
-				r.Delete(t.Context(), resource.DeleteRequest{State: read.State}, &deleted)
-				if !updated.Diagnostics.HasError() || !deleted.Diagnostics.HasError() {
-					t.Fatal("post-cancellation acceptance allowed a later write without import")
-				}
+				assertMemberWritesBlocked(t, r, mock, read.State)
 				assertNoMemberWrites(t, mock)
 			}
 		})
@@ -212,11 +199,7 @@ func TestMemberAcceptedMutationFailuresAndReplacedIdentity(t *testing.T) {
 	for _, op := range []string{"UpdateWorkspaceMemberRole", "DeleteUserFromWorkspace"} {
 		for _, kind := range []string{"transport", "lossy", "unconfirmed read"} {
 			t.Run(op+kind, func(t *testing.T) {
-				mock := newMemberMock()
-				mock.invite(memberEmail, roleTestID)
-				mock.accept()
-				r := mockMemberResource(mock)
-				state := memberImport(t, r, memberEmail)
+				mock, r, state := newImportedMember(t, true)
 				switch kind {
 				case "transport":
 					mock.fail[op] = errors.New("FORBIDDEN private-secret")
@@ -258,11 +241,7 @@ func TestMemberAcceptedMutationFailuresAndReplacedIdentity(t *testing.T) {
 			})
 		}
 	}
-	mock := newMemberMock()
-	mock.invite(memberEmail, roleTestID)
-	mock.accept()
-	r := mockMemberResource(mock)
-	state := memberImport(t, r, memberEmail)
+	mock, r, state := newImportedMember(t, true)
 	mock.members[2]["id"] = roleTestFlag
 	mock.rebind()
 	deleted := resource.DeleteResponse{State: state}
@@ -270,10 +249,7 @@ func TestMemberAcceptedMutationFailuresAndReplacedIdentity(t *testing.T) {
 	if !deleted.Diagnostics.HasError() || memberCallCount(mock, "DeleteUserFromWorkspace") != 0 {
 		t.Fatal("replaced member identity deleted")
 	}
-	mock = newMemberMock()
-	mock.invite(memberEmail, roleTestID)
-	r = mockMemberResource(mock)
-	state = memberImport(t, r, memberEmail)
+	mock, r, state = newImportedMember(t, false)
 	mock.invites[0]["id"] = memberNativeID
 	m := getMemberState(t, state)
 	m.RoleID = types.StringValue(roleTestOther)
