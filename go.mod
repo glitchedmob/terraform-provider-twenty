@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	github.com/Khan/genqlient v0.8.1
 	github.com/cpuguy83/dockercfg v0.3.2
-	github.com/docker/cli v29.9.0+incompatible
+	github.com/docker/cli v29.9.2+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-go v0.31.0
@@ -13,6 +13,7 @@ require (
 	github.com/oapi-codegen/nullable v1.2.0
 	github.com/testcontainers/testcontainers-go v0.44.0
 	github.com/testcontainers/testcontainers-go/modules/compose v0.44.0
+	github.com/vektah/gqlparser/v2 v2.5.30
 )
 
 require (
@@ -324,7 +325,6 @@ require (
 	github.com/ultraware/whitespace v0.2.0 // indirect
 	github.com/uudashr/gocognit v1.2.1 // indirect
 	github.com/uudashr/iface v1.5.1 // indirect
-	github.com/vektah/gqlparser/v2 v2.5.30 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
